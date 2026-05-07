@@ -139,7 +139,7 @@ export default function App() {
     return () => lenis.destroy();
   }, [loading]);
 
-  // 2. GSAP & ScrollTrigger Initialization (When content changes)
+  // 2. Global Stable GSAP Animations (Runs Once)
   useEffect(() => {
     if (loading) return;
 
@@ -179,31 +179,7 @@ export default function App() {
         });
       });
 
-      // Section Content animations (Cards, etc)
-      gsap.utils.toArray('section').forEach((section) => {
-        const elements = section.querySelectorAll('.animate-on-scroll:not(.char-reveal)');
-        if (elements.length > 0) {
-          gsap.fromTo(elements, 
-            { y: 60, opacity: 0, scale: 0.98 },
-            { 
-              y: 0, 
-              opacity: 1, 
-              scale: 1,
-              duration: 1.2,
-              stagger: { amount: 0.4, ease: "power2.out" },
-              ease: 'power4.out',
-              scrollTrigger: {
-                trigger: section,
-                start: window.innerWidth < 768 ? 'top 95%' : 'top 85%',
-                end: 'bottom 15%',
-                toggleActions: 'play reverse play reverse',
-              }
-            }
-          );
-        }
-      });
-
-      // Pinned Layouts (Desktop Only)
+      // Pinned Layouts (Desktop Only) - Keep these stable!
       if (window.innerWidth >= 1024) {
         ScrollTrigger.create({
           trigger: '#about-left',
@@ -240,11 +216,48 @@ export default function App() {
       }
     });
 
-    // Final refresh to catch all dynamic heights
-    ScrollTrigger.refresh();
-
     return () => ctx.revert();
-  }, [loading, showAllDomains, visibleEvents]);
+  }, [loading]);
+
+  // 3. Dynamic Section Animations (Runs when items change)
+  useEffect(() => {
+    if (loading) return;
+
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray('section').forEach((section) => {
+        const elements = section.querySelectorAll('.animate-on-scroll:not(.char-reveal)');
+        if (elements.length > 0) {
+          gsap.fromTo(elements, 
+            { y: 30, opacity: 0, scale: 0.99 },
+            { 
+              y: 0, 
+              opacity: 1, 
+              scale: 1,
+              duration: 0.8,
+              stagger: { amount: 0.2, ease: "power2.out" },
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: section,
+                start: window.innerWidth < 768 ? 'top 98%' : 'top 95%',
+                toggleActions: 'play none none none', // Only play once for smoother feel
+                once: true
+              }
+            }
+          );
+        }
+      });
+    });
+
+    // Use a small delay to ensure DOM is ready and transitions are starting
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 100);
+
+    return () => {
+      ctx.revert();
+      clearTimeout(timer);
+    };
+  }, [loading, showAllDomains, visibleEvents, eventCategory, eventTimeFilter]);
 
 
   // Terminal Auto Scroll to bottom
@@ -416,9 +429,7 @@ export default function App() {
         <div id="home-content" className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 lg:gap-16 items-center w-full">
           {/* Left Column Text / CTAs */}
           <div className="lg:col-span-7 flex flex-col gap-6 md:gap-8 max-w-2xl text-left">
-            <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand bg-brand/5 dark:bg-brand/10 border border-brand/20 rounded-full px-4 py-2 self-start flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5" /> GAT CODING CLUB
-            </span>
+
             <h1 id="hero-title" className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight md:leading-none text-slate-900 dark:text-white char-reveal">
               <SplitText text="Learn Coding. Build " />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500">
@@ -571,7 +582,7 @@ export default function App() {
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 transition-all duration-700 ease-in-out">
             {[
               { 
                 title: 'Web Development', 
@@ -708,7 +719,7 @@ export default function App() {
           </div>
 
           <div className="flex flex-col gap-12">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 transition-all duration-700 ease-in-out">
               {[
                 {
                   id: 1,
@@ -952,16 +963,17 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 md:gap-12">
             {/* Brand Section */}
             <div className="flex flex-col gap-8 col-span-2">
-              <div className="flex items-center">
-                <img src={GccLogo} alt="GAT Coding Club" className="h-16 md:h-20 w-auto" />
+              <div className="flex flex-col gap-4">
+                <img src={GccLogo} alt="GAT Coding Club" className="h-16 md:h-20 w-auto self-start" />
+                <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Global Academy of Technology</h4>
               </div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">
-                Helping students learn coding and build a better future together.
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm">
+                Empowering students at Global Academy of Technology through innovation, collaboration, and a deep-rooted passion for coding.
               </p>
               <div className="flex items-center gap-4">
-                <a href="https://github.com/gatclub" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-brand hover:text-white hover:border-brand transition-all duration-300 shadow-xl"><Github className="w-4 h-4" /></a>
-                <a href="https://instagram.com/gatclub" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-brand hover:text-white hover:border-brand transition-all duration-300 shadow-xl"><Instagram className="w-4 h-4" /></a>
-                <a href="https://linkedin.com/company/gatclub" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-brand hover:text-white hover:border-brand transition-all duration-300 shadow-xl"><Linkedin className="w-4 h-4" /></a>
+                <a href="#" className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-brand hover:text-white hover:border-brand transition-all duration-300 shadow-xl"><Github className="w-4 h-4" /></a>
+                <a href="#" className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-brand hover:text-white hover:border-brand transition-all duration-300 shadow-xl"><Instagram className="w-4 h-4" /></a>
+                <a href="#" className="w-10 h-10 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-brand hover:text-white hover:border-brand transition-all duration-300 shadow-xl"><Linkedin className="w-4 h-4" /></a>
               </div>
             </div>
 
@@ -969,22 +981,34 @@ export default function App() {
             <div className="flex flex-col gap-8">
               <h5 className="text-xs font-black tracking-[0.3em] text-slate-900 dark:text-white uppercase">Navigation</h5>
               <ul className="flex flex-col gap-5">
-                <li><a href="#about" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Who We Are</a></li>
-                <li><a href="#workflow" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Workflow</a></li>
+                <li><a href="#home" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Home</a></li>
+                <li><a href="#about" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">About Us</a></li>
+                <li><a href="#domains" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Our Domains</a></li>
                 <li><a href="#events" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Events Radar</a></li>
-                <li><a href="#leaderboard" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Leaderboard</a></li>
+                <li><a href="#team" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Our Team</a></li>
               </ul>
             </div>
 
             {/* Resources */}
             <div className="flex flex-col gap-8">
-              <h5 className="text-xs font-black tracking-[0.3em] text-slate-900 dark:text-white uppercase">Resources</h5>
-              <ul className="flex flex-col gap-5">
-                <li><a href="#" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Code Guidelines</a></li>
-                <li><a href="#" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Open Source Lab</a></li>
-                <li><a href="#" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Tech Stack</a></li>
-                <li><a href="#" className="footer-link text-sm font-bold text-slate-500 dark:text-slate-400">Alumni Network</a></li>
-              </ul>
+              <h5 className="text-xs font-black tracking-[0.3em] text-slate-900 dark:text-white uppercase">Connect</h5>
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black text-brand uppercase tracking-widest">Visit Us</span>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                    Aditya Layout, Rajarajeshwari Nagar,<br />
+                    Bengaluru, Karnataka - 560098
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black text-brand uppercase tracking-widest">Email</span>
+                  <a href="mailto:info@gat.ac.in" className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-brand transition-colors">info@gat.ac.in</a>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black text-brand uppercase tracking-widest">Phone</span>
+                  <a href="tel:08028603158" className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-brand transition-colors">080-28603158</a>
+                </div>
+              </div>
             </div>
 
             {/* Stay Updated */}
@@ -1003,9 +1027,9 @@ export default function App() {
           {/* Bottom Bar */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-12 border-t border-black/5 dark:border-white/5">
             <div className="text-[10px] font-black tracking-widest text-slate-400 dark:text-slate-600 uppercase flex items-center gap-3">
-              <span>© 2026 GCC Web dev Team</span>
+              <span>© 2026 GAT CODING CLUB</span>
               <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-800"></div>
-              <span>ALL RIGHTS RESERVED</span>
+              <span>Developed by Naseer</span>
             </div>
             
             <div className="flex items-center gap-8 text-[10px] font-black tracking-widest text-slate-400 dark:text-slate-600 uppercase">
