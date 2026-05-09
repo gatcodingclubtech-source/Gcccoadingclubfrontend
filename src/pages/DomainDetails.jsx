@@ -36,7 +36,7 @@ export default function DomainDetails() {
 
   if (!domain) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
         <div className="flex flex-col gap-6 text-center items-center">
           <h1 className="text-4xl font-black text-slate-900 dark:text-white">Domain Not Found</h1>
           <Link to="/" className="px-8 py-4 rounded-full bg-brand text-white font-black hover:scale-105 transition-transform shadow-xl">
@@ -50,10 +50,10 @@ export default function DomainDetails() {
   // Helper to map color to actual tailwind classes safely without arbitrary string interpolation
   const getColorClasses = (colorName) => {
     const map = {
-      blue: { text: 'text-blue-500', bg: 'bg-blue-500', bgLight: 'bg-blue-500/10', border: 'border-blue-500/20', gradient: 'from-blue-600 to-cyan-500' },
+      blue: { text: 'text-emerald-500', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-600 to-cyan-500' },
       purple: { text: 'text-purple-500', bg: 'bg-purple-500', bgLight: 'bg-purple-500/10', border: 'border-purple-500/20', gradient: 'from-purple-600 to-pink-500' },
-      cyan: { text: 'text-cyan-500', bg: 'bg-cyan-500', bgLight: 'bg-cyan-500/10', border: 'border-cyan-500/20', gradient: 'from-cyan-500 to-blue-500' },
-      indigo: { text: 'text-indigo-500', bg: 'bg-indigo-500', bgLight: 'bg-indigo-500/10', border: 'border-indigo-500/20', gradient: 'from-indigo-600 to-purple-600' },
+      cyan: { text: 'text-cyan-500', bg: 'bg-cyan-500', bgLight: 'bg-cyan-500/10', border: 'border-cyan-500/20', gradient: 'from-cyan-500 to-emerald-500' },
+      indigo: { text: 'text-emerald-500', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-600 to-purple-600' },
       red: { text: 'text-red-500', bg: 'bg-red-500', bgLight: 'bg-red-500/10', border: 'border-red-500/20', gradient: 'from-red-600 to-orange-500' },
       emerald: { text: 'text-emerald-500', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-500 to-teal-400' },
     };
@@ -63,7 +63,7 @@ export default function DomainDetails() {
   const themeColors = getColorClasses(domain.color);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-slate-900" ref={containerRef}>
+    <div className="min-h-screen bg-slate-50 dark:bg-black relative overflow-hidden selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-slate-900" ref={containerRef}>
       
       {/* Massive Background Watermark */}
       <div className={`bg-watermark absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/4 ${themeColors.text} opacity-5 dark:opacity-10 pointer-events-none select-none blur-sm`}>

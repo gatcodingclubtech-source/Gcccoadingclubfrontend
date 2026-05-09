@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Menu, X, Home as HomeIcon, Info, Layers, Calendar, Trophy, Users, ChevronRight, Plus } from 'lucide-react';
+import { Sun, Moon, Menu, X, Home as HomeIcon, Info, Layers, Calendar, Trophy, Users, BookOpen, ChevronRight, Plus } from 'lucide-react';
 import GccLogo from '../assets/gcc logo 1.svg';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -39,6 +39,7 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
     { label: 'About', id: 'about', icon: Info },
     { label: 'Domains', id: 'domains', icon: Layers },
     { label: 'Events', id: 'events', icon: Calendar },
+    { label: 'Quiz', id: 'quiz', icon: BookOpen },
     { label: 'Leaderboard', id: 'leaderboard', icon: Trophy },
     { label: 'Team', id: 'team', icon: Users },
   ];
@@ -71,7 +72,7 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
 
         {mobileMenuOpen && (
           <div id="mobile-menu" className="absolute top-full left-6 right-6 mt-4 bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 rounded-[2rem] px-8 py-6 flex flex-col gap-4 text-center text-slate-900 dark:text-white shadow-2xl z-50 backdrop-blur-3xl">
-            {['Home', 'About', 'Workflow', 'Events', 'Leaderboard', 'Team'].map((item) => {
+            {['Home', 'About', 'Workflow', 'Events', 'Quiz', 'Leaderboard', 'Team'].map((item) => {
               const targetId = item === 'Workflow' ? 'domains' : item.toLowerCase();
               return (
                 <button 
