@@ -77,6 +77,7 @@ export default function Home({ theme }) {
             tl.to('#preloader-content', { opacity: 0, y: -20, duration: 0.5, ease: 'power2.inOut' })
               .to('#preloader-line-fill', { scaleX: 1.2, opacity: 0, duration: 0.4, ease: 'power2.inOut' }, '-=0.2')
               .to('#preloader', { opacity: 0, scale: 0.98, duration: 0.6, ease: 'power2.inOut', onComplete: () => {
+                window.scrollTo(0, 0);
                 setLoading(false);
                 const preloaderEl = document.getElementById('preloader');
                 if (preloaderEl) preloaderEl.style.display = 'none';
@@ -429,7 +430,6 @@ export default function Home({ theme }) {
               </span>
               <input
                 type="text"
-                autoFocus
                 autoComplete="off"
                 spellCheck="false"
                 className="flex-1 bg-transparent border-none outline-none font-mono text-xs md:text-sm text-slate-100 select-all"
