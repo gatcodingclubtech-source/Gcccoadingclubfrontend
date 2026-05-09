@@ -31,9 +31,11 @@ const SplitText = ({ text, className }) => {
   return (
     <span className={`inline-block ${className}`}>
       {text.split('').map((char, i) => (
-        <span key={i} className="char inline-block whitespace-pre">
-          {char}
-        </span>
+        char === ' ' ? ' ' : (
+          <span key={i} className="char inline-block">
+            {char}
+          </span>
+        )
       ))}
     </span>
   );
@@ -82,7 +84,8 @@ export default function Home({ theme }) {
                 gsap.fromTo('#hero-title', { y: 60, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 1.5, ease: 'power4.out' });
                 gsap.fromTo('#hero-desc', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1.5, delay: 0.15, ease: 'power4.out' });
                 gsap.fromTo('#hero-cta', { y: 30, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 1.5, delay: 0.3, ease: 'power4.out' });
-                gsap.fromTo('#hero-terminal', { x: 60, opacity: 0, rotateY: -10 }, { x: 0, opacity: 1, rotateY: 0, duration: 1.5, delay: 0.4, ease: 'power4.out' });
+                gsap.fromTo('#hero-stats', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1.5, delay: 0.4, ease: 'power4.out' });
+                gsap.fromTo('#hero-terminal', { x: 60, opacity: 0, rotateY: -10 }, { x: 0, opacity: 1, rotateY: 0, duration: 1.5, delay: 0.5, ease: 'power4.out' });
               }});
           }, 300);
           return 100;
@@ -333,7 +336,7 @@ export default function Home({ theme }) {
 
 
       {/* 3. Hero Section (Split Interactive Desktop Grid Layout) */}
-      <section className="min-h-screen relative flex items-center justify-center px-6 pt-32 pb-32 md:pb-40 overflow-hidden z-10" id="home">
+      <section className="min-h-[90vh] md:min-h-screen relative flex flex-col justify-start px-6 pt-32 pb-16 md:pt-5 md:pb-16 overflow-hidden z-10" id="home">
         <div id="home-content" className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 lg:gap-16 items-center w-full">
           {/* Left Column Text / CTAs */}
           <div className="lg:col-span-7 flex flex-col gap-6 md:gap-8 max-w-2xl text-left">
@@ -349,7 +352,7 @@ export default function Home({ theme }) {
               </span>
             </div>
 
-            <h1 id="hero-title" className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight md:leading-none text-slate-900 dark:text-white char-reveal flex flex-col gap-1 md:gap-2">
+            <h1 id="hero-title" className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight md:leading-tight text-slate-900 dark:text-white char-reveal flex flex-col gap-1">
               <span className="text-brand drop-shadow-xl">
                 <SplitText text="Welcome to GCC." />
               </span>
@@ -360,7 +363,7 @@ export default function Home({ theme }) {
                 </span>
               </span>
             </h1>
-            <p id="hero-desc" className="text-base md:text-lg font-medium text-slate-600 dark:text-slate-400 max-w-xl animate-on-scroll">
+            <p id="hero-desc" className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 max-w-lg animate-on-scroll">
               GAT Coding Club helps students learn by building projects and working together. Join us to grow your skills and build a great future.
             </p>
             
@@ -374,7 +377,7 @@ export default function Home({ theme }) {
             </div>
 
             {/* Premium Floating Stats */}
-            <div className="flex flex-wrap items-center gap-6 mt-6 pt-6 border-t border-black/5 dark:border-white/5 animate-on-scroll">
+            <div id="hero-stats" className="flex flex-wrap items-center gap-6 mt-6 pt-6 border-t border-black/5 dark:border-white/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
                   <Users className="w-5 h-5" />
@@ -397,7 +400,7 @@ export default function Home({ theme }) {
           </div>
 
           {/* Right Column Interactive macOS Hacker Terminal */}
-          <div id="hero-terminal" className="lg:col-span-5 relative w-full h-[360px] md:h-[420px] rounded-[2.5rem] bg-slate-950 text-white font-mono flex flex-col overflow-hidden border border-white/10 terminal-premium-shadow select-none">
+          <div id="hero-terminal" className="lg:col-span-5 relative w-full h-[320px] md:h-[360px] rounded-[2rem] bg-slate-950 text-white font-mono flex flex-col overflow-hidden border border-white/10 terminal-premium-shadow select-none">
             <div className="h-10 md:h-12 bg-slate-900/80 border-b border-white/5 px-4 md:px-6 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>

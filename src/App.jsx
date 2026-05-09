@@ -10,6 +10,7 @@ export default function App() {
   const [theme, setTheme] = useState('light');
   const [navVisible, setNavVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
 
   useEffect(() => {
     // Initial theme check
@@ -55,24 +56,27 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden font-cyber flex flex-col">
+      <div className={`min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden font-cyber flex flex-col transition-all duration-500 ease-in-out ${desktopMenuOpen ? 'md:pl-64' : 'md:pl-24'}`}>
         <Navbar 
           theme={theme} 
           toggleTheme={toggleTheme} 
           navVisible={navVisible} 
           mobileMenuOpen={mobileMenuOpen} 
           setMobileMenuOpen={setMobileMenuOpen} 
+          desktopMenuOpen={desktopMenuOpen}
+          setDesktopMenuOpen={setDesktopMenuOpen}
         />
-        
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home theme={theme} />} />
-            <Route path="/event/:id" element={<EventDetails />} />
-            <Route path="/domain/:id" element={<DomainDetails />} />
-          </Routes>
-        </main>
-        
-        <Footer />
+        <div className="flex-1 flex flex-col min-h-screen w-full">
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Home theme={theme} />} />
+              <Route path="/event/:id" element={<EventDetails />} />
+              <Route path="/domain/:id" element={<DomainDetails />} />
+            </Routes>
+          </main>
+          
+          <Footer />
+        </div>
       </div>
     </Router>
   );

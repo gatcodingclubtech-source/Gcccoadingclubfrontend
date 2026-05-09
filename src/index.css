@@ -190,6 +190,15 @@ html.dark .terminal-premium-shadow {
   background: #2563eb;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 /* Character & Word Wrappers for SplitText */
 .split-parent {
   overflow: hidden;
