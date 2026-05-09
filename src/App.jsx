@@ -4,13 +4,45 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AnimatedBackground from './components/AnimatedBackground';
 import Home from './pages/Home';
+import Events from './pages/Events';
 import EventDetails from './pages/EventDetails';
 import DomainDetails from './pages/DomainDetails';
 import Quiz from './pages/Quiz';
+import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMenuOpen, desktopMenuOpen, setDesktopMenuOpen }) {
   const location = useLocation();
-  const isHome = location.pathname === '/';
+
+  useEffect(() => {
+    // Initialize Lenis smooth scroll
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+      infinite: false,
+    });
+
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      lenis.destroy();
+      gsap.ticker.remove(lenis.raf);
+    };
+  }, []);
 
   return (
     <div className={`min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden font-cyber flex flex-col transition-all duration-500 ease-in-out ${desktopMenuOpen ? 'md:pl-64' : 'md:pl-24'}`}>
@@ -27,12 +59,13 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<Home theme={theme} />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/event/:id" element={<EventDetails />} />
             <Route path="/domain/:id" element={<DomainDetails />} />
             <Route path="/quiz" element={<Quiz />} />
           </Routes>
         </main>
-        {isHome && <Footer />}
+        <Footer />
       </div>
     </div>
   );

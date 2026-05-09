@@ -278,15 +278,15 @@ export default function Home({ theme }) {
 
         gsap.to('#home-content', {
           scrollTrigger: {
-            trigger: '#hero-terminal',
-            start: 'bottom top',
-            endTrigger: '#about',
-            end: 'top top',
+            trigger: '#about',
+            start: 'top bottom', // Start fading when About enters from bottom
+            end: 'top top', // Fully gone when About reaches top
             scrub: true,
           },
-          scale: 0.9,
-          opacity: 0.3,
-          ease: 'none',
+          opacity: 0,
+          scale: 0.8,
+          pointerEvents: 'none',
+          ease: 'none'
         });
       }
     });
@@ -541,7 +541,7 @@ export default function Home({ theme }) {
       </section>
 
       {/* 4. Pinned Left / Scrolling Right About Section */}
-      <section id="about" className="relative z-30 bg-slate-50 dark:bg-slate-950 py-24 md:py-32 px-6 border-t border-black/5 dark:border-white/5 select-none">
+      <section id="about" className="relative z-30 py-24 md:py-32 px-6 border-t border-black/5 dark:border-white/5 select-none">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 md:gap-16 items-start">
           {/* Pinned Left Side Content */}
           <div id="about-left" className="lg:col-span-5 self-start flex flex-col gap-6 md:gap-8 animate-on-scroll">
@@ -667,121 +667,62 @@ export default function Home({ theme }) {
       </section>
 
       {/* 6. Advanced Event Radar - REDESIGNED 2.0 */}
-      <section id="events" className="bg-slate-50 dark:bg-slate-950 py-24 md:py-40 px-6 relative z-10 overflow-hidden border-t border-b border-black/5 dark:border-white/5">
+      <section id="events" className="py-24 md:py-40 px-6 relative z-10 overflow-hidden border-t border-b border-black/5 dark:border-white/5">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[120px] -z-10 animate-on-scroll"></div>
         <div className="max-w-7xl mx-auto flex flex-col gap-16 md:gap-24">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12 animate-on-scroll">
-            <div className="flex flex-col gap-5 max-w-2xl">
+          <div className="flex flex-col gap-12 animate-on-scroll mb-16">
+            <div className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-[2px] bg-brand"></div>
                 <span className="text-xs md:text-sm font-bold uppercase tracking-[0.3em] text-brand">Latest Activities</span>
               </div>
               <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9] font-cyber char-reveal">
-                <SplitText text="Latest " />
-                <span className="text-emerald-500">
-                  <SplitText text="Activities" />
-                </span>
+                Latest <span className="text-emerald-500">Activities</span>
               </h2>
             </div>
 
-            {/* Futuristic floating control center */}
-            <div className="flex flex-col gap-4 p-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl border border-black/5 dark:border-white/5 rounded-[2.5rem] shadow-2xl">
-              <div className="flex p-1 bg-slate-200/50 dark:bg-slate-800/50 rounded-full border border-black/5 dark:border-white/5">
-                <button
-                  onClick={() => { setEventCategory('all'); setVisibleEvents(6); }}
-                  className={`px-6 py-3 rounded-full text-[10px] font-black transition-all duration-500 ${eventCategory === 'all' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                >
-                  ALL
-                </button>
-                <button
-                  onClick={() => { setEventCategory('events'); setVisibleEvents(6); }}
-                  className={`px-6 py-3 rounded-full text-[10px] font-black transition-all duration-500 ${eventCategory === 'events' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                >
-                  EVENTS
-                </button>
-                <button
-                  onClick={() => { setEventCategory('workshops'); setVisibleEvents(6); }}
-                  className={`px-6 py-3 rounded-full text-[10px] font-black transition-all duration-500 ${eventCategory === 'workshops' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                >
-                  WORKSHOPS
-                </button>
-              </div>
-              <div className="flex justify-center gap-6 px-6 py-2">
-                <button
-                  onClick={() => { setEventTimeFilter('all'); setVisibleEvents(6); }}
-                  className={`text-[9px] font-black tracking-widest transition-all ${eventTimeFilter === 'all' ? 'text-brand scale-110' : 'text-slate-400 hover:text-slate-900'}`}
-                >
-                  ALL TIME
-                </button>
-                <button
-                  onClick={() => { setEventTimeFilter('upcoming'); setVisibleEvents(6); }}
-                  className={`text-[9px] font-black tracking-widest transition-all ${eventTimeFilter === 'upcoming' ? 'text-brand scale-110' : 'text-slate-400 hover:text-slate-900'}`}
-                >
-                  UPCOMING
-                </button>
-                <button
-                  onClick={() => { setEventTimeFilter('past'); setVisibleEvents(6); }}
-                  className={`text-[9px] font-black tracking-widest transition-all ${eventTimeFilter === 'past' ? 'text-brand scale-110' : 'text-slate-400 hover:text-slate-900'}`}
-                >
-                  PAST
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-12">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 transition-all duration-700 ease-in-out">
-              {eventsData
-                .filter(item => (eventCategory === 'all' || item.category === eventCategory) && (eventTimeFilter === 'all' || item.time === eventTimeFilter))
-                .slice(0, visibleEvents)
-                .map((item) => (
-                  <div key={item.id} className="elite-card group bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 animate-on-scroll flex flex-col h-full hover:-translate-y-2">
-                    <div className="relative aspect-[4/5] sm:aspect-[3/4] overflow-hidden w-full bg-slate-200/30 dark:bg-slate-800/30">
-                      {typeof item.img === 'string' ? (
-                        <img src={item.img} alt={item.title} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700" />
-                      ) : (
-                        <div className="w-full h-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">Image format not supported in view</div>
-                      )}
-                      <div className="absolute top-6 left-6">
-                        <span className="px-5 py-2 rounded-xl bg-brand/90 backdrop-blur-xl text-[10px] font-black text-white tracking-widest shadow-xl">{item.type}</span>
-                      </div>
-                    </div>
-                    <div className="p-8 md:p-10 flex flex-col flex-1 gap-8">
-                      <div className="flex flex-col gap-4">
-                        <h4 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase group-hover:text-brand transition-colors leading-tight">{item.title}</h4>
-                        <div className="flex flex-wrap gap-3 md:gap-4 text-[10px] md:text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          <span className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"><Calendar className="w-3.5 h-3.5 text-brand" /> {item.date}</span>
-                          <span className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"><Globe className="w-3.5 h-3.5 text-brand" /> {item.location}</span>
-                          {item.participants && <span className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"><Users className="w-3.5 h-3.5 text-brand" /> {item.participants}</span>}
-                        </div>
-                        <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-4 mt-2">
-                          {item.desc}
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 mt-auto pt-8 border-t border-black/5 dark:border-white/5">
-                        <button className="py-4 rounded-2xl bg-brand text-white text-[10px] font-black tracking-widest hover:bg-emerald-700 transition-all hover:shadow-2xl hover:shadow-brand/40 active:scale-95">
-                          REGISTER NOW
-                        </button>
-                        <Link to={`/event/${item.id}`} className="py-4 rounded-2xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[10px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
-                          VIEW DETAILS
-                        </Link>
-                      </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            {eventsData
+              .slice(0, 3)
+              .map((item) => (
+                <div key={item.id} className="elite-card group bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 animate-on-scroll flex flex-col hover:-translate-y-2">
+                  <div className="relative aspect-[16/10] overflow-hidden w-full bg-slate-200/30 dark:bg-slate-800/30 border-b border-black/5 dark:border-white/5">
+                    <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <div className="absolute top-4 left-4">
+                      <span className="px-4 py-1.5 rounded-lg bg-brand/90 backdrop-blur-xl text-[9px] font-black text-white tracking-widest shadow-xl uppercase">{item.type}</span>
                     </div>
                   </div>
-                ))}
-            </div>
-
-            <div className="flex justify-center mt-8">
-              <button 
-                onClick={() => setVisibleEvents(prev => prev === 3 ? 12 : 3)}
-                className="px-12 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-black text-xs tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-xl"
-              >
-                {visibleEvents > 3 ? 'VIEW LESS' : 'VIEW ALL ACTIVITIES'}
-              </button>
-            </div>
+                  <div className="p-6 md:p-8 flex flex-col gap-6">
+                    <div className="flex flex-col gap-3">
+                      <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase group-hover:text-brand transition-colors leading-tight line-clamp-2 min-h-[3.5rem]">{item.title}</h4>
+                      <div className="flex flex-wrap gap-2 text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Calendar className="w-3 h-3 text-brand" /> {item.date}</span>
+                        <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Globe className="w-3 h-3 text-brand" /> {item.location}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mt-4 pt-6 border-t border-black/5 dark:border-white/5">
+                      <button className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-brand/20">
+                        REGISTER
+                      </button>
+                      <Link to={`/event/${item.id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
+                        DETAILS
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
 
+          <div className="flex justify-center mt-12">
+            <Link 
+              to="/events"
+              className="px-12 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-black text-xs tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-xl"
+            >
+              VIEW ALL ACTIVITIES
+            </Link>
+          </div>
+        </div>
         </div>
       </section>
 
