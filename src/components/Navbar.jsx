@@ -14,6 +14,11 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
     e.preventDefault();
     setMobileMenuOpen(false);
 
+    if (targetId === 'events') {
+      navigate('/events');
+      return;
+    }
+
     if (isHome) {
       const element = document.getElementById(targetId);
       if (element) {
