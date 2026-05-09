@@ -39,7 +39,7 @@ export default function EventDetails() {
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
         <div className="flex flex-col gap-6 text-center items-center">
           <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center text-brand">
             <span className="text-4xl font-black">?</span>
@@ -55,7 +55,7 @@ export default function EventDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-brand selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-black selection:bg-brand selection:text-white">
       {/* 1. Massive Hero Image Header */}
       <div className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden flex items-start p-6 md:p-10 z-0">
         <div 
@@ -68,7 +68,7 @@ export default function EventDetails() {
             <div className="w-full h-full bg-slate-900 flex items-center justify-center">No Image Available</div>
           )}
           {/* Gradient Overlay for text readability and premium fade effect */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-900/40 to-transparent dark:from-slate-950"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-900/40 to-transparent dark:from-black"></div>
         </div>
 
         {/* Floating Back Button */}
@@ -103,7 +103,7 @@ export default function EventDetails() {
             
             <div ref={addToRefs} className="flex flex-wrap gap-3 md:gap-6 mt-2">
               <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
-                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center"><Calendar className="w-4 h-4 text-blue-500" /></div>
+                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center"><Calendar className="w-4 h-4 text-emerald-500" /></div>
                 <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{event.date}</span>
               </div>
               <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
@@ -145,7 +145,7 @@ export default function EventDetails() {
 
             {/* Sidebar Action Area */}
             <div className="lg:col-span-1 flex flex-col gap-6">
-              <div ref={addToRefs} className="p-8 rounded-[2rem] bg-gradient-to-br from-brand to-indigo-600 text-white shadow-2xl shadow-brand/30 relative overflow-hidden group">
+              <div ref={addToRefs} className="p-8 rounded-[2rem] bg-gradient-to-br from-brand to-emerald-600 text-white shadow-2xl shadow-brand/30 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
                 <h4 className="text-xl font-black mb-2 relative z-10">Ready to join?</h4>
                 <p className="text-xs font-medium text-white/80 mb-8 relative z-10">Secure your spot before seats run out.</p>

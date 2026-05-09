@@ -29,13 +29,11 @@ const Linkedin = ({ className }) => (
 
 const SplitText = ({ text, className }) => {
   return (
-    <span className={`inline-block ${className}`}>
+    <span className={`inline-flex flex-wrap ${className}`}>
       {text.split('').map((char, i) => (
-        char === ' ' ? ' ' : (
-          <span key={i} className="char inline-block">
-            {char}
-          </span>
-        )
+        <span key={i} className={`char inline-block ${char === ' ' ? 'w-[0.25em]' : ''}`}>
+          {char === ' ' ? '\u00A0' : char}
+        </span>
       ))}
     </span>
   );
@@ -46,6 +44,103 @@ gsap.registerPlugin(ScrollTrigger);
 import { Link } from 'react-router-dom';
 import { eventsData } from '../data/events';
 import { domainsData } from '../data/domains';
+
+// ─── QuizSection Overview ─────────────────────────────────────────────────────
+function QuizSection() {
+  return (
+    <section id="quiz" className="py-24 md:py-32 px-6 relative z-10 border-t border-black/5 dark:border-white/5 overflow-hidden">
+      {/* bg glow */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-center animate-on-scroll">
+
+        {/* Left — Text */}
+        <div className="flex-1 flex flex-col gap-6">
+          <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
+            <Code className="w-3.5 h-3.5" /> Challenge Arena
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+            Test Your{' '}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-cyan-500">
+              Coding
+            </span>{' '}
+            Skills
+          </h2>
+          <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">
+            Quick-fire coding questions covering Python, JavaScript, C++ and more. Pick the right answer, see the explanation, and track your score.
+          </p>
+
+          {/* Stats row */}
+          <div className="flex flex-wrap gap-3">
+            {[
+              { label: '20+ Questions', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+              { label: '3 Difficulty Levels', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
+              { label: 'Instant Explanations', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+            ].map(({ label, color }) => (
+              <span key={label} className={`px-4 py-1.5 rounded-full text-xs font-black border ${color}`}>
+                {label}
+              </span>
+            ))}
+          </div>
+
+          <Link to="/quiz" className="w-max px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center gap-2 hover:scale-105 transition-all shadow-xl hover:shadow-emerald-500/20">
+            Start Quiz <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {/* Right — Preview card (static, non-interactive) */}
+        <div className="flex-1 w-full max-w-lg">
+          <div className="glass-panel p-6 md:p-8 flex flex-col gap-5 select-none pointer-events-none relative">
+            {/* Coming soon blur overlay */}
+            <div className="absolute inset-0 rounded-[inherit] backdrop-blur-[2px] bg-white/30 dark:bg-slate-950/30 z-10 flex items-center justify-center rounded-3xl">
+              <span className="px-6 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black tracking-widest shadow-xl">
+                COMING SOON
+              </span>
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Medium</span>
+                <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/5 dark:border-white/5">JavaScript</span>
+              </div>
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Q 1 / 5</span>
+            </div>
+
+            {/* Question */}
+            <p className="text-sm font-bold text-slate-900 dark:text-white">What does <code className="text-brand bg-brand/10 px-1.5 py-0.5 rounded-md font-mono text-xs">typeof null</code> return in JavaScript?</p>
+
+            {/* Code block */}
+            <div className="bg-slate-950 rounded-xl overflow-hidden border border-white/10">
+              <div className="px-4 py-2 bg-slate-900 border-b border-white/5 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+              </div>
+              <pre className="px-5 py-4 text-xs font-mono text-cyan-300">console.log(typeof null);</pre>
+            </div>
+
+            {/* Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {["'null'", "'undefined'", "'object'", "'boolean'"].map((opt, i) => (
+                <div key={i} className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-xs font-bold ${i === 2 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-black/10 dark:border-white/10 text-slate-600 dark:text-slate-400'}`}>
+                  <span className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[9px] font-black flex-shrink-0">
+                    {String.fromCharCode(65 + i)}
+                  </span>
+                  {opt}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+}
 
 export default function Home({ theme }) {
   const [loading, setLoading] = useState(true);
@@ -141,18 +236,22 @@ export default function Home({ theme }) {
         );
       });
 
-      // Scroll-linked Glow Highlight for Descriptions
-      gsap.utils.toArray('.text-glow-scroll').forEach((text) => {
-        gsap.to(text, {
-          backgroundSize: '100% 100%',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: text,
-            start: 'top 80%',
-            end: 'top 20%',
-            scrub: true,
+      // Simple Scroll Reveal for Descriptions
+      gsap.utils.toArray('.animate-on-scroll').forEach((text) => {
+        gsap.fromTo(text, 
+          { opacity: 0.3, y: 10 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            scrollTrigger: {
+              trigger: text,
+              start: 'top 85%',
+              end: 'top 50%',
+              scrub: true,
+            }
           }
-        });
+        );
       });
 
       // Pinned Layouts (Desktop Only) - Keep these stable!
@@ -294,7 +393,6 @@ export default function Home({ theme }) {
   return (
     <div className="relative font-sans select-none overflow-x-hidden min-h-screen">
       {/* Dynamic Background Mesh & Watermark */}
-      <div className="bg-mesh-grid"></div>
       <div className="bg-mesh-gradient"></div>
       <div className="gcc-watermark font-black select-none">GCC</div>
 
@@ -314,10 +412,10 @@ export default function Home({ theme }) {
           <div className="w-full h-1.5 md:h-2 bg-slate-200/80 rounded-full overflow-hidden backdrop-blur-md border border-black/5 relative flex items-center">
             <div 
               id="preloader-line-fill" 
-              className="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 rounded-full transition-all duration-300 ease-out flex items-center justify-end relative select-none"
+              className="h-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-cyan-400 rounded-full transition-all duration-300 ease-out flex items-center justify-end relative select-none"
               style={{ width: `${counter}%` }}
             >
-              <div className="w-4 h-4 rounded-full bg-white absolute -right-1 filter drop-shadow-[0_0_10px_#2997ff]"></div>
+              <div className="w-4 h-4 rounded-full bg-white absolute -right-1 filter drop-shadow-[0_0_10px_#10b981]"></div>
             </div>
           </div>
 
@@ -359,7 +457,7 @@ export default function Home({ theme }) {
               </span>
               <span>
                 <SplitText text="Learn Coding. Build " />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 drop-shadow-2xl">
+                <span className="text-emerald-500">
                   <SplitText text="Cool Projects." />
                 </span>
               </span>
@@ -380,7 +478,7 @@ export default function Home({ theme }) {
             {/* Premium Floating Stats */}
             <div id="hero-stats" className="flex flex-wrap items-center gap-6 mt-6 pt-6 border-t border-black/5 dark:border-white/5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                   <Users className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col">
@@ -417,7 +515,7 @@ export default function Home({ theme }) {
             {/* Terminal Parser Feed */}
             <div className="flex-1 p-4 md:p-6 overflow-y-auto flex flex-col gap-2 text-xs md:text-sm leading-relaxed" ref={termRef}>
               {terminalHistory.map((item, idx) => (
-                <div key={idx} className={`${item.type === 'system' ? 'text-indigo-400' : item.type === 'success' ? 'text-green-400' : item.type === 'error' ? 'text-red-400' : item.type === 'command' ? 'text-brand' : 'text-slate-200'}`}>
+                <div key={idx} className={`${item.type === 'system' ? 'text-emerald-400' : item.type === 'success' ? 'text-green-400' : item.type === 'error' ? 'text-red-400' : item.type === 'command' ? 'text-brand' : 'text-slate-200'}`}>
                   {item.text}
                 </div>
               ))}
@@ -452,14 +550,14 @@ export default function Home({ theme }) {
             </span>
             <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white char-reveal">
               <SplitText text="About Our " />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              <span className="text-emerald-500">
                 <SplitText text="Club" />
               </span>
             </h2>
-            <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed text-glow-scroll">
+            <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed animate-on-scroll">
               We are a group of students who love technology. We work together to learn new skills and build amazing software projects.
             </p>
-            <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed text-glow-scroll">
+            <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed animate-on-scroll">
               We organize workshops and competitions to help students get better at coding. We believe in learning by doing and help everyone build projects that solve real problems.
             </p>
           </div>
@@ -570,7 +668,7 @@ export default function Home({ theme }) {
 
       {/* 6. Advanced Event Radar - REDESIGNED 2.0 */}
       <section id="events" className="bg-slate-50 dark:bg-slate-950 py-24 md:py-40 px-6 relative z-10 overflow-hidden border-t border-b border-black/5 dark:border-white/5">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] -z-10 animate-on-scroll"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[120px] -z-10 animate-on-scroll"></div>
         <div className="max-w-7xl mx-auto flex flex-col gap-16 md:gap-24">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12 animate-on-scroll">
             <div className="flex flex-col gap-5 max-w-2xl">
@@ -579,9 +677,9 @@ export default function Home({ theme }) {
                 <span className="text-xs md:text-sm font-bold uppercase tracking-[0.3em] text-brand">Latest Activities</span>
               </div>
               <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9] font-cyber char-reveal">
-                <SplitText text="Events & " />
-                <span className="event-gradient-text">
-                  <SplitText text="Workshops" />
+                <SplitText text="Latest " />
+                <span className="text-emerald-500">
+                  <SplitText text="Activities" />
                 </span>
               </h2>
             </div>
@@ -662,7 +760,7 @@ export default function Home({ theme }) {
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 mt-auto pt-8 border-t border-black/5 dark:border-white/5">
-                        <button className="py-4 rounded-2xl bg-brand text-white text-[10px] font-black tracking-widest hover:bg-blue-700 transition-all hover:shadow-2xl hover:shadow-brand/40 active:scale-95">
+                        <button className="py-4 rounded-2xl bg-brand text-white text-[10px] font-black tracking-widest hover:bg-emerald-700 transition-all hover:shadow-2xl hover:shadow-brand/40 active:scale-95">
                           REGISTER NOW
                         </button>
                         <Link to={`/event/${item.id}`} className="py-4 rounded-2xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[10px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
@@ -687,6 +785,9 @@ export default function Home({ theme }) {
         </div>
       </section>
 
+
+      {/* 7.5 — Quiz Overview Section */}
+      <QuizSection />
 
       {/* 7. Premium SaaS-style Leaderboard Table Section */}
       <section id="leaderboard" className="py-24 md:py-32 px-6 scroll-fade-in relative z-10">
@@ -741,9 +842,9 @@ export default function Home({ theme }) {
           <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto animate-on-scroll">
             <span className="text-sm font-bold uppercase tracking-widest text-brand">Our Team</span>
             <h2 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-tight char-reveal">
-              <SplitText text="Meet the People Behind GAT Club" />
+              Meet the People Behind <span className="text-emerald-500">GAT Club</span>
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 font-medium max-w-2xl mx-auto text-glow-scroll">The teachers and students who make everything happen.</p>
+            <p className="text-slate-600 dark:text-slate-400 font-medium max-w-2xl mx-auto animate-on-scroll">The teachers and students who make everything happen.</p>
           </div>
 
           {/* Faculty Mentor Spotlight */}

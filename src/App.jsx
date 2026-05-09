@@ -1,10 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AnimatedBackground from './components/AnimatedBackground';
 import Home from './pages/Home';
 import EventDetails from './pages/EventDetails';
 import DomainDetails from './pages/DomainDetails';
+import Quiz from './pages/Quiz';
+
+function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMenuOpen, desktopMenuOpen, setDesktopMenuOpen }) {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+
+  return (
+    <div className={`min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden font-cyber flex flex-col transition-all duration-500 ease-in-out ${desktopMenuOpen ? 'md:pl-64' : 'md:pl-24'}`}>
+      <Navbar
+        theme={theme}
+        toggleTheme={toggleTheme}
+        navVisible={navVisible}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        desktopMenuOpen={desktopMenuOpen}
+        setDesktopMenuOpen={setDesktopMenuOpen}
+      />
+      <div className="flex-1 flex flex-col min-h-screen w-full">
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<Home theme={theme} />} />
+            <Route path="/event/:id" element={<EventDetails />} />
+            <Route path="/domain/:id" element={<DomainDetails />} />
+            <Route path="/quiz" element={<Quiz />} />
+          </Routes>
+        </main>
+        {isHome && <Footer />}
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [theme, setTheme] = useState('light');
@@ -56,28 +88,16 @@ export default function App() {
 
   return (
     <Router>
-      <div className={`min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden font-cyber flex flex-col transition-all duration-500 ease-in-out ${desktopMenuOpen ? 'md:pl-64' : 'md:pl-24'}`}>
-        <Navbar 
-          theme={theme} 
-          toggleTheme={toggleTheme} 
-          navVisible={navVisible} 
-          mobileMenuOpen={mobileMenuOpen} 
-          setMobileMenuOpen={setMobileMenuOpen} 
-          desktopMenuOpen={desktopMenuOpen}
-          setDesktopMenuOpen={setDesktopMenuOpen}
-        />
-        <div className="flex-1 flex flex-col min-h-screen w-full">
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home theme={theme} />} />
-              <Route path="/event/:id" element={<EventDetails />} />
-              <Route path="/domain/:id" element={<DomainDetails />} />
-            </Routes>
-          </main>
-          
-          <Footer />
-        </div>
-      </div>
+      <AnimatedBackground />
+      <AppLayout
+        theme={theme}
+        toggleTheme={toggleTheme}
+        navVisible={navVisible}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        desktopMenuOpen={desktopMenuOpen}
+        setDesktopMenuOpen={setDesktopMenuOpen}
+      />
     </Router>
   );
 }

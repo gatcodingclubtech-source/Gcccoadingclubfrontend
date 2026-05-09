@@ -28,7 +28,7 @@ body {
 }
 
 html.dark body {
-    background-color: #020617;
+    background-color: #000000;
     color: #f8fafc;
 }
 
@@ -207,24 +207,11 @@ html.dark .terminal-premium-shadow {
 
 .char {
   display: inline-block;
-  transform-origin: bottom center;
+  transform-origin: center;
   will-change: transform, opacity;
 }
 
-.text-glow-scroll {
-  background: linear-gradient(to right, #000000, #000000);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: rgba(0, 0, 0, 0.15); /* Very light grey for un-highlighted state */
-  background-size: 0% 100%;
-  background-repeat: no-repeat;
-  transition: color 0.3s;
-}
 
-.dark .text-glow-scroll {
-  background: linear-gradient(to right, #ffffff, #ffffff);
-  color: rgba(255, 255, 255, 0.15);
-}
 
 /* Custom Background Utilities */
 .bg-mesh-grid {
@@ -233,15 +220,15 @@ html.dark .terminal-premium-shadow {
     z-index: -10;
     background-size: 50px 50px;
     background-image: 
-        linear-gradient(to right, rgba(37, 99, 235, 0.1) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(37, 99, 235, 0.1) 1px, transparent 1px);
+        linear-gradient(to right, rgba(16, 185, 129, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(16, 185, 129, 0.1) 1px, transparent 1px);
 }
 
 .bg-mesh-gradient {
     position: fixed;
     inset: 0;
     z-index: -9;
-    background: radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    background: radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
 }
 
@@ -252,7 +239,7 @@ html.dark .terminal-premium-shadow {
     transform: translate(-50%, -50%) rotate(-10deg);
     font-size: 45vw;
     font-weight: 900;
-    color: rgba(37, 99, 235, 0.08);
+    color: rgba(16, 185, 129, 0.08);
     z-index: -8;
     pointer-events: none;
     user-select: none;
@@ -264,12 +251,12 @@ html.dark .terminal-premium-shadow {
 
 html.dark .bg-mesh-grid {
     background-image: 
-        linear-gradient(to right, rgba(59, 130, 246, 0.12) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(59, 130, 246, 0.12) 1px, transparent 1px);
+        linear-gradient(to right, rgba(16, 185, 129, 0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(16, 185, 129, 0.12) 1px, transparent 1px);
 }
 
 html.dark .bg-mesh-gradient {
-    background: radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+    background: radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 60%),
                 radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 60%);
 }
 
@@ -277,15 +264,15 @@ html.dark .gcc-watermark {
     color: rgba(255, 255, 255, 0.04);
 }
 .event-gradient-text {
-    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .glass-pill-active {
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
 }
 
 @keyframes float {
@@ -296,6 +283,18 @@ html.dark .gcc-watermark {
 
 .float-animation {
     animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float-complex {
+    0% { transform: translate(0px, 0px) rotate(0deg); }
+    33% { transform: translate(15px, -25px) rotate(5deg); }
+    66% { transform: translate(-10px, -15px) rotate(-3deg); }
+    100% { transform: translate(0px, 0px) rotate(0deg); }
+}
+
+.float-complex {
+    animation: float-complex ease-in-out infinite;
+    will-change: transform;
 }
 
 /* Elite Redesigned Card System */
@@ -322,8 +321,8 @@ html.dark .elite-card {
 .elite-card:hover {
     transform: translateY(-15px) scale(1.01);
     background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 40px 80px rgba(59, 130, 246, 0.08);
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 40px 80px rgba(16, 185, 129, 0.08);
 }
 
 html.dark .elite-card:hover {
@@ -358,7 +357,7 @@ html.dark .elite-card:hover {
     border-radius: 1.25rem;
     font-size: 0.7rem;
     font-weight: 900;
-    color: #1e40af;
+    color: #047857;
     letter-spacing: 0.15em;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
     z-index: 10;
@@ -429,9 +428,9 @@ html.dark .elite-footer {
 }
 
 @keyframes glow {
-    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-    70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
 .btn-glow {
@@ -450,12 +449,12 @@ html.dark .elite-footer {
     left: 0;
     width: 0;
     height: 1px;
-    background: #2563eb;
+    background: #10b981;
     transition: width 0.3s ease;
 }
 
 .footer-link:hover {
-    color: #2563eb !important;
+    color: #10b981 !important;
 }
 
 .footer-link:hover::after {
@@ -485,7 +484,7 @@ html.dark .team-mentor-card {
 .mentor-photo-wrapper {
     position: relative;
     padding: 8px;
-    background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
     border-radius: 3.5rem;
 }
 
@@ -493,7 +492,7 @@ html.dark .team-mentor-card {
     content: '';
     position: absolute;
     inset: -4px;
-    background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
     border-radius: 3.8rem;
     z-index: -1;
     opacity: 0.5;

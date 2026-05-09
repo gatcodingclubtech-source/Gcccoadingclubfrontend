@@ -6,7 +6,7 @@ export const domainsData = [
     id: 'web-development',
     title: 'Web Development', 
     icon: <Code className="w-6 h-6" />, 
-    color: 'blue', 
+    color: 'emerald', 
     desc: 'Build modern, responsive websites using the latest frameworks and cloud technologies.' 
   },
   { 
@@ -27,7 +27,7 @@ export const domainsData = [
     id: 'app-development',
     title: 'App Development', 
     icon: <Layers className="w-6 h-6" />, 
-    color: 'indigo', 
+    color: 'emerald', 
     desc: 'Create powerful mobile applications for iOS and Android using modern cross-platform tools.' 
   },
   { 
