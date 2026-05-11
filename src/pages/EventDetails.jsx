@@ -1,16 +1,42 @@
-import React, { useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, Globe, Users, Share2, MapPin, Clock } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, Globe, Users, Share2, MapPin, Clock, CheckCircle2 } from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import gsap from 'gsap';
-import { eventsData } from '../data/events';
 
 export default function EventDetails() {
   const { id } = useParams();
-  const event = eventsData.find(e => e.id === parseInt(id));
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [registering, setRegistering] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [regSuccess, setRegSuccess] = useState(false);
   
   const heroRef = useRef(null);
   const contentRef = useRef(null);
   const elementsRef = useRef([]);
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await axios.get(`/api/events/${id}`);
+        if (res.data.success) {
+          setEvent(res.data.event);
+          if (user && res.data.event.attendees?.includes(user._id)) {
+            setIsRegistered(true);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching event:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvent();
+  }, [id, user]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -29,13 +55,43 @@ export default function EventDetails() {
       .to(elementsRef.current, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 }, "-=0.6");
 
     return () => tl.kill();
-  }, [id, event]);
+  }, [event]);
+
+  const handleRegister = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    setRegistering(true);
+    try {
+      const res = await axios.post(`/api/events/${id}/register`);
+      if (res.data.success) {
+        setIsRegistered(true);
+        setRegSuccess(true);
+        // Update local event count
+        setEvent(prev => ({ ...prev, registeredCount: res.data.registeredCount }));
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setRegistering(false);
+    }
+  };
 
   const addToRefs = (el) => {
     if (el && !elementsRef.current.includes(el)) {
       elementsRef.current.push(el);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
+        <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -110,12 +166,10 @@ export default function EventDetails() {
                 <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center"><MapPin className="w-4 h-4 text-emerald-500" /></div>
                 <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{event.location}</span>
               </div>
-              {event.participants && (
-                <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
-                  <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center"><Users className="w-4 h-4 text-purple-500" /></div>
-                  <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{event.participants}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
+                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center"><Users className="w-4 h-4 text-purple-500" /></div>
+                <span className="text-xs md:text-sm font-bold text-slate-950 dark:text-slate-300">{event.registeredCount || 0} Registered</span>
+              </div>
             </div>
           </div>
 
@@ -124,10 +178,10 @@ export default function EventDetails() {
             <div className="lg:col-span-2 flex flex-col gap-8">
               <div ref={addToRefs}>
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">About this {event.category === 'events' ? 'Event' : 'Workshop'}</h3>
-                <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
-                  {event.desc}
+                <p className="text-base md:text-lg text-slate-800 dark:text-slate-400 font-medium leading-relaxed">
+                  {event.description}
                 </p>
-                <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed mt-4">
+                <p className="text-base md:text-lg text-slate-800 dark:text-slate-400 font-medium leading-relaxed mt-4">
                   Join us for an exciting session where we dive deep into the subject matter. Whether you are a beginner or an experienced developer, there's something for everyone to learn and enjoy. Networking opportunities and hands-on guidance will be provided by our core team and special guests.
                 </p>
               </div>
@@ -147,10 +201,24 @@ export default function EventDetails() {
             <div className="lg:col-span-1 flex flex-col gap-6">
               <div ref={addToRefs} className="p-8 rounded-[2rem] bg-gradient-to-br from-brand to-emerald-600 text-white shadow-2xl shadow-brand/30 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
-                <h4 className="text-xl font-black mb-2 relative z-10">Ready to join?</h4>
-                <p className="text-xs font-medium text-white/80 mb-8 relative z-10">Secure your spot before seats run out.</p>
-                <button className="w-full py-4 rounded-xl bg-white text-brand text-sm font-black tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-xl relative z-10">
-                  REGISTER NOW
+                <h4 className="text-xl font-black mb-2 relative z-10">
+                  {isRegistered ? 'Spot Secured!' : 'Ready to join?'}
+                </h4>
+                <p className="text-xs font-medium text-white/80 mb-8 relative z-10">
+                  {isRegistered ? 'You are officially registered for this event.' : 'Secure your spot before seats run out.'}
+                </p>
+                <button 
+                  onClick={handleRegister}
+                  disabled={isRegistered || registering}
+                  className={`w-full py-4 rounded-xl font-black tracking-widest transition-all active:scale-95 shadow-xl relative z-10 flex items-center justify-center gap-2 ${isRegistered ? 'bg-white/20 text-white cursor-default' : 'bg-white text-brand hover:scale-105'}`}
+                >
+                  {registering ? (
+                    <div className="w-4 h-4 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
+                  ) : isRegistered ? (
+                    <><CheckCircle2 className="w-4 h-4" /> REGISTERED</>
+                  ) : (
+                    'REGISTER NOW'
+                  )}
                 </button>
               </div>
 
