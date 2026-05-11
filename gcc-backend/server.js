@@ -20,16 +20,30 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // Dynamic CORS configuration
-const allowedOrigins = (process.env.CLIENT_URL || '').split(',').map(origin => origin.trim());
+const defaultOrigins = [
+  'http://localhost:5173',
+  'https://gatcodingclubtech-source.github.io',
+  'https://naseer-047.github.io'
+];
+
+const envOrigins = (process.env.CLIENT_URL || '').split(',').map(origin => origin.trim()).filter(Boolean);
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
+
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       
-      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (allowed === '*') return true;
+        return origin.startsWith(allowed);
+      });
+
+      if (isAllowed) {
         callback(null, true);
       } else {
+        console.log('CORS Blocked for:', origin);
         callback(new Error('Not allowed by CORS'));
       }
     },
