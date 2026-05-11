@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, ChevronRight, Code, Clock, Trophy, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
+import { 
+  ArrowLeft, ArrowRight, ChevronRight, Code, Clock, 
+  Trophy, RotateCcw, CheckCircle, XCircle, Shield, Key 
+} from 'lucide-react';
+import axios from 'axios';
 
 // ─── All Quiz Questions ───────────────────────────────────────────────────────
 const allQuestions = [
@@ -97,13 +101,20 @@ export default function Quiz() {
   const [finished, setFinished] = useState(false);
   const [started, setStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
+  const [isTestMode, setIsTestMode] = useState(false);
+  const [testSession, setTestSession] = useState(null);
+  const [testCredentials, setTestCredentials] = useState({ testId: '', password: '' });
+  const [joinError, setJoinError] = useState('');
+  const [joining, setJoining] = useState(false);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const filtered = category === 'All' ? allQuestions : allQuestions.filter(q => q.category === category);
-    setQuestions(filtered);
-    resetQuiz();
-  }, [category]);
+    if (!isTestMode) {
+      const filtered = category === 'All' ? allQuestions : allQuestions.filter(q => q.category === category);
+      setQuestions(filtered);
+      resetQuiz();
+    }
+  }, [category, isTestMode]);
 
   useEffect(() => {
     if (!started || finished || revealed) return;
@@ -121,9 +132,44 @@ export default function Quiz() {
     setCurrent(0); setSelected(null); setRevealed(false);
     setScore(0); setAnswers([]); setFinished(false);
     setStarted(false); setTimeLeft(TIMER_SECONDS);
+    setIsTestMode(false);
+    setTestSession(null);
+  };
+
+  const handleJoinTest = async (e) => {
+    e.preventDefault();
+    setJoining(true);
+    setJoinError('');
+    try {
+      const res = await axios.post('/api/quiz-sessions/join', testCredentials);
+      if (res.data.success) {
+        const session = res.data.session;
+        // Map questions from DB to the format expected by the UI
+        const mappedQuestions = session.questions.map(q => ({
+          id: q._id,
+          category: q.domain,
+          difficulty: q.difficulty,
+          diffColor: q.difficulty === 'Easy' ? 'emerald' : q.difficulty === 'Hard' ? 'red' : 'yellow',
+          question: q.question,
+          options: q.options,
+          answer: null, // User joining won't have answers yet
+          explanation: '' // Explanation usually hidden for live tests
+        }));
+        
+        setTestSession(session);
+        setQuestions(mappedQuestions);
+        setIsTestMode(true);
+        setStarted(true);
+      }
+    } catch (err) {
+      setJoinError(err.response?.data?.message || 'Invalid Credentials');
+    } finally {
+      setJoining(false);
+    }
   };
 
   const handleStart = () => {
+    setIsTestMode(false);
     const filtered = category === 'All' ? allQuestions : allQuestions.filter(q => q.category === category);
     setQuestions(filtered);
     resetQuiz();
@@ -142,9 +188,26 @@ export default function Quiz() {
     setAnswers(prev => [...prev, { selected, correct: q?.answer, timeout }]);
   };
 
+  const submitResults = async () => {
+    try {
+      await axios.post('/api/quiz-sessions/submit', {
+        sessionId: testSession._id,
+        score: score,
+        totalQuestions: questions.length
+      });
+    } catch (err) {
+      console.error('Failed to submit results', err);
+    }
+  };
+
   const handleNext = () => {
     clearInterval(timerRef.current);
-    if (current + 1 >= questions.length) { setFinished(true); }
+    if (current + 1 >= questions.length) { 
+      setFinished(true); 
+      if (isTestMode && testSession) {
+        submitResults();
+      }
+    }
     else { setCurrent(c => c + 1); setSelected(null); setRevealed(false); setTimeLeft(TIMER_SECONDS); }
   };
 
@@ -154,69 +217,118 @@ export default function Quiz() {
 
   // ── Start Screen ─────────────────────────────────────────────────────────────
   if (!started) return (
-    <div className="min-h-screen w-full overflow-x-hidden flex flex-col items-start justify-start px-4 md:px-12 py-12 md:py-20 relative">
+    <div className="min-h-screen w-full overflow-x-hidden flex flex-col items-center justify-start px-4 md:px-12 py-12 md:py-20 relative">
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px]" />
         <div className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-cyan-500/5 rounded-full blur-[80px]" />
       </div>
 
-      <div className="w-full max-w-3xl flex flex-col gap-6">
-        <Link to="/" className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-brand transition-colors w-max">
-          <ArrowLeft className="w-4 h-4 flex-shrink-0" /> Back to Home
-        </Link>
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        {/* Left Side: Standard Quiz */}
+        <div className="flex flex-col gap-6 glass-panel p-10">
+          <Link to="/" className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-brand transition-colors w-max">
+            <ArrowLeft className="w-4 h-4 flex-shrink-0" /> Back to Home
+          </Link>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
-            <Code className="w-3.5 h-3.5 flex-shrink-0" /> Challenge Arena
-          </span>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Coding Quiz
-          </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-            Pick a category, beat the timer, and test your coding knowledge!
-          </p>
-        </div>
-
-        {/* Category picker */}
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-black uppercase tracking-widest text-slate-500">Choose Category</span>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-black border-2 transition-all ${
-                  category === cat
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg'
-                    : 'border-black/10 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-brand hover:text-brand'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
+              <Code className="w-3.5 h-3.5 flex-shrink-0" /> Challenge Arena
+            </span>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+              Coding Quiz
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              Pick a category, beat the timer, and test your coding knowledge!
+            </p>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {[
-            { label: 'Questions', value: category === 'All' ? allQuestions.length : allQuestions.filter(q => q.category === category).length },
-            { label: 'Time / Q', value: `${TIMER_SECONDS}s` },
-            { label: 'Levels', value: '3' },
-          ].map(({ label, value }) => (
-            <div key={label} className="glass-panel p-3 flex flex-col gap-0.5 items-center text-center">
-              <span className="text-xl font-black text-brand">{value}</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</span>
+          {/* Category picker */}
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-black uppercase tracking-widest text-slate-500">Choose Category</span>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-4 py-2 rounded-full text-[11px] font-black border-2 transition-all uppercase tracking-widest ${
+                    category === cat
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg'
+                      : 'border-black/10 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-brand hover:text-brand'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
-          ))}
+          </div>
+
+          <button
+            onClick={handleStart}
+            className="w-full py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl"
+          >
+            Practice Solo <ArrowRight className="w-4 h-4 flex-shrink-0" />
+          </button>
         </div>
 
-        <button
-          onClick={handleStart}
-          className="w-full py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl"
-        >
-          Start Quiz <ArrowRight className="w-4 h-4 flex-shrink-0" />
-        </button>
+        {/* Right Side: Live Test Portal */}
+        <div className="flex flex-col gap-8 glass-panel p-10 border-emerald-500/20 bg-emerald-500/[0.02]">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+              <Shield className="w-3.5 h-3.5 flex-shrink-0" /> Validation Sector
+            </span>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+              Live Tests
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              Enter the credentials provided by the admin to join an autonomous validation session.
+            </p>
+          </div>
+
+          <form onSubmit={handleJoinTest} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Test Terminal ID</label>
+              <div className="relative group">
+                <Shield className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                <input 
+                  required
+                  placeholder="GCC-XXXX"
+                  value={testCredentials.testId}
+                  onChange={(e) => setTestCredentials({...testCredentials, testId: e.target.value})}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl pl-14 pr-6 py-4 text-xs font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Access Key</label>
+              <div className="relative group">
+                <Key className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                <input 
+                  required
+                  type="password"
+                  placeholder="••••••••"
+                  value={testCredentials.password}
+                  onChange={(e) => setTestCredentials({...testCredentials, password: e.target.value})}
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl pl-14 pr-6 py-4 text-xs font-black tracking-[0.3em] text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all"
+                />
+              </div>
+            </div>
+
+            {joinError && (
+              <p className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
+                <XCircle className="w-3.5 h-3.5" /> {joinError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={joining}
+              className="w-full py-4 rounded-2xl bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl shadow-emerald-500/20 disabled:opacity-50"
+            >
+              {joining ? 'Authenticating...' : 'Join Validation Session'} <ArrowRight className="w-4 h-4 flex-shrink-0" />
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

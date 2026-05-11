@@ -10,7 +10,7 @@ import ProfSharmila from '../assets/Prof. Sharmila Chidaravalli.png';
 import ProfVasugi from '../assets/Prof. Vasugi I.png';
 import RecruitmentBanner from '../assets/banners/gcc-club-recruitment-instagram.webp';
 import WorkshopBanner1 from '../assets/banners/workshop 1.webp';
-import GccLogo from '../assets/gcc logo 1.svg';
+import GccLogo from '../assets/logo/gcc logo.png';
 import { 
   Code, Menu, X, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe
 } from 'lucide-react';
@@ -41,7 +41,8 @@ const SplitText = ({ text, className }) => {
 
 gsap.registerPlugin(ScrollTrigger);
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { eventsData } from '../data/events';
 import { domainsData } from '../data/domains';
 
@@ -94,12 +95,7 @@ function QuizSection() {
         {/* Right — Preview card (static, non-interactive) */}
         <div className="flex-1 w-full max-w-lg">
           <div className="glass-panel p-6 md:p-8 flex flex-col gap-5 select-none pointer-events-none relative">
-            {/* Coming soon blur overlay */}
-            <div className="absolute inset-0 rounded-[inherit] backdrop-blur-[2px] bg-white/30 dark:bg-slate-950/30 z-10 flex items-center justify-center rounded-3xl">
-              <span className="px-6 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black tracking-widest shadow-xl">
-                COMING SOON
-              </span>
-            </div>
+            {/* Preview card content is now visible */}
 
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -143,6 +139,8 @@ function QuizSection() {
 }
 
 export default function Home({ theme }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [counter, setCounter] = useState(0);
   const [eventCategory, setEventCategory] = useState('all');
@@ -193,21 +191,10 @@ export default function Home({ theme }) {
     return () => clearInterval(interval);
   }, []);
 
-  // 1. Smooth Scroll Initialization (Once)
+  // 1. Scroll Reset (Once)
   useEffect(() => {
     if (loading) return;
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    return () => lenis.destroy();
+    window.scrollTo(0, 0);
   }, [loading]);
 
   // 2. Global Stable GSAP Animations (Runs Once)
@@ -218,6 +205,7 @@ export default function Home({ theme }) {
       // Character Reveal Animations for Headings
       gsap.utils.toArray('.char-reveal').forEach((heading) => {
         const chars = heading.querySelectorAll('.char');
+        if (chars.length === 0) return;
         gsap.fromTo(chars, 
           { y: '100%', rotateX: -90, opacity: 0 },
           { 
@@ -301,7 +289,7 @@ export default function Home({ theme }) {
     const ctx = gsap.context(() => {
       gsap.utils.toArray('section').forEach((section) => {
         const elements = section.querySelectorAll('.animate-on-scroll:not(.char-reveal)');
-        if (elements.length > 0) {
+        if (elements && elements.length > 0) {
           gsap.fromTo(elements, 
             { y: 30, opacity: 0, scale: 0.99 },
             { 
@@ -392,9 +380,9 @@ export default function Home({ theme }) {
 
   return (
     <div className="relative font-sans select-none overflow-x-hidden min-h-screen">
-      {/* Dynamic Background Mesh & Watermark */}
-      <div className="bg-mesh-gradient"></div>
-      <div className="gcc-watermark font-black select-none">GCC</div>
+      {/* Dynamic Background Mesh & Watermark - Simplified for Mobile */}
+      <div className="bg-mesh-gradient opacity-50 md:opacity-100"></div>
+      <div className="gcc-watermark font-black select-none opacity-5 md:opacity-10 hidden md:block">GCC</div>
 
       {/* 1. Ultra-Premium Horizon Warp Preloader */}
       <div id="preloader" className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 font-sans select-none overflow-hidden transition-all duration-700">
@@ -467,10 +455,22 @@ export default function Home({ theme }) {
             </p>
             
             <div id="hero-cta" className="flex flex-wrap items-center gap-4 mt-2">
-              <button className="px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center gap-2 hover:scale-105 transition-all shadow-xl hover:shadow-brand/20">
-                See Our Projects <ArrowRight className="w-4 h-4" />
+              <button 
+                onClick={(e) => {
+                  const el = document.getElementById('events');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center gap-2 hover:scale-105 transition-all shadow-xl hover:shadow-brand/20"
+              >
+                See Our Activities <ArrowRight className="w-4 h-4" />
               </button>
-              <button className="px-8 py-4 rounded-full bg-slate-200/50 dark:bg-slate-800/40 border border-black/5 dark:border-white/5 backdrop-blur-md text-slate-900 dark:text-white text-sm font-bold flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">
+              <button 
+                onClick={(e) => {
+                  const el = document.getElementById('about');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-8 py-4 rounded-full bg-slate-200/50 dark:bg-slate-800/40 border border-black/5 dark:border-white/5 backdrop-blur-md text-slate-900 dark:text-white text-sm font-bold flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all"
+              >
                 Learn More
               </button>
             </div>
@@ -643,9 +643,9 @@ export default function Home({ theme }) {
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 mt-auto">
-                  <button className={`w-full py-3 rounded-xl bg-${domain.color}-600 text-white text-xs font-black tracking-widest hover:bg-${domain.color}-700 transition-colors shadow-lg shadow-${domain.color}-600/20`}>
-                    JOIN NOW
-                  </button>
+                  <Link to={user ? "/profile" : "/auth"} className={`w-full py-3 rounded-xl bg-${domain.color}-600 text-white text-xs font-black tracking-widest hover:bg-${domain.color}-700 transition-colors shadow-lg shadow-${domain.color}-600/20 text-center flex items-center justify-center`}>
+                    {user ? "MY DASHBOARD" : "JOIN NOW"}
+                  </Link>
                   <Link to={`/domain/${domain.id}`} className="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-center inline-block">
                     VIEW DETAILS
                   </Link>
@@ -668,7 +668,7 @@ export default function Home({ theme }) {
 
       {/* 6. Advanced Event Radar - REDESIGNED 2.0 */}
       <section id="events" className="py-24 md:py-40 px-6 relative z-10 overflow-hidden border-t border-b border-black/5 dark:border-white/5">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[120px] -z-10 animate-on-scroll"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[60px] md:blur-[120px] -z-10 animate-on-scroll"></div>
         <div className="max-w-7xl mx-auto flex flex-col gap-16 md:gap-24">
           <div className="flex flex-col gap-12 animate-on-scroll mb-16">
             <div className="flex flex-col gap-5">
