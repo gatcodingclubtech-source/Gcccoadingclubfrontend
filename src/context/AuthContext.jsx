@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Configure axios defaults
+  axios.defaults.baseURL = 'https://gcc-backend-api.onrender.com';
   axios.defaults.withCredentials = true;
 
   const checkUserLoggedIn = async () => {
