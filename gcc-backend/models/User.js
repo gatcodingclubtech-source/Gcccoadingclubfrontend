@@ -58,6 +58,26 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    bio: {
+      type: String,
+      default: '',
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    linkedinUrl: {
+      type: String,
+      default: '',
+    },
+    instagramUrl: {
+      type: String,
+      default: '',
+    },
+    portfolioUrl: {
+      type: String,
+      default: '',
+    },
     // Role and status
     role: {
       type: String,

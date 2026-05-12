@@ -12,20 +12,46 @@ export const AuthProvider = ({ children }) => {
   axios.defaults.baseURL = 'https://gcc-backend-api.onrender.com';
   axios.defaults.withCredentials = true;
 
+  // Add interceptor to attach token from localStorage if it exists
+  useEffect(() => {
+    const interceptor = axios.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('gcc_token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+    return () => axios.interceptors.request.eject(interceptor);
+  }, []);
+
   const checkUserLoggedIn = async () => {
     try {
       const res = await axios.get('/api/auth/me');
       if (res.data.success) {
         setUser(res.data.user);
+        localStorage.setItem('gcc_user', JSON.stringify(res.data.user));
       }
     } catch (err) {
-      setUser(null);
+      // Only clear if it's an explicit 401 Unauthorized
+      if (err.response?.status === 401) {
+        setUser(null);
+        localStorage.removeItem('gcc_user');
+        localStorage.removeItem('gcc_token');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const savedUser = localStorage.getItem('gcc_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setLoading(false);
+    }
     checkUserLoggedIn();
   }, []);
 
@@ -36,6 +62,8 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post('/api/auth/login', { email, password });
       if (res.data.success) {
         setUser(res.data.user);
+        localStorage.setItem('gcc_user', JSON.stringify(res.data.user));
+        localStorage.setItem('gcc_token', res.data.token);
         return { success: true };
       }
     } catch (err) {
@@ -54,6 +82,8 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post('/api/auth/register', userData);
       if (res.data.success) {
         setUser(res.data.user);
+        localStorage.setItem('gcc_user', JSON.stringify(res.data.user));
+        localStorage.setItem('gcc_token', res.data.token);
         return { success: true };
       }
     } catch (err) {
@@ -68,9 +98,12 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post('/api/auth/logout');
-      setUser(null);
     } catch (err) {
       console.error('Logout failed', err);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('gcc_user');
+      localStorage.removeItem('gcc_token');
     }
   };
 
@@ -80,6 +113,7 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post('/api/auth/complete-profile', profileData);
       if (res.data.success) {
         setUser(res.data.user);
+        localStorage.setItem('gcc_user', JSON.stringify(res.data.user));
         return { success: true };
       }
     } catch (err) {

