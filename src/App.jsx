@@ -15,6 +15,7 @@ import ProfileComplete from './pages/ProfileComplete';
 // Admin Pages
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
+import AdminLogin from './pages/admin/AdminLogin';
 import UsersManager from './pages/admin/UsersManager';
 import EventsManager from './pages/admin/EventsManager';
 import QuizManager from './pages/admin/QuizManager';
@@ -132,6 +133,8 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               <Route path="domains" element={<DomainsManager />} />
               <Route path="test-sessions" element={<TestSessionManager />} />
             </Route>
+
+            <Route path="/admin-login" element={<AdminLogin />} />
           </Routes>
         </main>
         {!isAdmin && <Footer />}
