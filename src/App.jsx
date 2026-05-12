@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import AnimatedBackground from './components/AnimatedBackground';
+
 import Home from './pages/Home';
 import Events from './pages/Events';
 import EventDetails from './pages/EventDetails';
@@ -45,7 +45,7 @@ const AdminRoute = ({ children }) => {
   */
 };
 
-function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMenuOpen, desktopMenuOpen, setDesktopMenuOpen }) {
+function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMenuOpen }) {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
   const { user, loading: authLoading } = useAuth();
@@ -87,7 +87,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
   }, []);
 
   return (
-    <div className={`min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden font-cyber flex flex-col transition-all duration-500 ease-in-out ${!isAdmin && desktopMenuOpen ? 'md:pl-64' : !isAdmin && !desktopMenuOpen ? 'md:pl-20' : ''}`}>
+    <div className="min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden bg-white dark:bg-slate-950 font-cyber flex flex-col transition-all duration-500 ease-in-out">
       {!isAdmin && (
         <Navbar
           theme={theme}
@@ -95,8 +95,6 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
           navVisible={navVisible}
           mobileMenuOpen={mobileMenuOpen}
           setMobileMenuOpen={setMobileMenuOpen}
-          desktopMenuOpen={desktopMenuOpen}
-          setDesktopMenuOpen={setDesktopMenuOpen}
         />
       )}
       <div className="flex-1 flex flex-col min-h-screen w-full">
@@ -146,7 +144,6 @@ export default function App() {
   const [theme, setTheme] = useState('light');
   const [navVisible, setNavVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
 
   useEffect(() => {
     // Initial theme check
@@ -193,15 +190,13 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        <AnimatedBackground />
+
         <AppLayout
           theme={theme}
           toggleTheme={toggleTheme}
           navVisible={navVisible}
           mobileMenuOpen={mobileMenuOpen}
           setMobileMenuOpen={setMobileMenuOpen}
-          desktopMenuOpen={desktopMenuOpen}
-          setDesktopMenuOpen={setDesktopMenuOpen}
         />
       </AuthProvider>
     </Router>

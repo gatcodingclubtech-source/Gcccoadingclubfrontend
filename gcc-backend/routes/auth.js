@@ -165,11 +165,15 @@ router.get(
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // Get the first client URL or matching one
+    const clientUrls = (process.env.CLIENT_URL || '').split(',');
+    const redirectUrl = clientUrls[0] || 'http://localhost:5173';
+
     // If profile not complete, redirect to completion page
     if (!req.user.profileComplete) {
-      res.redirect(`${process.env.CLIENT_URL}/profile/complete?token=${token}`);
+      res.redirect(`${redirectUrl}/profile/complete?token=${token}`);
     } else {
-      res.redirect(`${process.env.CLIENT_URL}/auth?token=${token}`);
+      res.redirect(`${redirectUrl}/auth?token=${token}`);
     }
   }
 );

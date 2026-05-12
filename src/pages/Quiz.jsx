@@ -218,10 +218,7 @@ export default function Quiz() {
   // ── Start Screen ─────────────────────────────────────────────────────────────
   if (!started) return (
     <div className="min-h-screen w-full overflow-x-hidden flex flex-col items-center justify-start px-4 md:px-12 py-12 md:py-20 relative">
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-cyan-500/5 rounded-full blur-[80px]" />
-      </div>
+
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         {/* Left Side: Standard Quiz */}
@@ -410,9 +407,7 @@ export default function Quiz() {
   // ── Active Question ───────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen w-full overflow-x-hidden px-4 py-12 md:py-20 relative flex flex-col items-center justify-start">
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px]" />
-      </div>
+
 
       <div className="w-full max-w-4xl min-w-0 flex flex-col gap-6">
         {/* Top bar */}
