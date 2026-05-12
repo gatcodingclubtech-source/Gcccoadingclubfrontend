@@ -34,15 +34,15 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const AdminRoute = ({ children }) => {
-  // TEMPORARY: Bypassing auth check for development
-  return children;
-  
-  /* 
-  // Re-enable this once backend is connected
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user && user.role === 'admin' ? children : <Navigate to="/" />;
-  */
+  
+  // Only allow admin role
+  if (user && user.role === 'admin') {
+    return children;
+  }
+  
+  return <Navigate to="/auth" />;
 };
 
 function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMenuOpen }) {

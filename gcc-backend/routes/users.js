@@ -43,6 +43,39 @@ router.get('/profile/stats', protect, async (req, res) => {
   }
 });
 
+// @desc    Update current user profile
+// @route   PUT /api/users/profile
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.phone = req.body.phone || user.phone;
+      user.usn = req.body.usn || user.usn;
+      user.department = req.body.department || user.department;
+      user.year = req.body.year || user.year;
+      user.bio = req.body.bio || user.bio;
+      user.skills = req.body.skills || user.skills;
+      user.githubUrl = req.body.githubUrl || user.githubUrl;
+      user.linkedinUrl = req.body.linkedinUrl || user.linkedinUrl;
+      user.instagramUrl = req.body.instagramUrl || user.instagramUrl;
+      user.portfolioUrl = req.body.portfolioUrl || user.portfolioUrl;
+
+      const updatedUser = await user.save();
+      res.json({
+        success: true,
+        user: updatedUser
+      });
+    } else {
+      res.status(404).json({ success: false, message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private/Admin
