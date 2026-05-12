@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Menu, X, Home as HomeIcon, Info, Layers, Calendar, Trophy, Users, BookOpen, Plus, LogOut } from 'lucide-react';
+import { Sun, Moon, Menu, X, Home as HomeIcon, Info, Layers, Calendar, Trophy, Users, BookOpen, Plus, LogOut, ArrowRight } from 'lucide-react';
 import GccLogo from '../assets/logo/gcc logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
