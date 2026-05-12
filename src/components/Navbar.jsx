@@ -1,10 +1,10 @@
 import React from 'react';
-import { Sun, Moon, Menu, X, Home as HomeIcon, Info, Layers, Calendar, Trophy, Users, BookOpen, ChevronRight, Plus } from 'lucide-react';
+import { Sun, Moon, Menu, X, Home as HomeIcon, Info, Layers, Calendar, Trophy, Users, BookOpen, Plus, LogOut } from 'lucide-react';
 import GccLogo from '../assets/logo/gcc logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen, setMobileMenuOpen, desktopMenuOpen, setDesktopMenuOpen }) {
+export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen, setMobileMenuOpen }) {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const navigate = useNavigate();
@@ -15,8 +15,6 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
     navigate('/');
     setMobileMenuOpen(false);
   };
-
-  const isExpanded = desktopMenuOpen || mobileMenuOpen;
 
   const handleNavClick = (e, targetId) => {
     e.preventDefault();
@@ -48,190 +46,122 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
   };
 
   const navItems = [
-    { label: 'Home', id: 'home', icon: HomeIcon },
-    { label: 'About', id: 'about', icon: Info },
-    { label: 'Domains', id: 'domains', icon: Layers },
-    { label: 'Events', id: 'events', icon: Calendar },
-    { label: 'Quiz', id: 'quiz', icon: BookOpen },
-    { label: 'Leaderboard', id: 'leaderboard', icon: Trophy },
-    { label: 'Team', id: 'team', icon: Users },
+    { label: 'Home', id: 'home' },
+    { label: 'About', id: 'about' },
+    { label: 'Domains', id: 'domains' },
+    { label: 'Events', id: 'events' },
+    { label: 'Quiz', id: 'quiz' },
+    { label: 'Leaderboard', id: 'leaderboard' },
+    { label: 'Team', id: 'team' },
   ];
 
   return (
-    <>
-      {/* 📱 Mobile Top Floating Navbar (Classic) */}
-      <nav className={`md:hidden fixed top-6 w-full z-50 px-6 transition-all duration-500 ease-in-out ${navVisible ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0'}`} id="mobile-top-navbar">
-        <div className="max-w-6xl mx-auto navbar-glow-glass rounded-[2rem] px-6 py-4 flex justify-between items-center relative z-20">
-          <Link to="/" className="flex items-center group">
-            <img src={GccLogo} alt="GAT Coding Club" className="h-14 w-auto group-hover:scale-110 transition-transform duration-500 object-contain" />
-          </Link>
+    <nav 
+      className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 border-b
+      ${navVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
+      ${location.pathname === '/' ? 'bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-black/5 dark:border-white/5' : 'bg-white dark:bg-slate-950 border-black/10 dark:border-white/10'}`}
+    >
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        {/* Logo & Brand */}
+        <Link to="/" className="flex items-center gap-4 group">
+          <div className="w-12 h-12 flex-shrink-0 relative">
+            <div className="absolute inset-0 bg-emerald-500/20 blur-lg rounded-full group-hover:bg-emerald-500/40 transition-all"></div>
+            <img src={GccLogo} alt="GCC Logo" className="relative w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-slate-900 dark:text-white font-black tracking-tighter text-lg leading-none">GCC CLUB</span>
+            <span className="text-[10px] text-emerald-500 font-bold tracking-[0.2em] uppercase mt-1">GAT CHAPTER</span>
+          </div>
+        </Link>
 
-          <div className="flex items-center gap-4">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-8">
+          {navItems.map((item) => (
             <button
-              onClick={toggleTheme}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-black/10 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all text-slate-900 dark:text-white"
+              key={item.id}
+              onClick={(e) => handleNavClick(e, item.id)}
+              className={`text-[11px] font-black tracking-[0.15em] uppercase transition-all relative py-2 group
+              ${location.pathname === '/' && item.id === 'home' ? 'text-emerald-500' : 'text-slate-500 dark:text-slate-400 hover:text-emerald-500'}`}
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {item.label}
+              <span className={`absolute bottom-0 left-0 h-0.5 bg-emerald-500 transition-all duration-300 ${location.pathname === '/' && item.id === 'home' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
             </button>
-
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-10 h-10 flex items-center justify-center rounded-full border border-black/10 dark:border-white/10 text-slate-900 dark:text-white"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+          ))}
         </div>
 
-        {mobileMenuOpen && (
-          <div id="mobile-menu" className="absolute top-full left-6 right-6 mt-4 bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 rounded-[2rem] px-8 py-6 flex flex-col gap-4 text-center text-slate-900 dark:text-white shadow-2xl z-50 backdrop-blur-3xl max-h-[70vh] overflow-y-auto no-scrollbar">
-            {['Home', 'About', 'Workflow', 'Events', 'Quiz', 'Leaderboard', 'Team'].map((item) => {
-              const targetId = item === 'Workflow' ? 'domains' : item.toLowerCase();
-              return (
-                <button 
-                  key={item}
-                  onClick={(e) => handleNavClick(e, targetId)}
-                  className="py-2 font-black text-slate-900 dark:text-white hover:text-brand transition-colors mobile-nav-link"
-                >
-                  {item === 'Workflow' ? 'Domains' : item}
-                </button>
-              );
-            })}
-            {user ? (
-              <>
-                <Link 
-                  to="/profile" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="py-2 font-black text-brand uppercase mobile-nav-link"
-                >
-                  My Profile
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="px-6 py-3 rounded-full bg-red-500/10 text-red-500 text-sm font-bold mt-2 w-full text-center"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <Link 
-                to="/auth" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-6 py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold transition-transform hover:scale-105 shadow-xl mt-2 w-full text-center"
-              >
-                Join Club
-              </Link>
-            )}
-          </div>
-        )}
-      </nav>
-
-      {/* 💻 Desktop Toggle Button */}
-      <button 
-        onClick={() => setDesktopMenuOpen(!desktopMenuOpen)}
-        className={`hidden md:flex fixed top-8 z-[60] w-10 h-10 items-center justify-center rounded-2xl bg-white dark:bg-slate-900 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white shadow-2xl transition-all duration-500 ease-in-out hover:scale-110 hover:border-emerald-500/50
-        ${desktopMenuOpen ? 'left-[236px]' : 'left-[76px]'}`}
-      >
-        {desktopMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
-
-      {/* 💻 Desktop Sidebar Nav */}
-      <nav 
-        data-lenis-prevent
-        className={`hidden md:flex fixed left-0 top-0 h-screen z-50 bg-white/10 dark:bg-black/40 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 transition-all duration-500 ease-in-out flex-col
-        ${desktopMenuOpen ? 'w-64' : 'w-20'} overflow-x-hidden overflow-y-auto no-scrollbar`}
-      >
-        {/* Logo section */}
-        <div className="h-24 px-6 flex items-center border-b border-black/5 dark:border-white/5 gap-4">
-          <div className="w-12 h-12 flex-shrink-0 bg-white/50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/10 flex items-center justify-center p-2 shadow-xl shadow-emerald-500/10">
-            <img src={GccLogo} alt="Logo" className="w-full h-full object-contain" />
-          </div>
-          {desktopMenuOpen && (
-            <div className="flex flex-col">
-              <span className="text-slate-900 dark:text-white font-black tracking-tighter text-base uppercase leading-none">GCC Club</span>
-              <span className="text-[9px] text-emerald-500 font-black tracking-widest uppercase mt-1">Evolution Center</span>
-            </div>
-          )}
-        </div>
-
-        {/* Links section */}
-        <div data-lenis-prevent className="flex-1 py-8 px-4 flex flex-col gap-2 overflow-y-auto no-scrollbar">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={(e) => handleNavClick(e, item.id)}
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
-                  location.pathname === '/' && item.id === 'home' 
-                    ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30' 
-                    : 'hover:bg-black/5 dark:hover:bg-white/5 hover:text-emerald-500 dark:text-white/60 text-slate-500'
-                }`}
-              >
-                <div className="transition-transform duration-500 group-hover:scale-110">
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                </div>
-                {desktopMenuOpen && (
-                  <span className="text-[10px] font-black tracking-widest uppercase truncate transition-all duration-500">
-                    {item.label}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-black/5 dark:border-white/5 flex flex-col gap-2">
+        {/* Actions */}
+        <div className="flex items-center gap-6">
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-all group text-slate-500 hover:text-emerald-500"
+            className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400"
             title="Toggle Theme"
           >
-            <div className="transition-transform duration-500 group-hover:rotate-12">
-              {theme === 'dark' ? <Moon className="w-5 h-5 flex-shrink-0" /> : <Sun className="w-5 h-5 flex-shrink-0" />}
-            </div>
-            {desktopMenuOpen && (
-              <span className="text-[10px] font-black tracking-widest uppercase">
-                {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-              </span>
-            )}
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
-          
+
           {user ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-4 pl-6 border-l border-black/5 dark:border-white/5">
               <Link 
                 to="/profile" 
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-95 ${!desktopMenuOpen ? 'justify-center' : ''}`}
+                className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"
               >
-                <Users className="w-5 h-5 flex-shrink-0" />
-                {desktopMenuOpen && (
-                  <span className="text-[10px] font-black tracking-widest uppercase">Profile</span>
-                )}
+                <Users className="w-5 h-5" />
               </Link>
               <button 
                 onClick={handleLogout}
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group hover:bg-red-500/10 text-slate-500 hover:text-red-500 ${!desktopMenuOpen ? 'justify-center' : ''}`}
+                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-500 transition-all"
+                title="Logout"
               >
-                <X className="w-5 h-5 flex-shrink-0" />
-                {desktopMenuOpen && (
-                  <span className="text-[10px] font-black tracking-widest uppercase">Logout</span>
-                )}
+                <LogOut className="w-5 h-5" />
               </button>
             </div>
           ) : (
             <Link 
               to="/auth" 
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl shadow-black/10 dark:shadow-white/5 hover:scale-[1.02] active:scale-95 ${!desktopMenuOpen ? 'justify-center' : ''}`}
+              className="px-8 py-3 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[11px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all shadow-xl"
             >
-              <Plus className="w-5 h-5 flex-shrink-0" />
-              {desktopMenuOpen && (
-                <span className="text-[10px] font-black tracking-widest uppercase">Join Club</span>
-              )}
+              Join Club
+            </Link>
+          )}
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      <div 
+        className={`md:hidden fixed inset-0 top-20 bg-white dark:bg-slate-950 z-[90] transition-all duration-500 ease-in-out
+        ${mobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}
+      >
+        <div className="flex flex-col p-8 gap-6">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={(e) => handleNavClick(e, item.id)}
+              className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter text-left"
+            >
+              {item.label}
+            </button>
+          ))}
+          <div className="h-px bg-black/5 dark:border-white/5 my-4"></div>
+          {user ? (
+            <>
+              <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="text-xl font-bold text-emerald-500">My Profile</Link>
+              <button onClick={handleLogout} className="text-xl font-bold text-red-500 text-left">Logout</button>
+            </>
+          ) : (
+            <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="py-4 rounded-2xl bg-emerald-500 text-white font-black text-center text-lg shadow-xl shadow-emerald-500/20">
+              Join Club
             </Link>
           )}
         </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 }

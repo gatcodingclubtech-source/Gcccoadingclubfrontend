@@ -26,6 +26,36 @@ html.lenis, html.lenis body {
   scroll-behavior: auto !important;
 }
 
+.technical-bg {
+  background-color: #ffffff;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.05) 0px, transparent 50%),
+    linear-gradient(to bottom, #ffffff, #f8fafc);
+  position: relative;
+}
+
+.dark .technical-bg {
+  background-color: #020617;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+    linear-gradient(to bottom, #020617, #0f172a);
+}
+
+.technical-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(16, 185, 129, 0.15) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+  pointer-events: none;
+}
+
+.dark .technical-grid {
+  background-image: radial-gradient(rgba(16, 185, 129, 0.2) 1px, transparent 1px);
+}
+
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
@@ -81,6 +111,34 @@ html.dark .navbar-glow-glass {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(16, 185, 129, 0.1);
     box-shadow: 0 0 40px rgba(16, 185, 129, 0.05);
+}
+
+/* Hero Shutter Door Animation Styles */
+.hero-door {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    background: #0f172a; /* Deep slate background */
+    z-index: 5;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+
+html.dark .hero-door {
+    background: #020617; /* Even darker in dark mode */
+}
+
+.hero-door-left {
+    left: 0;
+}
+
+.hero-door-right {
+    right: 0;
+}
+
+.prism {
 }
 
 /* High-End Deep Translucent/Glassmorphism Cards */
@@ -651,15 +709,66 @@ html.dark .coordinator-img {
     border: 2px dashed rgba(37, 99, 235, 0.2);
     border-radius: 3rem;
     padding: 3rem;
-    transition: all 0.4s ease;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    clip-path: polygon(50% 0%, 100% 38%, 81% 91%, 19% 91%, 0% 38%);
+    pointer-events: none;
 }
 
-.student-placeholder:hover {
-    border-style: solid;
-    border-color: #2563eb;
-    background: rgba(37, 99, 235, 0.05);
+.animate-prism-float {
+    animation: prism-float 10s ease-in-out infinite;
 }
 
-.glow-text {
-    text-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+@keyframes prism-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-30px) rotate(180deg); }
 }
+
+.holographic-border {
+    position: relative;
+}
+
+
+.holographic-border {
+    position: relative;
+}
+
+.holographic-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(90deg, #10b981, #06b6d4, #8b5cf6, #10b981);
+    background-size: 300% auto;
+    border-radius: inherit;
+    z-index: -1;
+}
+/* Dynamic Code Rain Styles */
+.hero-title-sharp {
+    color: #020617;
+}
+
+.glass-nav {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+html.dark .glass-nav {
+    background: rgba(15, 23, 42, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#stack-container-lite {
+  width: 100%;
+  position: relative;
+}
+
+.panel {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+

@@ -97,9 +97,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen py-12 px-6 flex items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px]" />
-      </div>
+
       
       <div className="w-full max-w-md relative">
         <div className="auth-card glass-panel p-5 md:p-6 relative overflow-hidden">
