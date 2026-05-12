@@ -88,7 +88,7 @@ export default function Footer() {
           <div className="flex items-center gap-6 text-[9px] font-bold tracking-[0.2em] text-slate-400 dark:text-white/30 uppercase">
             <Link to="/auth" className="hover:text-emerald-500 transition-colors">Member Login</Link>
             <a href="#" className="hover:text-emerald-500 transition-colors">Privacy</a>
-            <Link to="/admin" className="hover:text-emerald-500 transition-colors border-l border-white/10 dark:border-white/5 pl-6 flex items-center gap-2">
+            <Link to="/admin-login" className="hover:text-emerald-500 transition-colors border-l border-white/10 dark:border-white/5 pl-6 flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
               Admin Console
             </Link>
