@@ -57,11 +57,18 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
 
   return (
     <nav 
-      className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 border-b
+      className={`fixed top-0 left-0 w-full z-[9999] transition-all duration-500 border-b
       ${navVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
-      ${location.pathname === '/' ? 'bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-black/5 dark:border-white/5' : 'bg-white dark:bg-slate-950 border-black/10 dark:border-white/10'}`}
+      ${mobileMenuOpen 
+        ? 'bg-white' 
+        : (location.pathname === '/' 
+            ? 'bg-white/70 md:bg-white/70 dark:bg-slate-950/70 md:dark:bg-slate-950/70 backdrop-blur-none md:backdrop-blur-xl border-black/5 dark:border-white/5' 
+            : 'bg-white dark:bg-slate-950 border-black/10 dark:border-white/10')
+      }
+      flex flex-col`}
+      style={mobileMenuOpen ? { backgroundColor: '#ffffff', opacity: 1 } : {}}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-20 flex items-center justify-between w-full">
         {/* Logo & Brand */}
         <Link to="/" className="flex items-center gap-2 sm:gap-4 group">
           <div className="w-9 h-9 sm:w-12 sm:h-12 flex-shrink-0 relative">
@@ -93,7 +100,7 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
         <div className="flex items-center gap-3 sm:gap-6">
           <button
             onClick={toggleTheme}
-            className="hidden md:flex w-10 h-10 items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400"
+            className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400"
             title="Toggle Theme"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -107,15 +114,29 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
               >
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
+              <button 
+                onClick={handleLogout}
+                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-500 transition-all hidden sm:flex"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           ) : (
-            <Link 
-              to="/auth" 
-              className="w-8 h-8 sm:w-auto sm:px-8 sm:py-3 rounded-lg sm:rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 flex items-center justify-center hover:scale-105 transition-all shadow-xl"
-            >
-              <span className="hidden sm:inline text-[11px] font-black tracking-widest uppercase">Join Club</span>
-              <img src={GccLogo} alt="Join" className="w-5 h-5 sm:hidden object-contain" />
-            </Link>
+            <>
+              <Link 
+                to="/auth" 
+                className="hidden sm:flex px-8 py-3 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[11px] font-black tracking-widest uppercase hover:scale-105 active:scale-95 transition-all shadow-xl"
+              >
+                Join Club
+              </Link>
+              <Link 
+                to="/auth" 
+                className="sm:hidden w-8 h-8 rounded-lg bg-slate-950 dark:bg-white text-white dark:text-slate-950 flex items-center justify-center hover:scale-105 transition-all shadow-xl"
+              >
+                <img src={GccLogo} alt="Join" className="w-5 h-5 object-contain" />
+              </Link>
+            </>
           )}
 
           {/* Mobile Menu Toggle */}
@@ -130,11 +151,11 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
 
       {/* Mobile Menu Overlay */}
       <div 
-        className={`md:hidden fixed inset-0 top-14 bg-white z-[110] transition-all duration-500 ease-in-out
-        ${mobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}
-        style={{ backgroundColor: '#ffffff' }}
+        className={`md:hidden fixed inset-0 top-14 bg-white z-[9999] transition-all duration-300 ease-in-out
+        ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ backgroundColor: '#ffffff', opacity: 1 }}
       >
-        <div className="flex flex-col p-6 gap-5 pt-10">
+        <div className="flex flex-col p-6 gap-5 pt-10 bg-white min-h-screen">
           <div className="flex items-center justify-between mb-2">
              <span className="text-[10px] font-black text-slate-400 tracking-[0.3em] uppercase">Navigation</span>
              <button
@@ -149,7 +170,7 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
             <button
               key={item.id}
               onClick={(e) => handleNavClick(e, item.id)}
-              className="text-2xl font-black text-slate-950 tracking-tighter text-left py-1"
+              className="text-2xl font-black text-slate-950 tracking-tighter text-left py-1 bg-white relative z-10"
             >
               {item.label}
             </button>
