@@ -118,8 +118,8 @@ export default function EventDetails() {
           ref={heroRef}
           className="absolute inset-0 w-full h-full"
         >
-          {typeof event.img === 'string' ? (
-            <img src={event.img} alt={event.title} className="w-full h-full object-cover" />
+          {event.image ? (
+            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-slate-900 flex items-center justify-center">No Image Available</div>
           )}
@@ -146,7 +146,7 @@ export default function EventDetails() {
           <div className="flex flex-col gap-6 border-b border-black/5 dark:border-white/5 pb-10">
             <div ref={addToRefs} className="flex items-center justify-between">
               <span className="text-xs font-black tracking-[0.2em] text-brand uppercase bg-brand/10 px-5 py-2 rounded-xl border border-brand/20">
-                {event.type}
+                {event.category}
               </span>
               <button className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-brand transition-colors">
                 <Share2 className="w-4 h-4" />
@@ -160,11 +160,13 @@ export default function EventDetails() {
             <div ref={addToRefs} className="flex flex-wrap gap-3 md:gap-6 mt-2">
               <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
                 <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center"><Calendar className="w-4 h-4 text-emerald-500" /></div>
-                <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{event.date}</span>
+                <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">
+                  {new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </span>
               </div>
               <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
                 <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center"><MapPin className="w-4 h-4 text-emerald-500" /></div>
-                <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{event.location}</span>
+                <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{event.venue}</span>
               </div>
               <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
                 <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center"><Users className="w-4 h-4 text-purple-500" /></div>

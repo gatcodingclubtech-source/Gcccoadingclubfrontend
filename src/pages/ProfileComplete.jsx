@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Hash, BookOpen, GraduationCap, Code, 
@@ -18,23 +19,29 @@ const steps = [
 ];
 
 export default function ProfileComplete() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    usn: '',
-    department: '',
-    year: '',
-    domainInterest: '',
-    githubUrl: '',
-    phone: ''
-  });
+  const [domains, setDomains] = useState([]);
+  const [domainsLoading, setDomainsLoading] = useState(true);
   const { completeProfile, user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
-      // If no user, they shouldn't be here
-      // But we might be loading, so check user from useAuth
-    } else if (user.profileComplete) {
+    const fetchDomains = async () => {
+      try {
+        const res = await axios.get('/api/domains');
+        if (res.data.success) {
+          setDomains(res.data.domains);
+        }
+      } catch (err) {
+        console.error('Error fetching domains', err);
+      } finally {
+        setDomainsLoading(false);
+      }
+    };
+    fetchDomains();
+  }, []);
+
+  useEffect(() => {
+    if (user && user.profileComplete) {
       navigate('/');
     }
   }, [user, navigate]);
@@ -207,13 +214,10 @@ export default function ProfileComplete() {
                       onChange={handleChange}
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 focus:border-brand focus:ring-4 focus:ring-brand/10 outline-none transition-all text-xs font-black text-slate-900 dark:text-white appearance-none"
                     >
-                      <option value="">Select Domain</option>
-                      <option value="web-development">Web Development</option>
-                      <option value="ai-ml">AI / ML</option>
-                      <option value="competitive-coding">Competitive Coding</option>
-                      <option value="app-development">App Development</option>
-                      <option value="cyber-security">Cyber Security</option>
-                      <option value="cloud-computing">Cloud Computing</option>
+                      <option value="">{domainsLoading ? 'Loading domains...' : 'Select Domain'}</option>
+                      {domains.map(domain => (
+                        <option key={domain._id} value={domain.slug}>{domain.title}</option>
+                      ))}
                     </select>
                   </div>
                 </div>

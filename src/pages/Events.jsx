@@ -1,12 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { eventsData } from '../data/events';
-import { Calendar, Globe, Users, ArrowLeft } from 'lucide-react';
+import { Calendar, Globe, Users, ArrowLeft, Loader2 } from 'lucide-react';
 import gsap from 'gsap';
+import axios from 'axios';
 
 export default function Events() {
   const [eventCategory, setEventCategory] = useState('all');
   const [eventTimeFilter, setEventTimeFilter] = useState('all');
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const res = await axios.get('/api/events');
+      if (res.data.success) {
+        setEvents(res.data.events);
+      }
+    } catch (err) {
+      console.error('Error fetching events', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -16,10 +35,23 @@ export default function Events() {
     );
   }, [eventCategory, eventTimeFilter]);
 
-  const filteredEvents = eventsData.filter(item => 
-    (eventCategory === 'all' || item.category === eventCategory) && 
-    (eventTimeFilter === 'all' || item.time === eventTimeFilter)
-  );
+  const filteredEvents = events.filter(item => {
+    const matchesCategory = eventCategory === 'all' || item.category.toLowerCase() === eventCategory.toLowerCase();
+    
+    // Date filter logic
+    const eventDate = new Date(item.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let matchesTime = true;
+    if (eventTimeFilter === 'upcoming') {
+      matchesTime = eventDate >= today;
+    } else if (eventTimeFilter === 'past') {
+      matchesTime = eventDate < today;
+    }
+
+    return matchesCategory && matchesTime && item.isActive !== false;
+  });
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6 relative">
@@ -67,43 +99,55 @@ export default function Events() {
 
         {/* Results Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {filteredEvents.map((item) => (
-            <div key={item.id} className="event-card-reveal group bg-white/50 dark:bg-slate-900/50 glass-panel border border-black/5 dark:border-white/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col h-full hover:-translate-y-2">
-              <div className="relative aspect-[16/10] overflow-hidden w-full bg-slate-200/30 dark:bg-slate-800/30 border-b border-black/5 dark:border-white/5">
-                <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute top-4 left-4">
-                  <span className="px-4 py-1.5 rounded-lg bg-brand/90 backdrop-blur-xl text-[9px] font-black text-white tracking-widest shadow-xl uppercase">{item.type}</span>
-                </div>
-              </div>
-              <div className="p-6 md:p-8 flex flex-col flex-1 gap-6">
-                <div className="flex flex-col gap-3">
-                  <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase group-hover:text-brand transition-colors leading-tight line-clamp-2 min-h-[3.5rem]">{item.title}</h4>
-                  <div className="flex flex-wrap gap-2 text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Calendar className="w-3 h-3 text-brand" /> {item.date}</span>
-                    <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Globe className="w-3 h-3 text-brand" /> {item.location}</span>
-                  </div>
-                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2 mt-2">
-                    {item.desc}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 mt-auto pt-6 border-t border-black/5 dark:border-white/5">
-                  <button className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-brand/20 active:scale-95">
-                    REGISTER
-                  </button>
-                  <Link to={`/event/${item.id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
-                    DETAILS
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {filteredEvents.length === 0 && (
+          {loading ? (
+            Array(3).fill(0).map((_, i) => (
+              <div key={i} className="glass-panel h-[450px] animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
+            ))
+          ) : filteredEvents.length === 0 ? (
             <div className="col-span-full py-32 text-center flex flex-col items-center gap-4">
               <span className="text-4xl text-slate-300 dark:text-slate-700 font-black tracking-tighter uppercase">No results found</span>
               <button onClick={() => { setEventCategory('all'); setEventTimeFilter('all'); }} className="text-brand font-black text-xs uppercase tracking-widest hover:underline">Clear all filters</button>
             </div>
+          ) : (
+            filteredEvents.map((item) => (
+              <div key={item._id} className="event-card-reveal group bg-white/50 dark:bg-slate-900/50 glass-panel border border-black/5 dark:border-white/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col h-full hover:-translate-y-2">
+                <div className="relative aspect-[16/10] overflow-hidden w-full bg-slate-200/30 dark:bg-slate-800/30 border-b border-black/5 dark:border-white/5">
+                  <img src={item.image || 'https://via.placeholder.com/800x500'} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute top-4 left-4">
+                    <span className="px-4 py-1.5 rounded-lg bg-brand/90 backdrop-blur-xl text-[9px] font-black text-white tracking-widest shadow-xl uppercase">{item.category}</span>
+                  </div>
+                </div>
+                <div className="p-6 md:p-8 flex flex-col flex-1 gap-6">
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase group-hover:text-brand transition-colors leading-tight line-clamp-2 min-h-[3.5rem]">{item.title}</h4>
+                    <div className="flex flex-wrap gap-2 text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                        <Calendar className="w-3 h-3 text-brand" /> 
+                        {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                      <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Globe className="w-3 h-3 text-brand" /> {item.venue}</span>
+                    </div>
+                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2 mt-2">
+                      {item.shortDesc || item.description}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 mt-auto pt-6 border-t border-black/5 dark:border-white/5">
+                    <a 
+                      href={item.registrationLink || '#'} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-brand/20 active:scale-95 text-center flex items-center justify-center"
+                    >
+                      REGISTER
+                    </a>
+                    <Link to={`/event/${item._id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
+                      DETAILS
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))
           )}
         </div>
 
