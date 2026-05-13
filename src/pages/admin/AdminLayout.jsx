@@ -35,8 +35,10 @@ export default function AdminLayout() {
       
       {/* Sidebar - Now fixed always on large screens too with proper transition */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 bg-white/10 dark:bg-black/40 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 transition-all duration-500 ease-in-out ${
-          isSidebarOpen ? 'w-64' : 'w-20'
+        className={`fixed inset-y-0 left-0 z-50 bg-white/10 dark:bg-black/40 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 transition-all duration-500 ease-in-out lg:translate-x-0 ${
+          isSidebarOpen 
+            ? 'w-64 translate-x-0' 
+            : 'w-20 -translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="flex flex-col h-full">
@@ -93,6 +95,14 @@ export default function AdminLayout() {
           </div>
         </div>
       </aside>
+      
+      {/* Backdrop for mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* Main Content - Added dynamic padding to account for fixed sidebar */}
       <div 
@@ -101,13 +111,13 @@ export default function AdminLayout() {
         } pl-0 relative`}
       >
         {/* Topbar - sticky is good, but ensuring it doesn't cause horizontal overflow */}
-        <header className="h-24 bg-white/5 dark:bg-black/20 backdrop-blur-xl border-b border-black/5 dark:border-white/5 flex items-center justify-between px-8 sticky top-0 z-40 w-full overflow-hidden">
+        <header className="h-20 md:h-24 bg-white/5 dark:bg-black/20 backdrop-blur-xl border-b border-black/5 dark:border-white/5 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 w-full overflow-hidden">
           <div className="flex items-center gap-8">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-3 rounded-2xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 hover:border-emerald-500/50 transition-all text-slate-900 dark:text-white shadow-lg shadow-black/5"
+              className="p-2.5 md:p-3 rounded-2xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 hover:border-emerald-500/50 transition-all text-slate-900 dark:text-white shadow-lg shadow-black/5"
             >
-              {!isSidebarOpen ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+              {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <div className="hidden md:flex flex-col">
               <h2 className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-[0.2em]">
@@ -137,11 +147,11 @@ export default function AdminLayout() {
                 <span className="text-slate-900 dark:text-white text-[11px] font-black uppercase tracking-tighter">{user?.name}</span>
                 <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">Administrator</span>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center p-0.5 overflow-hidden ring-4 ring-emerald-500/5 shadow-xl shadow-emerald-500/10 transition-transform hover:scale-105">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center p-0.5 overflow-hidden ring-4 ring-emerald-500/5 shadow-xl shadow-emerald-500/10 transition-transform hover:scale-105">
                 {user?.avatar ? (
                   <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
                 ) : (
-                  <Shield className="w-6 h-6 text-emerald-500" />
+                  <Shield className="w-5 h-5 md:w-6 md:h-6 text-emerald-500" />
                 )}
               </div>
             </div>
@@ -149,7 +159,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Viewport */}
-        <main className="flex-1 p-8 lg:p-12 relative overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-8 lg:p-12 relative overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
