@@ -66,7 +66,7 @@ export default function QuizManager() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Delete this query from terminal memory?')) {
+    if (window.confirm('Delete this question?')) {
       try {
         const res = await axios.delete(`/api/quiz/${id}`);
         if (res.data.success) {
@@ -121,15 +121,15 @@ export default function QuizManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Query Database</h1>
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Manage challenges and validation tests.</p>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Quiz Questions</h1>
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Manage your quiz questions and answers.</p>
         </div>
         
         <button 
           onClick={() => openModal()}
           className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
-          <Plus className="w-5 h-5" /> Inject Query
+          <Plus className="w-5 h-5" /> Add Question
         </button>
       </div>
 
@@ -161,7 +161,7 @@ export default function QuizManager() {
             <div className="p-6 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               <HelpCircle className="w-12 h-12 opacity-30" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">No queries found for this sector</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">No questions found</span>
           </div>
         ) : (
           filteredQuestions.map((q) => (
@@ -176,7 +176,7 @@ export default function QuizManager() {
                     }`}>
                       {q.difficulty}
                     </div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-60">Sector: {q.domain}</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-60">Domain: {q.domain}</span>
                   </div>
                   
                   <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors leading-relaxed uppercase">
@@ -232,9 +232,9 @@ export default function QuizManager() {
             <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10 px-10 py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                  {editingQuestion ? 'Modify Logic' : 'Inject Logic'}
+                  {editingQuestion ? 'Edit Question' : 'Add Question'}
                 </h2>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Define challenge parameters for validation.</p>
+                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Fill in the details below.</p>
               </div>
               <button onClick={closeModal} className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
                 <X className="w-6 h-6" />
@@ -243,21 +243,21 @@ export default function QuizManager() {
             
             <form onSubmit={handleSubmit} className="p-10 flex flex-col gap-8">
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Logic Challenge (Question)</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Question</label>
                 <textarea 
                   name="question"
                   required
                   rows="3"
                   value={formData.question}
                   onChange={(e) => setFormData({...formData, question: e.target.value})}
-                  placeholder="Enter the challenge description..."
+                  placeholder="Enter your question here..."
                   className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all resize-none font-bold"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-3">
-                  <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Domain Sector</label>
+                  <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Domain</label>
                   <select 
                     value={formData.domain}
                     onChange={(e) => setFormData({...formData, domain: e.target.value})}
@@ -269,7 +269,7 @@ export default function QuizManager() {
                   </select>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Difficulty Index</label>
+                  <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Difficulty</label>
                   <select 
                     value={formData.difficulty}
                     onChange={(e) => setFormData({...formData, difficulty: e.target.value})}
@@ -283,7 +283,7 @@ export default function QuizManager() {
               </div>
 
               <div className="flex flex-col gap-5">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Option Modules</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Options</label>
                 <div className="grid grid-cols-1 gap-5">
                   {formData.options.map((opt, idx) => (
                     <div key={idx} className="flex items-center gap-5">
@@ -302,7 +302,7 @@ export default function QuizManager() {
                         required
                         value={opt}
                         onChange={(e) => handleOptionChange(idx, e.target.value)}
-                        placeholder={`Define module ${String.fromCharCode(65 + idx)}...`}
+                        placeholder={`Option ${String.fromCharCode(65 + idx)}...`}
                         className="flex-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
                       />
                     </div>
@@ -311,22 +311,22 @@ export default function QuizManager() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Logic Explanation (Optional)</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Explanation (Optional)</label>
                 <textarea 
                   rows="2"
                   value={formData.explanation}
                   onChange={(e) => setFormData({...formData, explanation: e.target.value})}
-                  placeholder="Explain the correct logic path..."
+                  placeholder="Explain why this is the correct answer..."
                   className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all resize-none font-medium leading-relaxed"
                 />
               </div>
 
               <div className="pt-10 flex flex-col sm:flex-row justify-end gap-5 border-t border-black/5 dark:border-white/5">
                 <button type="button" onClick={closeModal} className="px-8 py-4 rounded-2xl border border-black/5 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all">
-                  Abort
+                  Cancel
                 </button>
                 <button type="submit" className="px-10 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-                  <Save className="w-5 h-5" /> {editingQuestion ? 'Synchronize' : 'Commit Logic'}
+                  <Save className="w-5 h-5" /> {editingQuestion ? 'Save' : 'Create'}
                 </button>
               </div>
             </form>

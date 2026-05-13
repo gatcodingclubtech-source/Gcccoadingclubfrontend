@@ -48,7 +48,7 @@ export default function AdminLayout() {
             {isSidebarOpen && (
               <div className="flex flex-col">
                 <span className="text-slate-900 dark:text-white font-black tracking-tighter text-base uppercase leading-none">GCC Admin</span>
-                <span className="text-[9px] text-emerald-500 font-black tracking-widest uppercase mt-1">Control Center</span>
+                <span className="text-[9px] text-emerald-500 font-black tracking-widest uppercase mt-1">Admin Panel</span>
               </div>
             )}
           </div>
@@ -87,7 +87,7 @@ export default function AdminLayout() {
             >
               <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
               {isSidebarOpen && (
-                <span className="text-[10px] font-black tracking-widest uppercase">Terminate</span>
+                <span className="text-[10px] font-black tracking-widest uppercase">Logout</span>
               )}
             </button>
           </div>
@@ -111,12 +111,12 @@ export default function AdminLayout() {
             </button>
             <div className="hidden md:flex flex-col">
               <h2 className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-[0.2em]">
-                {menuItems.find(i => i.path === location.pathname)?.name || 'Admin Console'}
+                {menuItems.find(i => i.path === location.pathname)?.name || 'Admin Panel'}
               </h2>
               <div className="flex items-center gap-2 mt-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                 <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">
-                  System Active / Port 5001
+                  System Online
                 </p>
               </div>
             </div>
@@ -127,7 +127,7 @@ export default function AdminLayout() {
               <Search className="w-4 h-4 text-slate-500" />
               <input 
                 type="text" 
-                placeholder="Search database..." 
+                placeholder="Search..." 
                 className="bg-transparent border-none outline-none text-[10px] text-slate-900 dark:text-white placeholder:text-slate-400 w-56 font-black uppercase tracking-widest"
               />
             </div>

@@ -70,7 +70,7 @@ export default function EventsManager() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Erase this event log?')) {
+    if (window.confirm('Delete this event?')) {
       try {
         const res = await axios.delete(`/api/events/${id}`);
         if (res.data.success) {
@@ -114,15 +114,15 @@ export default function EventsManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Event Logs</h1>
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Construct and broadcast club initiatives.</p>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Events</h1>
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Create and manage club events.</p>
         </div>
         
         <button 
           onClick={() => openModal()}
           className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
-          <Plus className="w-5 h-5" /> Create Initiative
+          <Plus className="w-5 h-5" /> Add Event
         </button>
       </div>
 
@@ -137,7 +137,7 @@ export default function EventsManager() {
             <div className="p-6 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               <Calendar className="w-12 h-12 opacity-30" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">No active initiatives found in sector</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">No events found</span>
           </div>
         ) : (
           events.map((event) => (
@@ -221,9 +221,9 @@ export default function EventsManager() {
             <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10 px-10 py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                  {editingEvent ? 'Modify Protocol' : 'New Initiative'}
+                  {editingEvent ? 'Edit Event' : 'New Event'}
                 </h2>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Configure system broadcast parameters.</p>
+                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Fill in the details below.</p>
               </div>
               <button onClick={closeModal} className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
                 <X className="w-6 h-6" />
@@ -232,7 +232,7 @@ export default function EventsManager() {
             
             <form onSubmit={handleSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col gap-3 md:col-span-2">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Initiative Designation</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Event Name</label>
                 <input 
                   name="title"
                   required
@@ -243,7 +243,7 @@ export default function EventsManager() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Execution Timestamp</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Event Date</label>
                 <input 
                   name="date"
                   type="date"
@@ -255,7 +255,7 @@ export default function EventsManager() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Deployment Coordinate</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Location</label>
                 <input 
                   name="venue"
                   value={formData.venue}
@@ -265,7 +265,7 @@ export default function EventsManager() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Sector Classification</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Category</label>
                 <select 
                   name="category"
                   value={formData.category}
@@ -281,7 +281,7 @@ export default function EventsManager() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Visual Asset Link</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Image URL</label>
                 <input 
                   name="image"
                   value={formData.image}
@@ -291,7 +291,7 @@ export default function EventsManager() {
               </div>
 
               <div className="flex flex-col gap-3 md:col-span-2">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">External Sync Link</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Registration Link</label>
                 <input 
                   name="registrationLink"
                   value={formData.registrationLink}
@@ -301,7 +301,7 @@ export default function EventsManager() {
               </div>
 
               <div className="flex flex-col gap-3 md:col-span-2">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Full Data Stream (Description)</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Description</label>
                 <textarea 
                   name="description"
                   required
@@ -314,7 +314,7 @@ export default function EventsManager() {
 
               <div className="md:col-span-2 pt-10 flex flex-col sm:flex-row items-center justify-between gap-8 border-t border-black/5 dark:border-white/5">
                 <div className="flex items-center gap-4">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Live Broadcast:</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status:</span>
                   <button 
                     type="button"
                     onClick={() => setFormData({...formData, isActive: !formData.isActive})}
@@ -325,10 +325,10 @@ export default function EventsManager() {
                 </div>
                 <div className="flex gap-4 w-full sm:w-auto">
                   <button type="button" onClick={closeModal} className="flex-1 sm:flex-none px-8 py-4 rounded-2xl border border-black/5 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all">
-                    Abort
+                    Cancel
                   </button>
                   <button type="submit" className="flex-1 sm:flex-none px-10 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-                    <Save className="w-5 h-5" /> {editingEvent ? 'Synchronize' : 'Initialize'}
+                    <Save className="w-5 h-5" /> {editingEvent ? 'Save' : 'Create'}
                   </button>
                 </div>
               </div>

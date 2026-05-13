@@ -67,7 +67,7 @@ export default function Dashboard() {
     { title: 'Total Members', value: stats.totalUsers, icon: <Users />, color: 'emerald', trend: '+12%' },
     { title: 'Active Events', value: stats.activeEvents, icon: <Calendar />, color: 'cyan', trend: '+2' },
     { title: 'Quiz Base', value: stats.quizQuestions, icon: <HelpCircle />, color: 'blue', trend: '85%' },
-    { title: 'New Syncs', value: stats.newRegistrations, icon: <UserPlus />, color: 'purple', trend: 'Today' },
+    { title: 'New Members', value: stats.newRegistrations, icon: <UserPlus />, color: 'purple', trend: 'Today' },
   ];
 
   if (loading) return (
@@ -80,11 +80,11 @@ export default function Dashboard() {
     <div className="flex flex-col gap-12">
       {/* Welcome Section */}
       <div className="flex flex-col gap-3">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">System Overview</h1>
+        <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Dashboard</h1>
         <div className="flex items-center gap-3">
           <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
             <Activity className="w-3 h-3 text-emerald-500" />
-            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-widest">Real-time Pulse Active</span>
+            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-widest">Live Updates</span>
           </div>
         </div>
       </div>
@@ -115,8 +115,8 @@ export default function Dashboard() {
         <div className="lg:col-span-2 glass-panel p-8 flex flex-col gap-8">
           <div className="flex justify-between items-center">
             <div className="flex flex-col gap-1">
-              <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tighter">Recent Terminals</h3>
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Latest community members synced.</p>
+              <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tighter">New Members</h3>
+              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Latest members who joined.</p>
             </div>
             <button className="px-4 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-[9px] font-black text-emerald-500 uppercase flex items-center gap-2 hover:bg-emerald-500 hover:text-white transition-all">
               Full Log <ArrowUpRight className="w-3 h-3" />
@@ -127,10 +127,10 @@ export default function Dashboard() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-black/5 dark:border-white/5">
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identity</th>
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sector</th>
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Auth Level</th>
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Timestamp</th>
+                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
+                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</th>
+                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Joined Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -178,12 +178,12 @@ export default function Dashboard() {
         <div className="flex flex-col gap-8">
           <div className="glass-panel p-8 bg-gradient-to-br from-emerald-500/5 to-transparent border-emerald-500/20">
             <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-emerald-500" /> System Metrics
+              <Zap className="w-4 h-4 text-emerald-500" /> System Status
             </h3>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-slate-500">Database Integrity</span>
+                  <span className="text-slate-500">Server Online</span>
                   <span className="text-emerald-500">99.8%</span>
                 </div>
                 <div className="h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
@@ -192,7 +192,7 @@ export default function Dashboard() {
               </div>
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                  <span className="text-slate-500">Node Latency</span>
+                  <span className="text-slate-500">Response Time</span>
                   <span className="text-cyan-500">12ms</span>
                 </div>
                 <div className="h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
@@ -201,19 +201,19 @@ export default function Dashboard() {
               </div>
             </div>
             <button className="w-full mt-8 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              Initialize Diagnostics
+              Check System
             </button>
           </div>
 
           <div className="glass-panel p-8">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6">Operations</h3>
+            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6">Quick Actions</h3>
             <div className="flex flex-col gap-3">
               <button className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-emerald-500/10 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all text-left group">
-                <span className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 group-hover:text-emerald-500">Broadcast Event</span>
+                <span className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 group-hover:text-emerald-500">Add Event</span>
                 <Calendar className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
               </button>
               <button className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-emerald-500/10 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all text-left group">
-                <span className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 group-hover:text-emerald-500">Inject Logic</span>
+                <span className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 group-hover:text-emerald-500">Add Question</span>
                 <HelpCircle className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
               </button>
             </div>

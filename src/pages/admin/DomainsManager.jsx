@@ -64,15 +64,15 @@ export default function DomainsManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Sector Management</h1>
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Define and optimize club domains.</p>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Domains</h1>
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Manage the different interest groups in the club.</p>
         </div>
         
         <button 
           onClick={() => openModal()}
           className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
-          <Plus className="w-5 h-5" /> Expand Sector
+          <Plus className="w-5 h-5" /> Add Domain
         </button>
       </div>
 
@@ -109,7 +109,7 @@ export default function DomainsManager() {
             </div>
 
             <div className="mt-auto pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-600 tracking-[0.2em]">Sector ID: {domain.id}</span>
+              <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-600 tracking-[0.2em]">Domain ID: {domain.id}</span>
               <div className={`w-3 h-3 rounded-full bg-${domain.color}-500 shadow-lg shadow-${domain.color}-500/50 animate-pulse`} />
             </div>
           </div>
@@ -124,9 +124,9 @@ export default function DomainsManager() {
             <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10 px-10 py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                  {editingDomain ? 'Optimize Sector' : 'Define Sector'}
+                  {editingDomain ? 'Edit Domain' : 'Add Domain'}
                 </h2>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Configure domain architectural parameters.</p>
+                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Fill in the details below.</p>
               </div>
               <button onClick={closeModal} className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
                 <X className="w-6 h-6" />
@@ -135,7 +135,7 @@ export default function DomainsManager() {
             
             <form onSubmit={handleSubmit} className="p-10 flex flex-col gap-8">
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Sector Designation</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Domain Name</label>
                 <input 
                   name="title"
                   required
@@ -146,7 +146,7 @@ export default function DomainsManager() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Visual Spectrum (Color)</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Theme Color</label>
                 <div className="flex flex-wrap gap-4 pt-2">
                   {colors.map((c) => (
                     <button 
@@ -162,7 +162,7 @@ export default function DomainsManager() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Mission Statement (Description)</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Description</label>
                 <textarea 
                   name="desc"
                   required
@@ -175,10 +175,10 @@ export default function DomainsManager() {
 
               <div className="pt-10 flex flex-col sm:flex-row justify-end gap-5 border-t border-black/5 dark:border-white/5">
                 <button type="button" onClick={closeModal} className="px-8 py-4 rounded-2xl border border-black/5 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all">
-                  Abort
+                  Cancel
                 </button>
                 <button type="submit" className="px-10 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-                  <Save className="w-5 h-5" /> {editingDomain ? 'Synchronize' : 'Initialize'}
+                  <Save className="w-5 h-5" /> {editingDomain ? 'Save' : 'Create'}
                 </button>
               </div>
             </form>

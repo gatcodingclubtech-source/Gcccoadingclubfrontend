@@ -76,7 +76,7 @@ export default function TestSessionManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (selectedQuestions.length === 0) {
-      return alert('Select at least one logic node (question)');
+      return alert('Select at least one question');
     }
     
     try {
@@ -90,7 +90,7 @@ export default function TestSessionManager() {
         closeModal();
       }
     } catch (err) {
-      alert('Failed to initialize session');
+      alert('Failed to start session');
     }
   };
 
@@ -179,15 +179,15 @@ export default function TestSessionManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Autonomous Testing</h1>
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Construct and monitor live validation sessions.</p>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Live Tests</h1>
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Create and monitor live quiz sessions.</p>
         </div>
         
         <button 
           onClick={openModal}
           className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
-          <Plus className="w-5 h-5" /> Initialize Session
+          <Plus className="w-5 h-5" /> Start New Test
         </button>
       </div>
 
@@ -202,7 +202,7 @@ export default function TestSessionManager() {
             <div className="p-6 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               <Shield className="w-12 h-12 opacity-30" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">No active test sessions in sector</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">No active tests found</span>
           </div>
         ) : (
           sessions.map((session) => (
@@ -210,7 +210,7 @@ export default function TestSessionManager() {
               <div className="flex justify-between items-start">
                 <div className="flex flex-col gap-1">
                   <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{session.title}</h3>
-                  <span className="text-[9px] text-emerald-500 font-black uppercase tracking-[0.2em]">{session.domain} / {session.questions.length} Queries</span>
+                  <span className="text-[9px] text-emerald-500 font-black uppercase tracking-[0.2em]">{session.domain} / {session.questions.length} Questions</span>
                 </div>
                 <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${
                   session.isActive ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border-red-500/30 text-red-500'
@@ -269,8 +269,8 @@ export default function TestSessionManager() {
           <div data-lenis-prevent className="glass-panel w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 animate-in zoom-in duration-500 shadow-2xl">
             <div className="px-10 py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
               <div className="flex flex-col gap-1">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Initialize Session</h2>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Configure test parameters and validation nodes.</p>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Start New Test</h2>
+                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Fill in the details below.</p>
               </div>
               <button onClick={closeModal} className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
                 <X className="w-6 h-6" />
@@ -309,7 +309,7 @@ export default function TestSessionManager() {
               {/* Question Selection */}
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Question Injection ({selectedQuestions.length} Selected)</label>
+                  <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Questions ({selectedQuestions.length} Selected)</label>
                   <div className="flex flex-wrap items-center gap-3">
                     <button 
                       type="button"
@@ -324,7 +324,7 @@ export default function TestSessionManager() {
                     </label>
                     <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 px-4 py-2 rounded-xl border border-black/5 dark:border-white/5">
                       <Search className="w-4 h-4 text-slate-400" />
-                      <input type="text" placeholder="Search queries..." className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white w-40" />
+                      <input type="text" placeholder="Search questions..." className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white w-40" />
                     </div>
                   </div>
                 </div>
@@ -358,13 +358,13 @@ export default function TestSessionManager() {
             <div className="px-10 py-8 border-t border-black/5 dark:border-white/5 flex justify-end bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
               <div className="flex gap-4">
                 <button onClick={closeModal} className="px-8 py-4 rounded-2xl border border-black/5 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all">
-                  Abort
+                  Cancel
                 </button>
                 <button 
                   onClick={handleSubmit}
                   className="px-10 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                 >
-                  <Save className="w-5 h-5" /> Launch Session
+                  <Save className="w-5 h-5" /> Start Test
                 </button>
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function TestSessionManager() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsQuestionModalOpen(false)} />
           <div data-lenis-prevent className="glass-panel w-full max-w-lg max-h-[85vh] overflow-y-auto relative z-10 p-10 animate-in slide-in-from-bottom-10 duration-500">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Quick Logic Injection</h3>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Quickly Add Question</h3>
               <button onClick={() => setIsQuestionModalOpen(false)} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-slate-500">
                 <X className="w-5 h-5" />
               </button>
@@ -393,7 +393,7 @@ export default function TestSessionManager() {
                   value={newQuestionData.question}
                   onChange={(e) => setNewQuestionData({...newQuestionData, question: e.target.value})}
                   className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500/50"
-                  placeholder="Enter challenge question..."
+                  placeholder="Enter your question here..."
                 />
               </div>
 
@@ -454,7 +454,7 @@ export default function TestSessionManager() {
               </div>
 
               <button type="submit" className="w-full py-4 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                Add to Test Pool
+                Add to Test
               </button>
             </form>
           </div>
