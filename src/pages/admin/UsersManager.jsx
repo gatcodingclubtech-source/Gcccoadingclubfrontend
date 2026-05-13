@@ -30,7 +30,7 @@ export default function UsersManager() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Terminate this terminal access permanently?')) {
+    if (window.confirm('Are you sure you want to delete this member?')) {
       try {
         const res = await axios.delete(`/api/users/${id}`);
         if (res.data.success) {
@@ -67,8 +67,8 @@ export default function UsersManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Terminal Directory</h1>
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Manage all active user nodes and permissions.</p>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Member List</h1>
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Manage your community members and their roles.</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -116,9 +116,9 @@ export default function UsersManager() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Identify</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Terminal Auth</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sync Level</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Details</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
@@ -127,13 +127,13 @@ export default function UsersManager() {
                 <tr>
                   <td colSpan="4" className="py-24 text-center">
                     <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Syncing Nodes...</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Loading...</span>
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="py-24 text-center">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-40">No matching terminals found in database</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-40">No members found</span>
                   </td>
                 </tr>
               ) : (
@@ -150,14 +150,14 @@ export default function UsersManager() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors leading-tight">{user.name}</span>
-                          <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">{user.usn || 'NO_USN_FOUND'}</span>
+                          <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">{user.usn || 'NO USN'}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col gap-1">
                         <span className="text-xs text-slate-700 dark:text-slate-300 font-bold">{user.email}</span>
-                        <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">{user.department || 'DEPT_PENDING'}</span>
+                        <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">{user.department || 'Department Pending'}</span>
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -196,7 +196,7 @@ export default function UsersManager() {
         {/* Pagination */}
         <div className="px-8 py-6 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-            Showing {filteredUsers.length} of {users.length} active nodes
+            Showing {filteredUsers.length} of {users.length} members
           </span>
           <div className="flex items-center gap-3">
             <button className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-400 disabled:opacity-30 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all">

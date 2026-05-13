@@ -78,7 +78,7 @@ export default function AdminLogin() {
                   Admin Access
                 </h1>
                 <p className="auth-element text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                  Master Control Protocol. Restricted Access.
+                  Admin Panel Access. Restricted.
                 </p>
               </div>
             </div>
@@ -131,11 +131,11 @@ export default function AdminLogin() {
                 {authLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>AUTHORIZING...</span>
+                    <span>LOGGING IN...</span>
                   </div>
                 ) : (
                   <>
-                    AUTHORIZE <ArrowRight className="w-4 h-4" />
+                    LOGIN <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
