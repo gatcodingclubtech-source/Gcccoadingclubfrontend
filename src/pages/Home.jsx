@@ -105,8 +105,18 @@ const SplitText = ({ text, className }) => {
 gsap.registerPlugin(ScrollTrigger);
 
 import { Link, useNavigate } from 'react-router-dom';
-import { eventsData } from '../data/events';
-import { domainsData } from '../data/domains';
+import axios from 'axios';
+// Static fallback icons for dynamic lucide mapping
+import { Code, Sparkles, Terminal as TerminalIcon, Layers, Shield, Globe } from 'lucide-react';
+
+const IconMap = {
+  Code: <Code className="w-14 h-14" />,
+  Sparkles: <Sparkles className="w-14 h-14" />,
+  Terminal: <TerminalIcon className="w-14 h-14" />,
+  Layers: <Layers className="w-14 h-14" />,
+  Shield: <Shield className="w-14 h-14" />,
+  Globe: <Globe className="w-14 h-14" />
+};
 
 function QuizSection() {
   return (
@@ -193,7 +203,42 @@ export default function Home({ theme }) {
     { text: 'Type "help" to see what you can do.', type: 'info' }
   ]);
   const [terminalInput, setTerminalInput] = useState('');
+  const [events, setEvents] = useState([]);
+  const [domains, setDomains] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [domainsLoading, setDomainsLoading] = useState(true);
   const termRef = useRef(null);
+
+  useEffect(() => {
+    fetchEvents();
+    fetchDomains();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const res = await axios.get('/api/events');
+      if (res.data.success) {
+        setEvents(res.data.events);
+      }
+    } catch (err) {
+      console.error('Error fetching events', err);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
+  const fetchDomains = async () => {
+    try {
+      const res = await axios.get('/api/domains');
+      if (res.data.success) {
+        setDomains(res.data.domains);
+      }
+    } catch (err) {
+      console.error('Error fetching domains', err);
+    } finally {
+      setDomainsLoading(false);
+    }
+  };
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -536,27 +581,37 @@ export default function Home({ theme }) {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 transition-all duration-700 ease-in-out">
-            {domainsData.slice(0, showAllDomains ? 6 : 3).map((domain, idx) => (
-              <div key={idx} className="elite-card p-8 md:p-10 flex flex-col gap-6 animate-on-scroll group hover:scale-[1.02] transition-all duration-500">
-                <div className={`w-14 h-14 rounded-2xl bg-${domain.color}-500/10 flex items-center justify-center text-${domain.color}-600 shadow-lg shadow-${domain.color}-500/5 group-hover:scale-110 transition-transform`}>
-                  {domain.icon}
-                </div>
-                <div className="flex flex-col gap-3">
-                  <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{domain.title}</h4>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {domain.desc}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-3 mt-auto">
-                  <Link to={user ? "/profile" : "/auth"} className={`w-full py-3 rounded-xl bg-${domain.color}-600 text-white text-xs font-black tracking-widest hover:bg-${domain.color}-700 transition-colors shadow-lg shadow-${domain.color}-600/20 text-center flex items-center justify-center`}>
-                    {user ? "MY DASHBOARD" : "JOIN NOW"}
-                  </Link>
-                  <Link to={`/domain/${domain.id}`} className="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-center inline-block">
-                    VIEW DETAILS
-                  </Link>
-                </div>
+            {domainsLoading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="glass-panel h-80 animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
+              ))
+            ) : domains.length === 0 ? (
+              <div className="col-span-full py-20 text-center opacity-30 font-black uppercase tracking-widest text-slate-500">
+                No active domains discovered
               </div>
-            ))}
+            ) : (
+              domains.slice(0, showAllDomains ? 12 : 3).map((domain, idx) => (
+                <div key={domain._id} className="elite-card p-8 md:p-10 flex flex-col gap-6 animate-on-scroll group hover:scale-[1.02] transition-all duration-500">
+                  <div className={`w-14 h-14 rounded-2xl bg-${domain.color}-500/10 flex items-center justify-center text-${domain.color}-600 shadow-lg shadow-${domain.color}-500/5 group-hover:scale-110 transition-transform`}>
+                    {IconMap[domain.icon] || <Layers className="w-14 h-14" />}
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{domain.title}</h4>
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {domain.desc}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-3 mt-auto">
+                    <Link to={user ? "/profile" : "/auth"} className={`w-full py-3 rounded-xl bg-${domain.color}-600 text-white text-xs font-black tracking-widest hover:bg-${domain.color}-700 transition-colors shadow-lg shadow-${domain.color}-600/20 text-center flex items-center justify-center`}>
+                      {user ? "MY DASHBOARD" : "JOIN NOW"}
+                    </Link>
+                    <Link to={`/domain/${domain.slug}`} className="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-center inline-block">
+                      VIEW DETAILS
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="flex justify-center mt-12 animate-on-scroll">
@@ -588,36 +643,55 @@ export default function Home({ theme }) {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-            {eventsData
-              .slice(0, 3)
-              .map((item) => (
-                <div key={item.id} className="elite-card group bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 animate-on-scroll flex flex-col hover:-translate-y-2">
-                  <div className="relative aspect-[16/10] overflow-hidden w-full bg-slate-200/30 dark:bg-slate-800/30 border-b border-black/5 dark:border-white/5">
-                    <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute top-4 left-4">
-                      <span className="px-4 py-1.5 rounded-lg bg-brand/90 backdrop-blur-xl text-[9px] font-black text-white tracking-widest shadow-xl uppercase">{item.type}</span>
-                    </div>
-                  </div>
-                  <div className="p-6 md:p-8 flex flex-col gap-6">
-                    <div className="flex flex-col gap-3">
-                      <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase group-hover:text-brand transition-colors leading-tight line-clamp-2 min-h-[3.5rem]">{item.title}</h4>
-                      <div className="flex flex-wrap gap-2 text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Calendar className="w-3 h-3 text-brand" /> {item.date}</span>
-                        <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Globe className="w-3 h-3 text-brand" /> {item.location}</span>
+            {eventsLoading ? (
+              Array(3).fill(0).map((_, i) => (
+                <div key={i} className="glass-panel h-[400px] animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
+              ))
+            ) : events.length === 0 ? (
+              <div className="col-span-full py-20 text-center opacity-30 font-black uppercase tracking-widest text-slate-500">
+                No active activities found
+              </div>
+            ) : (
+              events
+                .filter(ev => ev.isActive !== false)
+                .slice(0, 3)
+                .map((item) => (
+                  <div key={item._id} className="elite-card group bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 animate-on-scroll flex flex-col hover:-translate-y-2">
+                    <div className="relative aspect-[16/10] overflow-hidden w-full bg-slate-200/30 dark:bg-slate-800/30 border-b border-black/5 dark:border-white/5">
+                      <img src={item.image || 'https://via.placeholder.com/800x500'} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <div className="absolute top-4 left-4">
+                        <span className="px-4 py-1.5 rounded-lg bg-brand/90 backdrop-blur-xl text-[9px] font-black text-white tracking-widest shadow-xl uppercase">{item.category}</span>
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 mt-4 pt-6 border-t border-black/5 dark:border-white/5">
-                      <button className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-brand/20">
-                        REGISTER
-                      </button>
-                      <Link to={`/event/${item.id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
-                        DETAILS
-                      </Link>
+                    <div className="p-6 md:p-8 flex flex-col gap-6">
+                      <div className="flex flex-col gap-3">
+                        <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase group-hover:text-brand transition-colors leading-tight line-clamp-2 min-h-[3.5rem]">{item.title}</h4>
+                        <div className="flex flex-wrap gap-2 text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                          <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                            <Calendar className="w-3 h-3 text-brand" /> 
+                            {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                          <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Globe className="w-3 h-3 text-brand" /> {item.venue}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 mt-4 pt-6 border-t border-black/5 dark:border-white/5">
+                        <a 
+                          href={item.registrationLink || '#'} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-brand/20 text-center flex items-center justify-center"
+                        >
+                          REGISTER
+                        </a>
+                        <Link to={`/event/${item._id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
+                          DETAILS
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+            )}
           </div>
 
           <div className="flex justify-center mt-12">

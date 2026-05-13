@@ -1,19 +1,46 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Users, PlayCircle, Code2, Sparkles, ChevronRight } from 'lucide-react';
+import { ArrowLeft, BookOpen, Users, PlayCircle, Code, Sparkles, Terminal as TerminalIcon, Layers, Shield, Globe, ChevronRight } from 'lucide-react';
+import axios from 'axios';
 import gsap from 'gsap';
-import { domainsData } from '../data/domains';
+
+const IconMap = {
+  Code: <Code className="w-8 h-8" />,
+  Sparkles: <Sparkles className="w-8 h-8" />,
+  Terminal: <TerminalIcon className="w-8 h-8" />,
+  Layers: <Layers className="w-8 h-8" />,
+  Shield: <Shield className="w-8 h-8" />,
+  Globe: <Globe className="w-8 h-8" />
+};
 
 export default function DomainDetails() {
   const { id } = useParams();
-  const domain = domainsData.find(d => d.id === id);
+  const [domain, setDomain] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   const containerRef = useRef(null);
   const elementsRef = useRef([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
+    fetchDomain();
+  }, [id]);
+
+  const fetchDomain = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`/api/domains/${id}`);
+      if (res.data.success) {
+        setDomain(res.data.domain);
+      }
+    } catch (err) {
+      console.error('Error fetching domain', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (!domain) return;
 
     // Reset elements
@@ -26,7 +53,7 @@ export default function DomainDetails() {
       .to(elementsRef.current, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 }, "-=1");
 
     return () => tl.kill();
-  }, [id, domain]);
+  }, [domain]);
 
   const addToRefs = (el) => {
     if (el && !elementsRef.current.includes(el)) {
@@ -34,12 +61,20 @@ export default function DomainDetails() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
+        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!domain) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
         <div className="flex flex-col gap-6 text-center items-center">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white">Domain Not Found</h1>
-          <Link to="/" className="px-8 py-4 rounded-full bg-brand text-white font-black hover:scale-105 transition-transform shadow-xl">
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Domain Not Found</h1>
+          <Link to="/" className="px-8 py-4 rounded-full bg-emerald-500 text-white font-black hover:scale-105 transition-transform shadow-xl uppercase tracking-widest text-xs">
             Return to Home
           </Link>
         </div>
@@ -47,17 +82,16 @@ export default function DomainDetails() {
     );
   }
 
-  // Helper to map color to actual tailwind classes safely without arbitrary string interpolation
   const getColorClasses = (colorName) => {
     const map = {
-      blue: { text: 'text-emerald-500', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-600 to-cyan-500' },
+      blue: { text: 'text-blue-500', bg: 'bg-blue-500', bgLight: 'bg-blue-500/10', border: 'border-blue-500/20', gradient: 'from-blue-600 to-cyan-500' },
       purple: { text: 'text-purple-500', bg: 'bg-purple-500', bgLight: 'bg-purple-500/10', border: 'border-purple-500/20', gradient: 'from-purple-600 to-pink-500' },
       cyan: { text: 'text-cyan-500', bg: 'bg-cyan-500', bgLight: 'bg-cyan-500/10', border: 'border-cyan-500/20', gradient: 'from-cyan-500 to-emerald-500' },
-      indigo: { text: 'text-emerald-500', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-600 to-purple-600' },
-      red: { text: 'text-red-500', bg: 'bg-red-500', bgLight: 'bg-red-500/10', border: 'border-red-500/20', gradient: 'from-red-600 to-orange-500' },
       emerald: { text: 'text-emerald-500', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-500 to-teal-400' },
+      red: { text: 'text-red-500', bg: 'bg-red-500', bgLight: 'bg-red-500/10', border: 'border-red-500/20', gradient: 'from-red-600 to-orange-500' },
+      amber: { text: 'text-amber-500', bg: 'bg-amber-500', bgLight: 'bg-amber-500/10', border: 'border-amber-500/20', gradient: 'from-amber-500 to-yellow-400' },
     };
-    return map[colorName] || map.blue;
+    return map[colorName] || map.emerald;
   };
 
   const themeColors = getColorClasses(domain.color);
@@ -67,7 +101,7 @@ export default function DomainDetails() {
       
       {/* Massive Background Watermark */}
       <div className={`bg-watermark absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/4 ${themeColors.text} opacity-5 dark:opacity-10 pointer-events-none select-none blur-sm`}>
-        {React.cloneElement(domain.icon, { className: "w-[800px] h-[800px]" })}
+        {React.cloneElement(IconMap[domain.icon] || <Layers />, { className: "w-[800px] h-[800px]" })}
       </div>
 
       <div className="relative z-10 pt-32 pb-24 px-6 max-w-6xl mx-auto">
@@ -81,12 +115,12 @@ export default function DomainDetails() {
           <div className="lg:col-span-7 flex flex-col gap-8 relative z-20">
             <div ref={addToRefs} className="flex items-center gap-4">
               <div className={`w-16 h-16 rounded-2xl ${themeColors.bgLight} flex items-center justify-center ${themeColors.text} shadow-xl shadow-${domain.color}-500/20`}>
-                {React.cloneElement(domain.icon, { className: "w-8 h-8" })}
+                {IconMap[domain.icon] || <Layers className="w-8 h-8" />}
               </div>
               <span className="text-xs font-black tracking-[0.3em] text-slate-400 uppercase">Domain Overview</span>
             </div>
             
-            <h1 ref={addToRefs} className="text-5xl md:text-7xl font-black tracking-tighter leading-[1.1] text-slate-900 dark:text-white">
+            <h1 ref={addToRefs} className="text-5xl md:text-7xl font-black tracking-tighter leading-[1.1] text-slate-900 dark:text-white uppercase">
               <span className={`bg-clip-text text-transparent bg-gradient-to-r ${themeColors.gradient}`}>
                 {domain.title}
               </span>
@@ -97,10 +131,10 @@ export default function DomainDetails() {
             </p>
 
             <div ref={addToRefs} className="flex flex-wrap gap-4 mt-4">
-              <button className={`px-10 py-5 rounded-full bg-gradient-to-r ${themeColors.gradient} text-white text-sm font-black tracking-widest hover:scale-105 transition-transform shadow-xl flex items-center gap-2`}>
-                JOIN {domain.title.toUpperCase()} <ChevronRight className="w-4 h-4" />
+              <button className={`px-10 py-5 rounded-full bg-gradient-to-r ${themeColors.gradient} text-white text-sm font-black tracking-widest hover:scale-105 transition-transform shadow-xl flex items-center gap-2 uppercase`}>
+                JOIN {domain.title} <ChevronRight className="w-4 h-4" />
               </button>
-              <button className="px-10 py-5 rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-black tracking-widest border border-black/10 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-xl">
+              <button className="px-10 py-5 rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-black tracking-widest border border-black/10 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-xl uppercase">
                 <PlayCircle className="w-4 h-4" /> WATCH INTRO
               </button>
             </div>
@@ -114,7 +148,7 @@ export default function DomainDetails() {
               <div className={`w-12 h-12 rounded-xl ${themeColors.bgLight} ${themeColors.text} flex items-center justify-center mb-6`}>
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">What You'll Learn</h3>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tighter">What You'll Learn</h3>
               <ul className="flex flex-col gap-3 text-sm font-medium text-slate-600 dark:text-slate-400">
                 <li className="flex items-start gap-3">
                   <div className={`mt-1 w-1.5 h-1.5 rounded-full ${themeColors.bg}`}></div>
@@ -136,7 +170,7 @@ export default function DomainDetails() {
               <div className="w-12 h-12 rounded-xl bg-white/10 dark:bg-black/10 flex items-center justify-center mb-6">
                 <Users className="w-6 h-6 text-white dark:text-slate-900" />
               </div>
-              <h3 className="text-2xl font-black mb-4">Who Should Join?</h3>
+              <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter">Who Should Join?</h3>
               <p className="text-sm font-medium leading-relaxed opacity-80">
                 Anyone with a passion for {domain.title.toLowerCase()}. No prior experience is strictly required, but a strong desire to learn, experiment, and collaborate with peers is essential. We start from the basics and move to advanced concepts.
               </p>
