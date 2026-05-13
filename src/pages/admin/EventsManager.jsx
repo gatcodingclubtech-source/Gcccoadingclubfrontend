@@ -114,13 +114,13 @@ export default function EventsManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Events</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Events</h1>
           <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Create and manage club events.</p>
         </div>
         
         <button 
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          className="flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           <Plus className="w-5 h-5" /> Add Event
         </button>
@@ -218,7 +218,7 @@ export default function EventsManager() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-md" onClick={closeModal} />
           <div data-lenis-prevent className="glass-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 animate-in zoom-in duration-500 shadow-2xl">
-            <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10 px-10 py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+            <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10 px-6 md:px-10 py-6 md:py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
               <div className="flex flex-col gap-1">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
                   {editingEvent ? 'Edit Event' : 'New Event'}
@@ -230,7 +230,7 @@ export default function EventsManager() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <form onSubmit={handleSubmit} className="p-6 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <div className="flex flex-col gap-3 md:col-span-2">
                 <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Event Name</label>
                 <input 

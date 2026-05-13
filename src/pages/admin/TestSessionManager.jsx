@@ -179,13 +179,13 @@ export default function TestSessionManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Live Tests</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Live Tests</h1>
           <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Create and monitor live quiz sessions.</p>
         </div>
         
         <button 
           onClick={openModal}
-          className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          className="flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           <Plus className="w-5 h-5" /> Start New Test
         </button>
@@ -206,7 +206,7 @@ export default function TestSessionManager() {
           </div>
         ) : (
           sessions.map((session) => (
-            <div key={session._id} className="glass-panel p-8 flex flex-col gap-6 group hover:border-emerald-500/30 transition-all">
+            <div key={session._id} className="glass-panel p-6 md:p-8 flex flex-col gap-6 group hover:border-emerald-500/30 transition-all">
               <div className="flex justify-between items-start">
                 <div className="flex flex-col gap-1">
                   <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{session.title}</h3>
@@ -267,7 +267,7 @@ export default function TestSessionManager() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-md" onClick={closeModal} />
           <div data-lenis-prevent className="glass-panel w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 animate-in zoom-in duration-500 shadow-2xl">
-            <div className="px-10 py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+            <div className="px-6 md:px-10 py-6 md:py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
               <div className="flex flex-col gap-1">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Start New Test</h2>
                 <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Fill in the details below.</p>
@@ -277,7 +277,7 @@ export default function TestSessionManager() {
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-10 flex flex-col gap-10">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 flex flex-col gap-8 md:gap-10">
               {/* Credentials Preview */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="flex flex-col gap-3 md:col-span-1">

@@ -80,7 +80,7 @@ export default function Dashboard() {
     <div className="flex flex-col gap-12">
       {/* Welcome Section */}
       <div className="flex flex-col gap-3">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Dashboard</h1>
+        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Dashboard</h1>
         <div className="flex items-center gap-3">
           <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
             <Activity className="w-3 h-3 text-emerald-500" />
@@ -92,7 +92,7 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => (
-          <div key={idx} className="stat-card glass-panel p-8 group hover:border-emerald-500/30 transition-all cursor-default">
+          <div key={idx} className="stat-card glass-panel p-6 md:p-8 group hover:border-emerald-500/30 transition-all cursor-default">
             <div className="flex justify-between items-start mb-6">
               <div className={`p-4 rounded-2xl bg-${card.color}-500/10 border border-${card.color}-500/20 text-${card.color}-600 dark:text-${card.color}-400 shadow-lg shadow-${card.color}-500/5`}>
                 {React.cloneElement(card.icon, { className: 'w-6 h-6' })}
@@ -112,7 +112,7 @@ export default function Dashboard() {
       {/* Main Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Users */}
-        <div className="lg:col-span-2 glass-panel p-8 flex flex-col gap-8">
+        <div className="lg:col-span-2 glass-panel p-6 md:p-8 flex flex-col gap-8">
           <div className="flex justify-between items-center">
             <div className="flex flex-col gap-1">
               <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tighter">New Members</h3>
@@ -123,20 +123,20 @@ export default function Dashboard() {
             </button>
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          <div className="overflow-x-auto scrollbar-hide">
+            <table className="w-full min-w-[600px] text-left">
               <thead>
-                <tr className="border-b border-black/5 dark:border-white/5">
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</th>
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                  <th className="pb-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Joined Date</th>
+                <tr className="border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Joined Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {recentUsers.map((user) => (
                   <tr key={user._id} className="group hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-all">
-                    <td className="py-5">
+                    <td className="py-5 px-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-sm">
                           {user.avatar ? (
@@ -176,7 +176,7 @@ export default function Dashboard() {
 
         {/* Quick Actions / System Health */}
         <div className="flex flex-col gap-8">
-          <div className="glass-panel p-8 bg-gradient-to-br from-emerald-500/5 to-transparent border-emerald-500/20">
+          <div className="glass-panel p-6 md:p-8 bg-gradient-to-br from-emerald-500/5 to-transparent border-emerald-500/20">
             <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-500" /> System Status
             </h3>
@@ -205,7 +205,7 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="glass-panel p-8">
+          <div className="glass-panel p-6 md:p-8">
             <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6">Quick Actions</h3>
             <div className="flex flex-col gap-3">
               <button className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-emerald-500/10 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all text-left group">

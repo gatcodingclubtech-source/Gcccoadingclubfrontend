@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, MoreVertical, Trash2, Shield, User, 
-  Filter, Download, ChevronLeft, ChevronRight 
+  Plus, Users, Trash2, Edit2, 
+  Search, Shield, CheckCircle2, XCircle, 
+  Save, X, Filter, ChevronDown, MoreVertical,
+  Mail, Phone, Calendar, User, MapPin,
+  Lock, Key, Power
 } from 'lucide-react';
 import axios from 'axios';
 
 export default function UsersManager() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -30,36 +33,37 @@ export default function UsersManager() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this member?')) {
+    if (window.confirm('Delete this member?')) {
       try {
         const res = await axios.delete(`/api/users/${id}`);
         if (res.data.success) {
           setUsers(users.filter(u => u._id !== id));
         }
       } catch (err) {
-        alert('Failed to delete user');
+        alert('Delete failed');
       }
     }
   };
 
   const handleRoleToggle = async (id, currentRole) => {
-    const newRole = currentRole === 'admin' ? 'user' : 'admin';
+    const newRole = currentRole === 'admin' ? 'member' : 'admin';
     try {
-      const res = await axios.patch(`/api/users/${id}/role`, { role: newRole });
+      const res = await axios.put(`/api/users/${id}/role`, { role: newRole });
       if (res.data.success) {
         setUsers(users.map(u => u._id === id ? { ...u, role: newRole } : u));
       }
     } catch (err) {
-      alert('Failed to update role');
+      alert('Role update failed');
     }
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.usn && user.usn.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesRole = filterRole === 'all' || user.role === filterRole;
-    return matchesSearch && matchesRole;
+    const matchesSearch = 
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.usn?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesRole && matchesSearch;
   });
 
   return (
@@ -67,38 +71,35 @@ export default function UsersManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Member List</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Member List</h1>
           <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Manage your community members and their roles.</p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <button className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all shadow-sm">
-            <Download className="w-5 h-5" />
-          </button>
-          <div className="relative group flex-1 md:flex-none">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+        <div className="flex items-center gap-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl shadow-black/5">
+          <div className="flex items-center gap-3 px-5 py-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
+            <Search className="w-5 h-5 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search USN, Name, Email..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl pl-14 pr-6 py-4 text-[11px] text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all w-full md:w-80 font-black uppercase tracking-widest shadow-inner"
+              placeholder="Search members..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent border-none outline-none text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white w-40 md:w-64"
             />
           </div>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-6 py-5 px-8 glass-panel">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 py-5 px-6 md:px-8 glass-panel">
         <span className="text-[10px] font-black uppercase text-slate-500 flex items-center gap-3">
           <Filter className="w-4 h-4" /> Filter Status:
         </span>
-        <div className="flex gap-3">
-          {['all', 'admin', 'user'].map((role) => (
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+          {['all', 'admin', 'member'].map((role) => (
             <button 
               key={role}
               onClick={() => setFilterRole(role)}
-              className={`px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all border ${
+              className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${
                 filterRole === role 
                   ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' 
                   : 'bg-black/5 dark:bg-white/5 text-slate-500 border-transparent hover:bg-black/10 dark:hover:bg-white/10'
@@ -108,32 +109,40 @@ export default function UsersManager() {
             </button>
           ))}
         </div>
+        
+        <div className="sm:ml-auto flex items-center gap-3">
+          <span className="text-[10px] font-black uppercase text-slate-400">Total: {filteredUsers.length}</span>
+        </div>
       </div>
 
       {/* Users Table */}
-      <div className="glass-panel overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+      <div className="glass-panel overflow-hidden border border-black/5 dark:border-white/5 shadow-2xl">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
+          <table className="w-full min-w-[700px] text-left">
             <thead>
               <tr className="border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Details</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                <th className="px-4 md:px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Member</th>
+                <th className="px-4 md:px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Details</th>
+                <th className="px-4 md:px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
+                <th className="px-4 md:px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {loading ? (
-                <tr>
-                  <td colSpan="4" className="py-24 text-center">
-                    <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Loading...</span>
-                  </td>
-                </tr>
+                Array(5).fill(0).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan="4" className="px-8 py-6">
+                      <div className="h-10 bg-black/5 dark:bg-white/5 rounded-xl w-full" />
+                    </td>
+                  </tr>
+                ))
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="py-24 text-center">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-40">No members found</span>
+                  <td colSpan="4" className="px-8 py-24 text-center">
+                    <div className="flex flex-col items-center gap-4 opacity-30">
+                      <Users className="w-12 h-12" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em]">No members found</span>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -141,7 +150,7 @@ export default function UsersManager() {
                   <tr key={user._id} className="group hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-all">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center p-0.5 overflow-hidden shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center p-0.5 overflow-hidden shadow-sm shrink-0">
                           {user.avatar ? (
                             <img src={user.avatar} className="w-full h-full object-cover rounded-xl" />
                           ) : (
@@ -149,14 +158,18 @@ export default function UsersManager() {
                           )}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors leading-tight">{user.name}</span>
-                          <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">{user.usn || 'NO USN'}</span>
+                          <span className="text-[11px] font-black uppercase tracking-tight text-slate-900 dark:text-white truncate max-w-[120px] md:max-w-none">
+                            {user.name}
+                          </span>
+                          <span className="text-[9px] text-slate-500 font-medium lowercase truncate max-w-[120px] md:max-w-none">
+                            {user.usn || 'NO USN'}
+                          </span>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs text-slate-700 dark:text-slate-300 font-bold">{user.email}</span>
+                        <span className="text-xs text-slate-700 dark:text-slate-300 font-bold truncate max-w-[150px]">{user.email}</span>
                         <span className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">{user.department || 'Department Pending'}</span>
                       </div>
                     </td>
@@ -173,13 +186,13 @@ export default function UsersManager() {
                         <span className="text-[10px] font-black uppercase tracking-widest">{user.role}</span>
                       </button>
                     </td>
-                    <td className="px-8 py-6 text-right">
+                    <td className="px-4 md:px-8 py-6 text-right sticky right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
                       <div className="flex items-center justify-end gap-3">
                         <button 
                           onClick={() => handleDelete(user._id)}
-                          className="p-3 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-all shadow-sm"
+                          className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"
                         >
-                          <Trash2 className="w-5 h-5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                         <button className="p-3 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all shadow-sm">
                           <MoreVertical className="w-5 h-5" />
@@ -191,24 +204,6 @@ export default function UsersManager() {
               )}
             </tbody>
           </table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="px-8 py-6 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-            Showing {filteredUsers.length} of {users.length} members
-          </span>
-          <div className="flex items-center gap-3">
-            <button className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-400 disabled:opacity-30 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="flex gap-1">
-               <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-500 text-white text-[10px] font-black">1</span>
-            </div>
-            <button className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-400 disabled:opacity-30 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all">
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
         </div>
       </div>
     </div>
