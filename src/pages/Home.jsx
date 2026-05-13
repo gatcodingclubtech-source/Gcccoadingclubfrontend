@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useAuth } from '../context/AuthContext';
@@ -103,11 +105,6 @@ const SplitText = ({ text, className }) => {
 };
 
 gsap.registerPlugin(ScrollTrigger);
-
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-// Static fallback icons for dynamic lucide mapping
-import { Code, Sparkles, Terminal as TerminalIcon, Layers, Shield, Globe } from 'lucide-react';
 
 const IconMap = {
   Code: <Code className="w-14 h-14" />,
@@ -446,7 +443,7 @@ export default function Home({ theme }) {
               }}
               className="px-6 sm:px-10 py-3.5 sm:py-4 rounded-xl bg-slate-950 text-white text-xs sm:text-sm font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl hover:shadow-emerald-500/20"
             >
-              Explore Activities <ArrowRight className="w-4 sm:h-5 w-4 sm:h-5" />
+              Explore Activities <ArrowRight className="w-4 h-4" />
             </button>
             <button 
               onClick={(e) => {
