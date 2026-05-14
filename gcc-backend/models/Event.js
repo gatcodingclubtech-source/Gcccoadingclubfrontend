@@ -48,6 +48,14 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    minTeamSize: {
+      type: Number,
+      default: 1,
+    },
+    maxTeamSize: {
+      type: Number,
+      default: 1,
+    },
     registeredCount: {
       type: Number,
       default: 0,

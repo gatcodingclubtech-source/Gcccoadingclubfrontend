@@ -51,6 +51,8 @@ export default function Profile() {
     streak: 5
   });
   const [fetchingStats, setFetchingStats] = useState(true);
+  const [activities, setActivities] = useState([]);
+  const [fetchingActivities, setFetchingActivities] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -110,6 +112,25 @@ export default function Profile() {
   }, [user]);
 
   useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await axios.get('/api/users/profile/activities');
+        if (res.data.success) {
+          setActivities(res.data.activities);
+        }
+      } catch (err) {
+        console.error('Error fetching activities:', err);
+      } finally {
+        setFetchingActivities(false);
+      }
+    };
+
+    if (user) {
+      fetchActivities();
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (!loading) {
       if (!user) {
         navigate('/auth');
@@ -155,405 +176,341 @@ export default function Profile() {
     navigate('/');
   };
 
-  const stats = [
-    { label: 'Events Joined', value: statsData.eventCount.toString(), icon: Calendar, color: 'emerald' },
-    { label: 'Quizzes Taken', value: statsData.quizCount.toString(), icon: Code2, color: 'cyan' },
-    { label: 'Total Points', value: statsData.totalPoints.toString(), icon: Trophy, color: 'amber' },
-    { label: 'Global Rank', value: statsData.rank, icon: Zap, color: 'purple' },
-  ];
+  const getRankColor = (rank) => {
+    const colors = {
+      'Rookie': 'slate',
+      'Builder': 'emerald',
+      'Core Member': 'blue',
+      'Elite': 'purple',
+      'Legend': 'amber'
+    };
+    return colors[rank] || 'slate';
+  };
+
+  const getRankProgress = () => {
+    const xp = user.xp || 0;
+    if (xp >= 1000) return 100;
+    if (xp >= 500) return ((xp - 500) / 500) * 100;
+    if (xp >= 200) return ((xp - 200) / 300) * 100;
+    if (xp >= 50) return ((xp - 50) / 150) * 100;
+    return (xp / 50) * 100;
+  };
+
+  const getNextRank = () => {
+    const xp = user.xp || 0;
+    if (xp >= 1000) return 'MAX RANK';
+    if (xp >= 500) return 'Legend (1000 XP)';
+    if (xp >= 200) return 'Elite (500 XP)';
+    if (xp >= 50) return 'Core Member (200 XP)';
+    return 'Builder (50 XP)';
+  };
 
   return (
-    <div className="min-h-screen pt-32 pb-24 px-4 sm:px-6 relative overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-500">
+    <div className="min-h-screen pt-32 pb-24 px-4 sm:px-6 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
       {/* Background Decor */}
-      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-brand/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -left-20 w-96 h-96 bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand/10 rounded-full blur-[120px] pointer-events-none opacity-50" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none opacity-50" />
 
-      <div className="max-w-6xl mx-auto flex flex-col gap-10 md:gap-16">
-        {/* Header / Hero Section */}
-        <div className="profile-fade-in flex flex-col md:flex-row items-center md:items-end gap-8 pb-10 border-b border-black/5 dark:border-white/5">
+      <div className="max-w-7xl mx-auto flex flex-col gap-10 md:gap-16">
+        {/* Header / Hero Section - Redesigned 2.0 */}
+        <div className="profile-fade-in glass-panel p-8 md:p-12 flex flex-col md:flex-row items-center gap-10 border-brand/20 shadow-2xl shadow-brand/10">
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-[2.2rem] bg-white dark:bg-slate-900 border-4 border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xl">
+            <div className={`absolute -inset-2 bg-gradient-to-r from-${getRankColor(user.rank)}-500 to-cyan-500 rounded-[3rem] blur opacity-30 group-hover:opacity-60 transition duration-1000`}></div>
+            <div className="relative w-32 h-32 md:w-52 md:h-52 rounded-[2.8rem] bg-white dark:bg-slate-900 border-4 border-white dark:border-slate-800 overflow-hidden shadow-2xl">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-                  <User className="w-16 h-16 text-slate-400" />
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 text-slate-400">
+                  <User className="w-20 h-20" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer backdrop-blur-sm">
-                <Settings className="w-8 h-8 text-white animate-spin-slow" />
-              </div>
             </div>
-            {/* Status Indicator */}
-            <div className="absolute bottom-2 right-2 w-8 h-8 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center border-2 border-slate-200 dark:border-slate-800 shadow-lg">
-               <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full animate-pulse shadow-glow shadow-emerald-500/50" />
+            {/* Rank Badge Indicator */}
+            <div className={`absolute -bottom-4 -right-4 px-6 py-2 bg-${getRankColor(user.rank)}-500 text-white rounded-full text-[10px] font-black tracking-widest shadow-xl border-4 border-white dark:border-slate-900 uppercase`}>
+              {user.rank}
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left gap-4">
-            <div className="flex flex-col gap-1 w-full">
-              <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-4">
-                <div className="flex items-center gap-3 justify-center md:justify-start">
-                  <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white uppercase font-cyber">
-                    {user.name}
-                  </h1>
-                  {user.role === 'admin' && (
-                    <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black tracking-widest uppercase">
-                      ADMIN
-                    </span>
-                  )}
-                </div>
-                <button 
-                  onClick={() => setIsEditing(!isEditing)}
-                  className={`px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isEditing ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white' : 'bg-brand text-white shadow-xl shadow-brand/20'}`}
-                >
-                  {isEditing ? 'Cancel Editing' : 'Edit Profile'}
-                </button>
-              </div>
-              <p className="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2 justify-center md:justify-start">
-                <Mail className="w-4 h-4 text-brand" /> {user.email}
-              </p>
+          <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left gap-6">
+            <div className="space-y-2 w-full">
+               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white uppercase font-cyber leading-none">
+                      {user.name}
+                    </h1>
+                    <p className="text-brand font-black text-xs tracking-[0.3em] uppercase opacity-80">
+                      @{user.username || user.name.split(' ')[0].toLowerCase()}
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => setIsEditing(!isEditing)}
+                      className="px-6 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all"
+                    >
+                      {isEditing ? 'Cancel' : 'Edit Profile'}
+                    </button>
+                    <button onClick={handleLogout} className="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all shadow-lg">
+                       <LogOut className="w-5 h-5" />
+                    </button>
+                  </div>
+               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2">
-               <div className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 flex items-center gap-2 text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight shadow-sm">
-                 <Hash className="w-3.5 h-3.5 text-brand" /> {user.usn || 'USN Not Added'}
+            {/* XP PROGRESS BAR */}
+            <div className="w-full max-w-2xl space-y-3">
+               <div className="flex justify-between items-end">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    XP PROGRESS: <span className="text-brand">{user.xp || 0} XP</span>
+                  </span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                    NEXT: <span className="text-slate-900 dark:text-white">{getNextRank()}</span>
+                  </span>
                </div>
-               <div className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 flex items-center gap-2 text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight shadow-sm">
-                 <GraduationCap className="w-3.5 h-3.5 text-brand" /> {user.department || 'Dept'} • {user.year || 'Year'}
+               <div className="h-4 w-full bg-slate-100 dark:bg-slate-800 rounded-full p-1 border border-black/5 dark:border-white/5 overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${getRankProgress()}%` }}
+                    transition={{ duration: 1.5, ease: 'power4.out' }}
+                    className={`h-full bg-gradient-to-r from-${getRankColor(user.rank)}-500 to-cyan-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]`} 
+                  />
                </div>
-               <button onClick={handleLogout} className="px-5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500 border border-red-500/20 transition-all duration-300 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest group">
-                 <LogOut className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" /> Logout
-               </button>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+               <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 text-[10px] font-black uppercase text-slate-500">
+                  <Hash className="w-3.5 h-3.5 text-brand" /> {user.usn || 'USN_PENDING'}
+               </div>
+               <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 text-[10px] font-black uppercase text-slate-500">
+                  <Code2 className="w-3.5 h-3.5 text-brand" /> {user.department || 'TECH'} • {user.year || 'LVL1'}
+               </div>
+               <div className="flex items-center gap-2 px-4 py-2 bg-brand/10 rounded-xl border border-brand/20 text-[10px] font-black uppercase text-brand">
+                  <ShieldCheck className="w-3.5 h-3.5" /> VERIFIED MEMBER
+               </div>
             </div>
           </div>
         </div>
 
         {isEditing ? (
-          /* EDIT MODE SECTION */
-          <div className="profile-fade-in bg-white dark:bg-slate-900 shadow-2xl border-2 border-brand/20 p-8 md:p-12 rounded-[2.5rem] flex flex-col gap-10">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white uppercase font-cyber">Personal Data Center</h2>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Update your records in the GCC Global Database</p>
+          /* EDIT MODE SECTION - Minimalist Clean */
+          <div className="profile-fade-in glass-panel p-10 md:p-16 rounded-[3rem] border-brand/20 shadow-2xl">
+            <div className="flex flex-col gap-2 mb-12">
+              <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase font-cyber">Update Identity</h2>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Your digital footprint across the GCC ecosystem</p>
             </div>
 
-            <form onSubmit={handleUpdate} className="grid md:grid-cols-2 gap-8">
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Full Name</label>
-                  <input 
-                    type="text" 
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all outline-none text-slate-900 dark:text-white font-bold"
-                    placeholder="Enter full name"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Phone Number</label>
-                  <input 
-                    type="text" 
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all outline-none text-slate-900 dark:text-white font-bold"
-                    placeholder="Enter phone number"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">USN</label>
+            <form onSubmit={handleUpdate} className="grid lg:grid-cols-2 gap-12">
+               <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                     <input 
-                      type="text" 
-                      value={formData.usn}
-                      onChange={(e) => setFormData({...formData, usn: e.target.value})}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand transition-all outline-none text-slate-900 dark:text-white font-bold uppercase"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full p-5 bg-slate-100 dark:bg-slate-800 rounded-2xl border-none outline-none focus:ring-2 ring-brand/50 font-bold text-sm transition-all"
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Year</label>
-                    <select 
-                      value={formData.year}
-                      onChange={(e) => setFormData({...formData, year: e.target.value})}
-                      className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand transition-all outline-none text-slate-900 dark:text-white font-bold"
-                    >
-                      <option value="">Select Year</option>
-                      <option value="1st Year">1st Year</option>
-                      <option value="2nd Year">2nd Year</option>
-                      <option value="3rd Year">3rd Year</option>
-                      <option value="4th Year">4th Year</option>
-                    </select>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">USN</label>
+                    <input 
+                      value={formData.usn}
+                      onChange={(e) => setFormData({...formData, usn: e.target.value})}
+                      className="w-full p-5 bg-slate-100 dark:bg-slate-800 rounded-2xl border-none outline-none focus:ring-2 ring-brand/50 font-bold text-sm transition-all uppercase"
+                    />
                   </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Bio / Headline</label>
-                  <textarea 
-                    value={formData.bio}
-                    onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand transition-all outline-none text-slate-900 dark:text-white font-bold min-h-[120px]"
-                    placeholder="Tell us about yourself..."
-                  />
-                </div>
-              </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bio / Status</label>
+                    <textarea 
+                      rows="4"
+                      value={formData.bio}
+                      onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                      className="w-full p-5 bg-slate-100 dark:bg-slate-800 rounded-2xl border-none outline-none focus:ring-2 ring-brand/50 font-bold text-sm transition-all resize-none"
+                    />
+                  </div>
+               </div>
 
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Skills (Comma separated)</label>
-                  <input 
-                    type="text" 
-                    value={formData.skills}
-                    onChange={(e) => setFormData({...formData, skills: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand transition-all outline-none text-slate-900 dark:text-white font-bold"
-                    placeholder="React, Node.js, Python..."
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">GitHub URL</label>
-                  <input 
-                    type="text" 
-                    value={formData.githubUrl}
-                    onChange={(e) => setFormData({...formData, githubUrl: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand transition-all outline-none text-slate-900 dark:text-white font-bold"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">LinkedIn URL</label>
-                  <input 
-                    type="text" 
-                    value={formData.linkedinUrl}
-                    onChange={(e) => setFormData({...formData, linkedinUrl: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand transition-all outline-none text-slate-900 dark:text-white font-bold"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Instagram URL</label>
-                  <input 
-                    type="text" 
-                    value={formData.instagramUrl}
-                    onChange={(e) => setFormData({...formData, instagramUrl: e.target.value})}
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 focus:border-brand transition-all outline-none text-slate-900 dark:text-white font-bold"
-                  />
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={updating}
-                  className="mt-4 w-full py-5 rounded-2xl bg-brand text-white font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-brand/20 disabled:opacity-50 flex items-center justify-center gap-3"
-                >
-                  {updating ? <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> SAVING...</> : 'SAVE CHANGES'}
-                </button>
-              </div>
+               <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Skills (comma separated)</label>
+                    <input 
+                      value={formData.skills}
+                      onChange={(e) => setFormData({...formData, skills: e.target.value})}
+                      className="w-full p-5 bg-slate-100 dark:bg-slate-800 rounded-2xl border-none outline-none focus:ring-2 ring-brand/50 font-bold text-sm transition-all"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">GitHub Username</label>
+                    <input 
+                      value={formData.githubUrl}
+                      onChange={(e) => setFormData({...formData, githubUrl: e.target.value})}
+                      className="w-full p-5 bg-slate-100 dark:bg-slate-800 rounded-2xl border-none outline-none focus:ring-2 ring-brand/50 font-bold text-sm transition-all"
+                    />
+                  </div>
+                  <button 
+                    type="submit" 
+                    disabled={updating}
+                    className="w-full py-6 bg-brand text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-brand/20 hover:scale-[1.02] active:scale-95 transition-all mt-6"
+                  >
+                    {updating ? 'SYNCING...' : 'SYNC DATA'}
+                  </button>
+               </div>
             </form>
           </div>
         ) : (
-          /* VIEW MODE SECTION */
-          <>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div key={i} className="stat-card relative z-20 p-6 rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-xl border border-slate-100 dark:border-white/10 flex flex-col gap-4 group hover:border-brand transition-all duration-500 hover:-translate-y-2">
-                <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-500/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm`}>
-                  <Icon className={`w-6 h-6 text-${stat.color}-500`} />
+          /* VIEW MODE - Dashboard Style */
+          <div className="grid lg:grid-cols-12 gap-8 md:gap-12">
+             
+             {/* LEFT SIDEBAR - Skills & Badges */}
+             <div className="lg:col-span-4 space-y-8">
+                {/* Stats Summary */}
+                <div className="profile-fade-in grid grid-cols-2 gap-4">
+                   <div className="glass-panel p-6 flex flex-col gap-2 border-emerald-500/20 group hover:bg-emerald-500/5 transition-colors">
+                      <span className="text-3xl font-black">{statsData.eventCount}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Events</span>
+                   </div>
+                   <div className="glass-panel p-6 flex flex-col gap-2 border-cyan-500/20 group hover:bg-cyan-500/5 transition-colors">
+                      <span className="text-3xl font-black">{user.xp || 0}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total XP</span>
+                   </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{stat.value}</span>
-                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">{stat.label}</span>
+
+                {/* Skills Showcase */}
+                <div className="profile-fade-in glass-panel p-8 space-y-8">
+                   <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-3">
+                      <Terminal className="w-4 h-4 text-brand" /> Tech Stack
+                   </h3>
+                   <div className="flex flex-wrap gap-2">
+                      {(user.skills?.length > 0 ? user.skills : ['React', 'Node.js', 'Python', 'UI Design']).map((skill, i) => (
+                        <span key={i} className="px-3 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider border border-black/5 dark:border-white/5">
+                          {skill}
+                        </span>
+                      ))}
+                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
 
-        {/* Main Content Sections */}
-        <div className="grid lg:grid-cols-12 gap-8 md:gap-12 items-start">
-          
-          {/* Left Column - Core Info & Skills (Col Span 4) */}
-          <div className="lg:col-span-4 flex flex-col gap-8">
-            
-            {/* Technical Skills - NEW Tracking Subsection */}
-            <div className="profile-fade-in bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-white/10 p-8 flex flex-col gap-8 rounded-[2.5rem]">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black tracking-[0.2em] text-slate-900 dark:text-white uppercase flex items-center gap-2">
-                  <Cpu className="w-4 h-4 text-brand" /> Skills Matrix
-                </h3>
-                <Star className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
-              </div>
-              
-              <div className="flex flex-col gap-6">
-                {[
-                  { name: 'Web Development', level: 85, color: 'emerald' },
-                  { name: 'Data Structures', level: 70, color: 'cyan' },
-                  { name: 'System Design', level: 45, color: 'purple' },
-                  { name: 'Cloud Computing', level: 30, color: 'blue' }
-                ].map((skill, i) => (
-                  <div key={i} className="flex flex-col gap-3">
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                      <span className="text-slate-700 dark:text-slate-300">{skill.name}</span>
-                      <span className={`text-${skill.color}-500`}>{skill.level}%</span>
-                    </div>
-                    <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
-                      <div 
-                        className={`h-full bg-${skill.color}-500 rounded-full transition-all duration-1000 ease-out`}
-                        style={{ width: `${skill.level}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Achievements & Badges */}
-            <div className="profile-fade-in bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-white/10 p-8 flex flex-col gap-6 rounded-[2.5rem]">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black tracking-[0.2em] text-slate-900 dark:text-white uppercase flex items-center gap-2">
-                  <Award className="w-4 h-4 text-brand" /> Achievements
-                </h3>
-                <ChevronRight className="w-4 h-4 text-slate-400 cursor-pointer hover:text-brand" />
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { title: 'Alpha', icon: ShieldCheck, color: 'emerald' },
-                  { title: 'Bug', icon: Terminal, color: 'slate' },
-                  { title: 'Expert', icon: Code2, color: 'cyan' },
-                  { title: 'Hero', icon: Trophy, color: 'amber' },
-                  { title: 'Mentor', icon: Heart, color: 'rose' },
-                  { title: 'Fast', icon: Zap, color: 'purple' }
-                ].map((badge, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 group cursor-help">
-                    <div className={`w-14 h-14 rounded-2xl bg-${badge.color}-500/10 flex items-center justify-center border border-${badge.color}-500/20 group-hover:scale-110 group-hover:rotate-6 transition-all`}>
-                      <badge.icon className={`w-6 h-6 text-${badge.color}-500`} />
-                    </div>
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{badge.title}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Social & Connect */}
-            <div className="profile-fade-in bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-white/10 p-8 flex flex-col gap-6 rounded-[2.5rem]">
-              <h3 className="text-xs font-black tracking-[0.2em] text-slate-900 dark:text-white uppercase flex items-center gap-2">
-                <Globe className="w-4 h-4 text-brand" /> Presence
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <a href={user.githubUrl || '#'} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 p-4 rounded-xl bg-slate-900 text-white text-[10px] font-black tracking-widest hover:bg-black transition-all">
-                  <Github className="w-4 h-4" /> GITHUB
-                </a>
-                <a href="#" className="flex items-center justify-center gap-3 p-4 rounded-xl bg-blue-600 text-white text-[10px] font-black tracking-widest hover:bg-blue-700 transition-all">
-                  <Linkedin className="w-4 h-4" /> LINKEDIN
-                </a>
-                <a href="#" className="flex items-center justify-center gap-3 p-4 rounded-xl bg-pink-600 text-white text-[10px] font-black tracking-widest hover:bg-pink-700 transition-all">
-                  <Instagram className="w-4 h-4" /> INSTA
-                </a>
-                <a href="#" className="flex items-center justify-center gap-3 p-4 rounded-xl bg-slate-200 dark:bg-white text-slate-900 text-[10px] font-black tracking-widest hover:bg-white transition-all">
-                  <ExternalLink className="w-4 h-4" /> WEB
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Deep Tracking & History (Col Span 8) */}
-          <div className="lg:col-span-8 flex flex-col gap-8">
-            
-            {/* ADVANCED TRACKING SUBSECTION - Activity & Performance */}
-            <div className="profile-fade-in bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-white/10 p-10 flex flex-col gap-10 rounded-[2.5rem]">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-xl md:text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase flex items-center gap-3 font-cyber">
-                    <Activity className="w-6 h-6 text-emerald-500 animate-pulse" /> Activity Timeline
-                  </h3>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Deep Tracking: User Participation Record</p>
+                {/* Badges Corridor */}
+                <div className="profile-fade-in glass-panel p-8 space-y-8 overflow-hidden relative">
+                   <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-3">
+                        <Award className="w-4 h-4 text-amber-500" /> Achievements
+                      </h3>
+                   </div>
+                   <div className="flex flex-wrap gap-4 justify-center">
+                      {(user.badges?.length > 0 ? user.badges : [
+                        { name: 'Pioneer', icon: ShieldCheck, color: 'emerald' },
+                        { name: 'Coder', icon: Code2, color: 'blue' },
+                        { name: 'Elite', icon: Zap, color: 'amber' }
+                      ]).map((badge, i) => {
+                        const Icon = badge.icon || ShieldCheck;
+                        return (
+                          <div key={i} className="flex flex-col items-center gap-2 group">
+                             <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center border border-brand/20 group-hover:scale-110 transition-transform">
+                                <Icon className="w-7 h-7 text-brand" />
+                             </div>
+                             <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{badge.name}</span>
+                          </div>
+                        );
+                      })}
+                   </div>
+                   <div className="absolute inset-0 bg-gradient-to-t from-white/10 dark:from-slate-900/10 to-transparent pointer-events-none" />
                 </div>
-                <div className="flex p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-white/5 self-start">
-                  {['overview', 'events', 'quizzes'].map((tab) => (
-                    <button 
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`px-6 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all uppercase ${activeTab === tab ? 'bg-brand text-white shadow-lg' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
+             </div>
 
-              {/* Enhanced Timeline List */}
-              <div className="flex flex-col gap-6 relative">
-                {/* Timeline Connector Line */}
-                <div className="absolute left-8 top-0 bottom-0 w-1 bg-slate-100 dark:bg-slate-800 rounded-full hidden md:block" />
-                
-                {[
-                  { title: 'Project Submission', desc: 'Personal Portfolio Project', type: 'DEVELOPMENT', date: 'Yesterday', icon: Terminal, color: 'emerald' },
-                  { title: 'Workshop Attended', desc: 'React Hooks Deep Dive', type: 'EDUCATION', date: '3 Days Ago', icon: BookOpen, color: 'cyan' },
-                  { title: 'Quiz Completed', desc: 'JavaScript Advanced Test', type: 'EXAMINATION', date: 'Last Week', icon: Trophy, color: 'amber' },
-                  { title: 'Account Verified', desc: 'Official GCC Member ID Issued', type: 'SYSTEM', date: 'May 12, 2024', icon: ShieldCheck, color: 'purple' }
-                ].map((log, i) => (
-                  <div key={i} className="flex flex-col md:flex-row md:items-center gap-8 p-6 md:p-8 rounded-[2rem] bg-slate-50/50 dark:bg-white/5 border border-black/5 dark:border-white/5 group hover:border-brand/40 transition-all duration-500 hover:scale-[1.01] relative z-10">
-                    <div className={`w-16 h-16 rounded-2xl bg-${log.color}-500/10 flex items-center justify-center shrink-0 border border-${log.color}-500/20 group-hover:bg-${log.color}-500 group-hover:text-white transition-all duration-500`}>
-                      <log.icon className="w-8 h-8" />
-                    </div>
-                    <div className="flex-1 flex flex-col gap-1">
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2 py-0.5 rounded bg-${log.color}-500/10 text-${log.color}-500 text-[8px] font-black tracking-widest uppercase`}>{log.type}</span>
-                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{log.date}</span>
+             {/* MAIN CONTENT - Timeline & Activities */}
+             <div className="lg:col-span-8 space-y-8">
+                <div className="profile-fade-in glass-panel p-8 md:p-12 space-y-10">
+                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div className="space-y-1">
+                        <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase font-cyber flex items-center gap-3">
+                          <Activity className="w-6 h-6 text-emerald-500" /> Performance Node
+                        </h2>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Real-time activity logs from the portal</p>
                       </div>
-                      <h4 className="text-base md:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1">{log.title}</h4>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{log.desc}</p>
-                    </div>
-                    <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-[9px] font-black tracking-[0.2em] uppercase hover:bg-brand hover:text-white transition-all border border-black/5 dark:border-white/10 shadow-sm">
-                      DETAILS <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                        {['overview', 'events', 'quiz', 'discussions'].map((tab) => (
+                          <button 
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`px-4 py-2 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all ${activeTab === tab ? 'bg-brand text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                          >
+                            {tab}
+                          </button>
+                        ))}
+                      </div>
+                   </div>
 
-              <div className="flex items-center justify-center pt-6">
-                 <button className="px-10 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black tracking-widest uppercase hover:scale-105 transition-all shadow-2xl flex items-center gap-3">
-                   Export History Report <ExternalLink className="w-4 h-4" />
-                 </button>
-              </div>
-            </div>
+                   <div className="space-y-6 relative">
+                      <div className="absolute left-8 top-0 bottom-0 w-[2px] bg-slate-100 dark:bg-slate-800 rounded-full hidden md:block" />
+                      
+                      {fetchingActivities ? (
+                        <div className="space-y-4">
+                           {[1,2,3].map(i => <div key={i} className="h-24 bg-slate-100 dark:bg-white/5 animate-pulse rounded-2xl" />)}
+                        </div>
+                      ) : (
+                        activities.filter(a => activeTab === 'overview' || a.type.toLowerCase() === activeTab).map((act, i) => {
+                          const Icon = getTimelineIcon(act.icon);
+                          return (
+                            <motion.div 
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              key={i} 
+                              className="relative z-10 flex flex-col md:flex-row md:items-center gap-6 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 hover:border-brand/30 transition-all group"
+                            >
+                               <div className="w-16 h-16 rounded-xl bg-brand/10 flex items-center justify-center shrink-0 border border-brand/20 group-hover:bg-brand group-hover:text-white transition-all">
+                                  <Icon className="w-8 h-8" />
+                               </div>
+                               <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-1">
+                                     <span className="text-[8px] font-black tracking-widest text-brand uppercase">{act.type}</span>
+                                     <span className="text-[9px] font-bold text-slate-500">{formatDate(act.date)}</span>
+                                  </div>
+                                  <h4 className="text-lg font-black tracking-tight leading-none uppercase">{act.title}</h4>
+                                  <p className="text-[11px] text-slate-500 font-medium mt-1">{act.desc}</p>
+                               </div>
+                               <button className="px-5 py-2.5 bg-white dark:bg-slate-800 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm hover:bg-brand hover:text-white transition-all border border-black/5 dark:border-white/10">
+                                  DETAILS
+                               </button>
+                            </motion.div>
+                          );
+                        })
+                      )}
 
-            {/* Performance Stats Cards */}
-            <div className="grid md:grid-cols-2 gap-8">
-               <div className="profile-fade-in p-8 rounded-[2.5rem] bg-slate-900 text-white flex flex-col gap-6 shadow-2xl hover:scale-[1.02] transition-transform">
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                      <Briefcase className="w-6 h-6 text-brand" />
-                    </div>
-                    <span className="text-[10px] font-black tracking-[0.2em] uppercase text-slate-400">Professional</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <h4 className="text-2xl font-black tracking-tight uppercase">Internship Ready</h4>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">Your profile has enough points and workshop completions to qualify for top-tier club internship recommendations.</p>
-                  </div>
-                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                    <div className="w-3/4 h-full bg-brand rounded-full" />
-                  </div>
-               </div>
+                      {activities.length === 0 && !fetchingActivities && (
+                         <div className="py-20 text-center flex flex-col items-center gap-4 opacity-30">
+                            <Activity className="w-12 h-12" />
+                            <span className="text-[10px] font-black tracking-widest uppercase">No activities detected in this node</span>
+                         </div>
+                      )}
+                   </div>
+                </div>
 
-               <div className="profile-fade-in p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-purple-700 text-white flex flex-col gap-6 shadow-2xl hover:scale-[1.02] transition-transform">
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-amber-400" />
-                    </div>
-                    <span className="text-[10px] font-black tracking-[0.2em] uppercase text-white/50">Current Streak</span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <h4 className="text-4xl font-black tracking-tighter">05 <span className="text-lg text-white/60">DAYS</span></h4>
-                    <p className="text-white/70 text-[11px] leading-relaxed">Daily portal activity streak. Keep it up to earn the "Consistent Coder" badge next week!</p>
-                  </div>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map(i => <div key={i} className="flex-1 h-1.5 bg-white rounded-full" />)}
-                    {[1, 2].map(i => <div key={i} className="flex-1 h-1.5 bg-white/20 rounded-full" />)}
-                  </div>
-               </div>
-            </div>
-            </div>
+                {/* Growth Card */}
+                <div className="profile-fade-in p-8 md:p-12 rounded-[3rem] bg-gradient-to-br from-slate-900 to-black text-white relative overflow-hidden group shadow-2xl">
+                   <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-125 transition-transform duration-1000">
+                      <Zap className="w-32 h-32 text-brand" />
+                   </div>
+                   <div className="relative z-10 space-y-6">
+                      <div className="space-y-2">
+                        <h3 className="text-3xl font-black tracking-tighter uppercase font-cyber leading-tight">Elite <span className="text-brand">Member</span> Status</h3>
+                        <p className="text-slate-400 text-sm max-w-md leading-relaxed">
+                          Your consistent participation in GAT Coding Club has placed you in the Top 10% of developers.
+                          Keep contributing to unlock the "Mentor" badge and exclusive project access.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-4">
+                         <div className="px-6 py-3 bg-white/10 rounded-xl backdrop-blur-md border border-white/10 flex flex-col gap-1">
+                            <span className="text-2xl font-black">8.4k</span>
+                            <span className="text-[9px] font-black text-brand uppercase tracking-widest">Global Ranking</span>
+                         </div>
+                         <div className="px-6 py-3 bg-white/10 rounded-xl backdrop-blur-md border border-white/10 flex flex-col gap-1">
+                            <span className="text-2xl font-black">450+</span>
+                            <span className="text-[9px] font-black text-cyan-500 uppercase tracking-widest">Hours Learned</span>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
           </div>
-        </>
-      )}
+        )}
       </div>
     </div>
   );

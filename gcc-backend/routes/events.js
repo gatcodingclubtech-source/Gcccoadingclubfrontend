@@ -3,6 +3,7 @@ const router = express.Router();
 const Event = require('../models/Event');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
+const { triggerAutomation } = require('../utils/automation');
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -99,7 +100,31 @@ router.post('/:id/register', protect, async (req, res) => {
       event.registeredCount = event.attendees.length;
       await event.save();
 
+      // Trigger Automation: Notify user
+      await triggerAutomation({
+        userId: req.user._id,
+        title: 'Event Registered!',
+        message: `You have successfully registered for ${event.title}. See you there!`,
+        type: 'EVENT'
+      });
+
       res.json({ success: true, message: 'Registered successfully', registeredCount: event.registeredCount });
+    } else {
+      res.status(404).json({ success: false, message: 'Event not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Get event attendees
+// @route   GET /api/events/:id/attendees
+// @access  Private/Admin
+router.get('/:id/attendees', protect, adminOnly, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id).populate('attendees', 'name email usn department year phone');
+    if (event) {
+      res.json({ success: true, attendees: event.attendees });
     } else {
       res.status(404).json({ success: false, message: 'Event not found' });
     }

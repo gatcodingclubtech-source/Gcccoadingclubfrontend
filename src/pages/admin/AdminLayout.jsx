@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, Calendar, HelpCircle, 
   Layers, LogOut, Menu, X, Bell, Search, 
-  Settings, ExternalLink, Shield
+  Settings, ExternalLink, Shield, MessageSquare, Video
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import GccLogo from '../../assets/logo/gcc logo.png';
@@ -19,6 +19,8 @@ export default function AdminLayout() {
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'Users', path: '/admin/users', icon: <Users className="w-5 h-5" /> },
     { name: 'Events', path: '/admin/events', icon: <Calendar className="w-5 h-5" /> },
+    { name: 'Discussions', path: '/admin/discussions', icon: <MessageSquare className="w-5 h-5" /> },
+    { name: 'Live Rooms', path: '/admin/live-rooms', icon: <Video className="w-5 h-5" /> },
     { name: 'Quiz', path: '/admin/quiz', icon: <HelpCircle className="w-5 h-5" /> },
     { name: 'Domains', path: '/admin/domains', icon: <Layers className="w-5 h-5" /> },
     { name: 'Live Tests', path: '/admin/test-sessions', icon: <ExternalLink className="w-5 h-5" /> },

@@ -40,20 +40,22 @@ export default function UsersManager() {
           setUsers(users.filter(u => u._id !== id));
         }
       } catch (err) {
-        alert('Delete failed');
+        const message = err.response?.data?.message || 'Delete failed';
+        alert(message);
       }
     }
   };
 
   const handleRoleToggle = async (id, currentRole) => {
-    const newRole = currentRole === 'admin' ? 'member' : 'admin';
+    const newRole = currentRole === 'admin' ? 'user' : 'admin';
     try {
-      const res = await axios.put(`/api/users/${id}/role`, { role: newRole });
+      const res = await axios.patch(`/api/users/${id}/role`, { role: newRole });
       if (res.data.success) {
         setUsers(users.map(u => u._id === id ? { ...u, role: newRole } : u));
       }
     } catch (err) {
-      alert('Role update failed');
+      const message = err.response?.data?.message || 'Role update failed';
+      alert(message);
     }
   };
 
@@ -95,7 +97,7 @@ export default function UsersManager() {
           <Filter className="w-4 h-4" /> Filter Status:
         </span>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-          {['all', 'admin', 'member'].map((role) => (
+          {['all', 'admin', 'user'].map((role) => (
             <button 
               key={role}
               onClick={() => setFilterRole(role)}

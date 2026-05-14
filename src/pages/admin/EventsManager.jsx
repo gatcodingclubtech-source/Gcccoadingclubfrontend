@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Calendar, MapPin, Trash2, Edit2, 
   Search, ExternalLink, Image as ImageIcon, 
-  Save, X, Clock, ToggleLeft, ToggleRight
+  Save, X, Clock, ToggleLeft, ToggleRight, Users
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -20,6 +20,9 @@ export default function EventsManager() {
     category: 'Workshop',
     image: '',
     registrationLink: '',
+    maxParticipants: 0,
+    minTeamSize: 1,
+    maxTeamSize: 1,
     isActive: true
   });
 
@@ -65,7 +68,8 @@ export default function EventsManager() {
       }
       closeModal();
     } catch (err) {
-      alert('Action failed');
+      const message = err.response?.data?.message || 'Action failed';
+      alert(message);
     }
   };
 
@@ -77,7 +81,8 @@ export default function EventsManager() {
           setEvents(events.filter(ev => ev._id !== id));
         }
       } catch (err) {
-        alert('Delete failed');
+        const message = err.response?.data?.message || 'Delete failed';
+        alert(message);
       }
     }
   };
@@ -98,6 +103,9 @@ export default function EventsManager() {
         category: 'Workshop',
         image: '',
         registrationLink: '',
+        maxParticipants: 0,
+        minTeamSize: 1,
+        maxTeamSize: 1,
         isActive: true
       });
     }
@@ -184,7 +192,13 @@ export default function EventsManager() {
                 </p>
                 
                 <div className="mt-auto pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex gap-3">
+                    <a 
+                      href={`#/admin/events/${event._id}/registrations`}
+                      className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-sm flex items-center gap-2 text-[9px] font-black uppercase tracking-widest"
+                    >
+                      <Users className="w-4 h-4" /> {event.registeredCount || 0}
+                    </a>
                     <button 
                       onClick={() => openModal(event)}
                       className="p-3 rounded-xl bg-black/5 dark:bg-white/5 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all shadow-sm"
@@ -285,6 +299,42 @@ export default function EventsManager() {
                 <input 
                   name="image"
                   value={formData.image}
+                  onChange={handleChange}
+                  className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Min Team Size</label>
+                <input 
+                  name="minTeamSize"
+                  type="number"
+                  min="1"
+                  value={formData.minTeamSize}
+                  onChange={handleChange}
+                  className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Max Team Size</label>
+                <input 
+                  name="maxTeamSize"
+                  type="number"
+                  min="1"
+                  value={formData.maxTeamSize}
+                  onChange={handleChange}
+                  className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Max Participants</label>
+                <input 
+                  name="maxParticipants"
+                  type="number"
+                  min="0"
+                  value={formData.maxParticipants}
                   onChange={handleChange}
                   className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
                 />

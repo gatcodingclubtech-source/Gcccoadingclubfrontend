@@ -11,6 +11,11 @@ import Quiz from './pages/Quiz';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
 import ProfileComplete from './pages/ProfileComplete';
+import EventRegistration from './pages/EventRegistration';
+import DomainRegistration from './pages/DomainRegistration';
+import Leaderboard from './pages/Leaderboard';
+import Discussions from './pages/Discussions';
+import DiscussionDetail from './pages/DiscussionDetail';
 
 // Admin Pages
 import AdminLayout from './pages/admin/AdminLayout';
@@ -21,6 +26,16 @@ import EventsManager from './pages/admin/EventsManager';
 import QuizManager from './pages/admin/QuizManager';
 import DomainsManager from './pages/admin/DomainsManager';
 import TestSessionManager from './pages/admin/TestSessionManager';
+import LiveRoomsManager from './pages/admin/LiveRoomsManager';
+import RegistrationsManager from './pages/admin/RegistrationsManager';
+import ManageDiscussions from './pages/admin/ManageDiscussions';
+import LiveRooms from './pages/LiveRooms';
+import LiveRoomDetail from './pages/LiveRoomDetail';
+import CodingHub from './pages/CodingHub';
+import InteractiveDots from './components/InteractiveDots';
+
+import socket from './utils/socket';
+import { toast, Toaster } from 'react-hot-toast';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Lenis from 'lenis';
@@ -49,6 +64,7 @@ const AdminRoute = ({ children }) => {
 function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMenuOpen }) {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const isImmersive = location.pathname.includes('/live-rooms/') || location.pathname.includes('/coding-hub/');
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -56,6 +72,27 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
     if (!authLoading && user && !user.profileComplete && location.pathname !== '/profile/complete') {
       navigate('/profile/complete');
     }
+    
+    if (user) {
+      socket.emit('register', user._id);
+      
+      socket.on('NOTIFICATION', (notif) => {
+        toast.success(`${notif.title}: ${notif.message}`, {
+          icon: notif.type === 'RANK' ? '🎉' : '🔥',
+          duration: 5000,
+          position: 'bottom-right',
+        });
+      });
+
+      socket.on('XP_UPDATE', (data) => {
+        console.log('XP Updated:', data);
+      });
+    }
+
+    return () => {
+      socket.off('NOTIFICATION');
+      socket.off('XP_UPDATE');
+    };
   }, [user, authLoading, location.pathname, navigate]);
 
   useEffect(() => {
@@ -89,7 +126,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
 
   return (
     <div className="min-h-screen relative selection:bg-brand selection:text-white overflow-x-hidden bg-white dark:bg-slate-950 font-cyber flex flex-col transition-all duration-500 ease-in-out">
-      {!isAdmin && (
+      {!isAdmin && !isImmersive && (
         <Navbar
           theme={theme}
           toggleTheme={toggleTheme}
@@ -107,6 +144,12 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
             <Route path="/domain/:id" element={<DomainDetails />} />
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/discussions" element={<Discussions />} />
+            <Route path="/discussions/:id" element={<DiscussionDetail />} />
+            <Route path="/live-rooms" element={<LiveRooms />} />
+            <Route path="/live-rooms/:id" element={<LiveRoomDetail />} />
+            <Route path="/coding-hub/:roomId" element={<CodingHub />} />
             
             <Route path="/profile" element={
               <ProtectedRoute>
@@ -120,6 +163,10 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               </ProtectedRoute>
             } />
 
+            {/* Registration routes (Publicly accessible for guest flow) */}
+            <Route path="/register/event/:id" element={<EventRegistration />} />
+            <Route path="/register/domain/:slug" element={<DomainRegistration />} />
+
             {/* Admin Routes */}
             <Route path="/admin" element={
               <AdminRoute>
@@ -130,14 +177,17 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               <Route path="users" element={<UsersManager />} />
               <Route path="events" element={<EventsManager />} />
               <Route path="quiz" element={<QuizManager />} />
+              <Route path="discussions" element={<ManageDiscussions />} />
               <Route path="domains" element={<DomainsManager />} />
+              <Route path="live-rooms" element={<LiveRoomsManager />} />
               <Route path="test-sessions" element={<TestSessionManager />} />
+              <Route path="events/:id/registrations" element={<RegistrationsManager />} />
             </Route>
 
             <Route path="/admin-login" element={<AdminLogin />} />
           </Routes>
         </main>
-        {!isAdmin && <Footer />}
+        {!isAdmin && !isImmersive && <Footer />}
       </div>
     </div>
   );
@@ -191,9 +241,10 @@ export default function App() {
   }, [mobileMenuOpen]);
 
   return (
-    <Router>
-      <AuthProvider>
-
+    <AuthProvider>
+      <Router>
+        <Toaster />
+        <InteractiveDots />
         <AppLayout
           theme={theme}
           toggleTheme={toggleTheme}
@@ -201,7 +252,7 @@ export default function App() {
           mobileMenuOpen={mobileMenuOpen}
           setMobileMenuOpen={setMobileMenuOpen}
         />
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }

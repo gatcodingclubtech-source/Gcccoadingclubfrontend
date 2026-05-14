@@ -9,7 +9,10 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Configure axios defaults
-  axios.defaults.baseURL = 'https://gcc-backend-api.onrender.com';
+  // Use proxy in development (relative path) and full URL in production
+  axios.defaults.baseURL = import.meta.env.PROD 
+    ? 'https://gcc-backend-api.onrender.com' 
+    : ''; 
   axios.defaults.withCredentials = true;
 
   // Add interceptor to attach token from localStorage if it exists

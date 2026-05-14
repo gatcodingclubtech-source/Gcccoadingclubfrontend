@@ -133,14 +133,6 @@ export default function Events() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 mt-auto pt-6 border-t border-black/5 dark:border-white/5">
-                    <a 
-                      href={item.registrationLink || '#'} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-brand/20 active:scale-95 text-center flex items-center justify-center"
-                    >
-                      REGISTER
-                    </a>
                     <Link to={`/event/${item._id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
                       DETAILS
                     </Link>

@@ -61,7 +61,8 @@ export default function QuizManager() {
       }
       closeModal();
     } catch (err) {
-      alert('Save failed');
+      const message = err.response?.data?.message || 'Save failed';
+      alert(message);
     }
   };
 
@@ -73,7 +74,8 @@ export default function QuizManager() {
           setQuestions(questions.filter(q => q._id !== id));
         }
       } catch (err) {
-        alert('Delete failed');
+        const message = err.response?.data?.message || 'Delete failed';
+        alert(message);
       }
     }
   };

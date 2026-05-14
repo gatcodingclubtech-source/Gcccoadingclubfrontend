@@ -11,7 +11,8 @@ export default function Dashboard() {
     totalUsers: 0,
     activeEvents: 0,
     quizQuestions: 0,
-    newRegistrations: 0
+    newRegistrations: 0,
+    activeLiveRooms: 0
   });
   const [recentUsers, setRecentUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,8 @@ export default function Dashboard() {
         const [usersRes, eventsRes, quizRes] = await Promise.all([
           axios.get('/api/users'),
           axios.get('/api/events'),
-          axios.get('/api/quiz')
+          axios.get('/api/quiz'),
+          axios.get('/api/live-rooms')
         ]);
 
         if (usersRes.data.success) {
@@ -45,6 +47,10 @@ export default function Dashboard() {
         if (quizRes.data.success) {
           setStats(prev => ({ ...prev, quizQuestions: quizRes.data.questions.length }));
         }
+
+        // Live rooms might not have a .success wrapper if it's just res.json(rooms)
+        const liveRoomsData = Array.isArray(liveRoomsRes.data) ? liveRoomsRes.data : [];
+        setStats(prev => ({ ...prev, activeLiveRooms: liveRoomsData.length }));
       } catch (err) {
         console.error('Error fetching dashboard stats', err);
       } finally {
@@ -67,6 +73,7 @@ export default function Dashboard() {
     { title: 'Total Members', value: stats.totalUsers, icon: <Users />, color: 'emerald', trend: '+12%' },
     { title: 'Active Events', value: stats.activeEvents, icon: <Calendar />, color: 'cyan', trend: '+2' },
     { title: 'Quiz Base', value: stats.quizQuestions, icon: <HelpCircle />, color: 'blue', trend: '85%' },
+    { title: 'Live Rooms', value: stats.activeLiveRooms, icon: <Activity />, color: 'amber', trend: 'Live' },
     { title: 'New Members', value: stats.newRegistrations, icon: <UserPlus />, color: 'purple', trend: 'Today' },
   ];
 

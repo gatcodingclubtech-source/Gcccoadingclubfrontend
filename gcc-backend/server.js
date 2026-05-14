@@ -67,10 +67,80 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/quiz-sessions', require('./routes/quizSessions'));
 app.use('/api/domains', require('./routes/domains'));
+app.use('/api/discussions', require('./routes/discussions'));
+app.use('/api/live-rooms', require('./routes/liveRooms'));
 
 // Root route
 app.get('/', (req, res) => {
   res.send('GCC API is running...');
+});
+
+const http = require('http');
+const { Server } = require('socket.io');
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+const socketService = require('./utils/socketService');
+socketService.init(io);
+
+// In-memory room state for real-time features (in a real startup, use Redis)
+const codingRooms = new Map();
+
+io.on('connection', (socket) => {
+  // Room joining and other listeners that don't need service abstraction yet
+  socket.on('join-room', (roomId) => {
+    socket.join(roomId);
+  });
+
+  // Collaborative Coding Hub Logic
+  socket.on('join-coding-room', ({ roomId, user }) => {
+    socket.join(roomId);
+    if (!codingRooms.has(roomId)) {
+      codingRooms.set(roomId, { users: new Set(), code: '// Start building...' });
+    }
+    const room = codingRooms.get(roomId);
+    room.users.add({ ...user, socketId: socket.id });
+    socket.emit('code-update', room.code);
+    io.to(roomId).emit('room-users', Array.from(room.users));
+  });
+
+  socket.on('code-change', ({ roomId, code }) => {
+    const room = codingRooms.get(roomId);
+    if (room) {
+      room.code = code;
+      socket.to(roomId).emit('code-update', code);
+    }
+  });
+
+  // WebRTC Signaling Logic
+  socket.on('offer', (data) => {
+    socket.to(data.target).emit('offer', { offer: data.offer, sender: socket.id });
+  });
+
+  socket.on('answer', (data) => {
+    socket.to(data.target).emit('answer', { answer: data.answer, sender: socket.id });
+  });
+
+  socket.on('ice-candidate', (data) => {
+    socket.to(data.target).emit('ice-candidate', { candidate: data.candidate, sender: socket.id });
+  });
+
+  socket.on('disconnect', () => {
+    codingRooms.forEach((room, roomId) => {
+      const updatedUsers = Array.from(room.users).filter(u => u.socketId !== socket.id);
+      if (updatedUsers.length !== Array.from(room.users).length) {
+        room.users = new Set(updatedUsers);
+        io.to(roomId).emit('room-users', updatedUsers);
+      }
+    });
+  });
 });
 
 // Error handling middleware
@@ -85,6 +155,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`🚀 Elite GCC Server running on port ${PORT}`);
 });

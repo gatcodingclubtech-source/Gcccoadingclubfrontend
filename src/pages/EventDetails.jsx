@@ -57,28 +57,6 @@ export default function EventDetails() {
     return () => tl.kill();
   }, [event]);
 
-  const handleRegister = async () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    
-    setRegistering(true);
-    try {
-      const res = await axios.post(`/api/events/${id}/register`);
-      if (res.data.success) {
-        setIsRegistered(true);
-        setRegSuccess(true);
-        // Update local event count
-        setEvent(prev => ({ ...prev, registeredCount: res.data.registeredCount }));
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Registration failed');
-    } finally {
-      setRegistering(false);
-    }
-  };
-
   const addToRefs = (el) => {
     if (el && !elementsRef.current.includes(el)) {
       elementsRef.current.push(el);
@@ -209,19 +187,16 @@ export default function EventDetails() {
                 <p className="text-xs font-medium text-white/80 mb-8 relative z-10">
                   {isRegistered ? 'You are officially registered for this event.' : 'Secure your spot before seats run out.'}
                 </p>
-                <button 
-                  onClick={handleRegister}
-                  disabled={isRegistered || registering}
+                <Link 
+                  to={`/register/event/${id}`}
                   className={`w-full py-4 rounded-xl font-black tracking-widest transition-all active:scale-95 shadow-xl relative z-10 flex items-center justify-center gap-2 ${isRegistered ? 'bg-white/20 text-white cursor-default' : 'bg-white text-brand hover:scale-105'}`}
                 >
-                  {registering ? (
-                    <div className="w-4 h-4 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
-                  ) : isRegistered ? (
+                  {isRegistered ? (
                     <><CheckCircle2 className="w-4 h-4" /> REGISTERED</>
                   ) : (
                     'REGISTER NOW'
                   )}
-                </button>
+                </Link>
               </div>
 
               <div ref={addToRefs} className="p-6 rounded-[2rem] border border-black/10 dark:border-white/10 flex flex-col gap-4">
