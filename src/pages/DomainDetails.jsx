@@ -131,9 +131,9 @@ export default function DomainDetails() {
             </p>
 
             <div ref={addToRefs} className="flex flex-wrap gap-4 mt-4">
-              <button className={`px-10 py-5 rounded-full bg-gradient-to-r ${themeColors.gradient} text-white text-sm font-black tracking-widest hover:scale-105 transition-transform shadow-xl flex items-center gap-2 uppercase`}>
+              <Link to={`/register/domain/${domain.slug}`} className={`px-10 py-5 rounded-full bg-gradient-to-r ${themeColors.gradient} text-white text-sm font-black tracking-widest hover:scale-105 transition-transform shadow-xl flex items-center gap-2 uppercase`}>
                 JOIN {domain.title} <ChevronRight className="w-4 h-4" />
-              </button>
+              </Link>
               <button className="px-10 py-5 rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-black tracking-widest border border-black/10 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-xl uppercase">
                 <PlayCircle className="w-4 h-4" /> WATCH INTRO
               </button>

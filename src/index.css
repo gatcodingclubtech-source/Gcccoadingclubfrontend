@@ -77,6 +77,15 @@ body {
     cursor: default;
 }
 
+@media (min-width: 1024px) {
+  body {
+    cursor: auto;
+  }
+  a, button, [role="button"], input, select, textarea {
+    cursor: auto;
+  }
+}
+
 html.dark body {
     background-color: #000000;
     color: #f8fafc;

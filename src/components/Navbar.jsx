@@ -3,6 +3,7 @@ import { Sun, Moon, Menu, X, Home as HomeIcon, Info, Layers, Calendar, Trophy, U
 import GccLogo from '../assets/logo/gcc logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationCenter from './NotificationCenter';
 
 export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen, setMobileMenuOpen }) {
   const location = useLocation();
@@ -22,6 +23,22 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
 
     if (targetId === 'events') {
       navigate('/events');
+      return;
+    }
+
+    if (targetId === 'leaderboard') {
+      navigate('/leaderboard');
+      return;
+    }
+
+    if (targetId === 'quiz') {
+      navigate('/quiz');
+      return;
+    }
+
+
+    if (targetId === 'live-rooms') {
+      navigate('/live-rooms');
       return;
     }
 
@@ -52,6 +69,7 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
     { label: 'Events', id: 'events' },
     { label: 'Quiz', id: 'quiz' },
     { label: 'Leaderboard', id: 'leaderboard' },
+    { label: 'Arena', id: 'live-rooms' },
     { label: 'Team', id: 'team' },
   ];
 
@@ -87,7 +105,7 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
             <button
               key={item.id}
               onClick={(e) => handleNavClick(e, item.id)}
-              className={`text-[11px] font-black tracking-[0.15em] uppercase transition-all relative py-2 group
+              className={`text-[11px] font-black tracking-[0.15em] ${item.id === 'live-rooms' ? 'capitalize' : 'uppercase'} transition-all relative py-2 group flex items-center gap-1.5
               ${location.pathname === '/' && item.id === 'home' ? 'text-emerald-500' : 'text-slate-500 dark:text-slate-400 hover:text-emerald-500'}`}
             >
               {item.label}
@@ -98,6 +116,7 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
 
         {/* Actions */}
         <div className="flex items-center gap-3 sm:gap-6">
+          {user && <NotificationCenter />}
           <button
             onClick={toggleTheme}
             className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400"

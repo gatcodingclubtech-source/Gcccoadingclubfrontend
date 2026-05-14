@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useAuth } from '../context/AuthContext';
@@ -15,8 +16,10 @@ import RecruitmentBanner from '../assets/banners/gcc-club-recruitment-instagram.
 import WorkshopBanner1 from '../assets/banners/workshop 1.webp';
 import GccLogo from '../assets/logo/gcc logo.png';
 import { 
-  Code, Menu, X, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe
+  Code, Menu, X, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen
 } from 'lucide-react';
+import HeroTerminal from '../components/HeroTerminal';
+import socket from '../utils/socket';
 
 const Github = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
@@ -47,18 +50,18 @@ const CodeRainCanvas = () => {
     window.addEventListener('resize', resize);
     resize();
 
-    const symbols = ["{...}", "GCC", "GAT", "const", "await", "import", "=>", "[]", "<div />", "React", "Node", "Git", "API", "Auth", "JSON", "Map", "</b>", "</h>", "<html>", "<body>"];
+    const symbols = ["await", "GCC", "React", "GAT", "const", "<div />", "JSON", "Map", "Git", "{...}", "</b>", "</h>", "<html>", "<body>", "API", "Node", "npm", "fetch", "async", "import", "export", "=>", "[ ]", "( )", "< >"];
     const drops = [];
-    const columns = Math.floor(canvas.width / 50);
+    const columns = Math.floor(canvas.width / 40);
 
     for (let i = 0; i < columns * 2; i++) {
       drops[i] = {
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         scale: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.02 + Math.random() * 0.03,
+        pulseSpeed: 0.005 + Math.random() * 0.01,
         symbol: symbols[Math.floor(Math.random() * symbols.length)],
-        baseOpacity: 0.1 + Math.random() * 0.3
+        baseOpacity: 0.08 + Math.random() * 0.12
       };
     }
 
@@ -68,14 +71,14 @@ const CodeRainCanvas = () => {
       drops.forEach(drop => {
         drop.scale += drop.pulseSpeed;
         const currentScale = 0.5 + Math.sin(drop.scale) * 0.5;
-        const size = 10 + currentScale * 30;
+        const size = 20 + currentScale * 40;
         
         ctx.font = `900 ${size}px monospace`;
         ctx.fillStyle = `rgba(16, 185, 129, ${drop.baseOpacity * currentScale})`;
         ctx.fillText(drop.symbol, drop.x, drop.y);
 
-        drop.x += Math.cos(drop.scale * 0.2) * 0.2;
-        drop.y += Math.sin(drop.scale * 0.2) * 0.2;
+        drop.x += Math.cos(drop.scale * 0.05) * 0.05;
+        drop.y += Math.sin(drop.scale * 0.05) * 0.05;
       });
 
       animationFrameId = requestAnimationFrame(draw);
@@ -89,7 +92,7 @@ const CodeRainCanvas = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none opacity-60" />;
+  return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none opacity-100" />;
 };
 
 const SplitText = ({ text, className }) => {
@@ -138,7 +141,7 @@ function QuizSection() {
             {[
               { label: '20+ Questions', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
               { label: '3 Difficulty Levels', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
-              { label: 'Instant Explanations', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+              { label: 'Arena', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
             ].map(({ label, color }) => (
               <span key={label} className={`px-4 py-1.5 rounded-full text-xs font-black border ${color}`}>
                 {label}
@@ -158,7 +161,7 @@ function QuizSection() {
                 <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Medium</span>
                 <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/5 dark:border-white/5">JavaScript</span>
               </div>
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Q 1 / 5</span>
+              <span className="text-xs font-black text-slate-400 tracking-widest">Q 1 / 5</span>
             </div>
 
             <p className="text-sm font-bold text-slate-900 dark:text-white">What does <code className="text-brand bg-brand/10 px-1.5 py-0.5 rounded-md font-mono text-xs">typeof null</code> return in JavaScript?</p>
@@ -166,8 +169,7 @@ function QuizSection() {
             <div className="bg-slate-950 rounded-xl overflow-hidden border border-white/10">
               <div className="px-4 py-2 bg-slate-900 border-b border-white/5 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                <span className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-xs font-bold text-slate-500">Q 1 / 5</span>
               </div>
               <pre className="px-5 py-4 text-xs font-mono text-cyan-300">console.log(typeof null);</pre>
             </div>
@@ -189,6 +191,61 @@ function QuizSection() {
   );
 }
 
+function DiscussionOverview({ discussions, loading }) {
+  return (
+    <section id="discussions-overview" className="py-24 md:py-32 px-6 relative z-10 bg-slate-50 dark:bg-slate-950/50">
+      <div className="max-w-6xl mx-auto space-y-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-on-scroll">
+          <div className="space-y-4">
+            <span className="text-xs font-bold tracking-widest text-brand flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5" /> Tech Arena
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+              Trending <span className="text-brand">Debates</span>
+            </h2>
+          </div>
+          <Link to="/discussions" className="text-sm font-black text-brand hover:underline flex items-center gap-2 tracking-widest">
+            Enter Arena <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {loading ? (
+            [1, 2, 3].map(i => <div key={i} className="glass-panel h-64 animate-pulse bg-slate-200 dark:bg-slate-800" />)
+          ) : (
+            discussions.map((disc, idx) => (
+              <Link to={`/discussions/${disc._id}`} key={disc._id} className="glass-panel p-8 flex flex-col gap-6 group hover:border-brand/40 transition-colors animate-on-scroll">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-black tracking-widest bg-brand/10 text-brand px-2 py-1 rounded">
+                    {disc.category}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400">
+                    {new Date(disc.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight group-hover:text-brand transition-colors">
+                  {disc.title}
+                </h3>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 line-clamp-3 flex-1">
+                  {disc.content}
+                </p>
+                <div className="flex items-center gap-4 pt-4 border-t border-black/5 dark:border-white/5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                   <div className="flex items-center gap-1.5">
+                      <ArrowBigUp className="w-4 h-4" /> {disc.upvotes?.length || 0}
+                   </div>
+                   <div className="flex items-center gap-1.5">
+                      <MessageSquare className="w-4 h-4" /> {disc.comments?.length || 0}
+                   </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home({ theme }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -202,13 +259,19 @@ export default function Home({ theme }) {
   const [terminalInput, setTerminalInput] = useState('');
   const [events, setEvents] = useState([]);
   const [domains, setDomains] = useState([]);
+  const [discussions, setDiscussions] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [domainsLoading, setDomainsLoading] = useState(true);
+  const [discussionsLoading, setDiscussionsLoading] = useState(true);
+  const [rooms, setRooms] = useState([]);
+  const [roomsLoading, setRoomsLoading] = useState(true);
   const termRef = useRef(null);
 
   useEffect(() => {
     fetchEvents();
     fetchDomains();
+    fetchDiscussions();
+    fetchRooms();
   }, []);
 
   const fetchEvents = async () => {
@@ -224,6 +287,17 @@ export default function Home({ theme }) {
     }
   };
 
+  const fetchDiscussions = async () => {
+    try {
+      const res = await axios.get('/api/discussions');
+      setDiscussions(res.data.slice(0, 3)); // Only show top 3
+    } catch (err) {
+      console.error('Error fetching discussions', err);
+    } finally {
+      setDiscussionsLoading(false);
+    }
+  };
+
   const fetchDomains = async () => {
     try {
       const res = await axios.get('/api/domains');
@@ -234,6 +308,17 @@ export default function Home({ theme }) {
       console.error('Error fetching domains', err);
     } finally {
       setDomainsLoading(false);
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const res = await axios.get('/api/live-rooms');
+      setRooms(res.data.slice(0, 3));
+    } catch (err) {
+      console.error('Error fetching rooms', err);
+    } finally {
+      setRoomsLoading(false);
     }
   };
 
@@ -300,21 +385,7 @@ export default function Home({ theme }) {
         );
       });
 
-      gsap.utils.toArray('.animate-on-scroll').forEach((text) => {
-        gsap.fromTo(text, 
-          { opacity: 0.3, y: 10 },
-          { 
-            opacity: 1, 
-            y: 0, 
-            duration: 1, 
-            scrollTrigger: {
-              trigger: text,
-              start: 'top 90%',
-              toggleActions: 'play reverse play reverse',
-            }
-          }
-        );
-      });
+      // Removed conflicting animate-on-scroll trigger to fix opacity issues
 
       if (window.innerWidth >= 1024) {
         ScrollTrigger.create({
@@ -359,6 +430,54 @@ export default function Home({ theme }) {
           );
         }
       });
+
+      // Domain Horizontal Scroll
+      if (window.innerWidth >= 1024) {
+        const domainContainer = document.querySelector('.domain-scroll-container');
+        if (domainContainer) {
+          gsap.to(domainContainer, {
+            x: () => -(domainContainer.scrollWidth - window.innerWidth + window.innerWidth * 0.2),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '#domains',
+              pin: true,
+              scrub: 1,
+              start: 'top top',
+              end: () => `+=${domainContainer.scrollWidth}`,
+              invalidateOnRefresh: true,
+            }
+          });
+        }
+      }
+      // Digital Nexus Reveal Animation
+      const nexusReveals = document.querySelectorAll('.nexus-reveal');
+      const blade = document.querySelector('.nexus-blade');
+      if (nexusReveals.length > 0) {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '#nexus',
+            start: 'top 60%',
+            end: 'bottom 40%',
+            toggleActions: 'play none none reverse'
+          }
+        });
+
+        tl.to(nexusReveals, {
+          y: 0,
+          opacity: 1,
+          duration: 1.2,
+          stagger: 0.2,
+          ease: 'power4.out'
+        });
+
+        if (blade) {
+          tl.fromTo(blade, 
+            { top: '0%', opacity: 0 },
+            { top: '100%', opacity: 1, duration: 1.5, ease: 'power2.inOut' },
+            '-=1'
+          ).to(blade, { opacity: 0, duration: 0.5 });
+        }
+      }
     });
 
     const timer = setTimeout(() => {
@@ -405,59 +524,54 @@ export default function Home({ theme }) {
         </div>
       </div>
 
-      <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-48 pb-24 px-6 overflow-hidden bg-white dark:bg-slate-950">
+      <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-50 pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950">
         <div id="hero-door-l" className="hero-door hero-door-left"></div>
         <div id="hero-door-r" className="hero-door hero-door-right"></div>
+        
+        {/* Subtle Cinematic Depth */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_70%)]" />
+        </div>
 
         {/* High-Performance Canvas Code Blizzard (Zero Lag) */}
         <CodeRainCanvas />
 
-        {/* Removed all expensive DOM elements for performance */}
-
-        {/* Removed expensive blur glows for lag fix */}
-
-        <div id="home-content" className="max-w-4xl mx-auto flex flex-col items-center text-center gap-6 md:gap-10 w-full relative z-20 pt-0 pb-12 -mt-10">
+        <div id="home-content" className="max-w-6xl mx-auto flex flex-col items-center text-center gap-6 w-full relative z-20">
           
-          <div className="flex flex-col gap-6">
-            <h1 id="hero-title" className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] hero-title-sharp char-reveal flex flex-col items-center text-slate-900 dark:text-white">
-              <span className="text-emerald-500">
-                <SplitText text="Welcome to GCC." />
-              </span>
-              <span className="flex flex-wrap justify-center gap-x-4">
-                <SplitText text="Learn Coding." />
-              </span>
-              <span className="text-emerald-500">
-                <SplitText text="Build Cool Projects." />
-              </span>
+          <div className="flex flex-col gap-6 items-center">
+            <h1 id="hero-title" className="font-black tracking-tight leading-[1.1] flex flex-col items-center text-center">
+              <span className="text-[#10b981] text-5xl md:text-[72px]">Welcome to GCC.</span>
+              <span className="text-[#0f172a] dark:text-white text-5xl md:text-[72px]">Learn Coding.</span>
+              <span className="text-[#10b981] text-5xl md:text-[72px]">Build Cool Projects.</span>
             </h1>
-            <p id="hero-desc" className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-400 max-w-2xl mx-auto animate-on-scroll leading-relaxed">
+            
+            <p id="hero-desc" className="text-sm md:text-base font-bold text-slate-600 dark:text-slate-400 max-w-2xl mx-auto animate-on-scroll leading-relaxed px-4">
               Step into the nexus of creativity and technology. Join an elite community building the software foundations of tomorrow.
             </p>
           </div>
+
           
-          <div id="hero-cta" className="flex flex-wrap items-center justify-center gap-6">
-            <button 
-              onClick={(e) => {
-                const el = document.getElementById('events');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="px-6 sm:px-10 py-3.5 sm:py-4 rounded-xl bg-slate-950 text-white text-xs sm:text-sm font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl hover:shadow-emerald-500/20"
+          <div id="hero-cta" className="flex flex-wrap items-center justify-center gap-4">
+            <Link 
+              to="/events"
+              className="px-10 py-4 rounded-xl bg-[#0a0c10] text-white text-xs font-black flex items-center gap-3 hover:scale-105 transition-all shadow-2xl uppercase tracking-widest"
             >
               Explore Activities <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
             <button 
               onClick={(e) => {
                 const el = document.getElementById('about');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-6 sm:px-10 py-3.5 sm:py-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-950 dark:border-white/20 text-slate-950 dark:text-white text-xs sm:text-sm font-black flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-lg"
+              className="px-10 py-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-white/20 text-slate-900 dark:text-white text-xs font-black flex items-center gap-3 hover:bg-slate-50 transition-all uppercase tracking-widest"
             >
               Our Mission
             </button>
           </div>
+        </div>
 
-          {/* Mobile Stats - Keep at bottom for better mobile UX */}
-          <div id="hero-stats" className="flex lg:hidden items-center justify-center gap-12 mt-8 w-full">
+        {/* Mobile Stats - Keep at bottom for better mobile UX */}
+        <div id="hero-stats" className="flex lg:hidden items-center justify-center gap-12 mt-8 w-full">
             <div className="flex flex-col items-center gap-1 group">
               <span className="text-4xl font-black text-slate-950 dark:text-white leading-none group-hover:text-emerald-500 transition-colors">500+</span>
               <span className="text-[9px] font-black tracking-[0.4em] text-slate-400 dark:text-slate-500 uppercase">Members</span>
@@ -467,27 +581,28 @@ export default function Home({ theme }) {
               <span className="text-[9px] font-black tracking-[0.4em] text-slate-400 dark:text-slate-500 uppercase">Projects</span>
             </div>
           </div>
-        </div>
-
+        
         {/* Floating Side Stats - Desktop Only, Positioned bottom-right */}
         <div className="hidden lg:block pointer-events-none">
-          <div className="absolute right-[5vw] bottom-[25vh] flex flex-col gap-8 items-end text-right z-30">
-             <div className="flex flex-col gap-1 group animate-on-scroll items-end">
+          <div className="absolute right-[4vw] bottom-[10%] flex flex-col gap-8 items-end text-right z-30">
+             <div className="flex flex-col gap-1.5 group animate-on-scroll items-end">
                <div className="w-6 h-[2px] bg-brand mb-1"></div>
-               <span className="text-3xl font-black text-slate-950 dark:text-white leading-none group-hover:text-emerald-500 transition-colors">500+</span>
-               <span className="text-[8px] font-black tracking-[0.4em] text-slate-400 dark:text-slate-500 uppercase">Members</span>
+               <span className="text-4xl font-black text-slate-950 dark:text-white leading-none">500+</span>
+               <span className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Members</span>
              </div>
-             <div className="flex flex-col gap-1 group animate-on-scroll items-end">
+             <div className="flex flex-col gap-1.5 group animate-on-scroll items-end">
                <div className="w-6 h-[2px] bg-brand mb-1"></div>
-               <span className="text-3xl font-black text-slate-950 dark:text-white leading-none group-hover:text-emerald-500 transition-colors">15+</span>
-               <span className="text-[8px] font-black tracking-[0.4em] text-slate-400 dark:text-slate-500 uppercase">Projects</span>
+               <span className="text-4xl font-black text-slate-950 dark:text-white leading-none">15+</span>
+               <span className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Projects</span>
              </div>
           </div>
         </div>
       </section>
 
       {/* 4. Natural Flow About Section */}
-      <section id="about" className="relative z-10 py-16 md:py-32 px-4 sm:px-6 border-t border-black/5 dark:border-white/5 select-none overflow-hidden bg-white dark:bg-slate-950">
+      <section id="about" className="relative z-10 py-16 md:py-32 px-4 sm:px-6 border-t border-black/5 dark:border-white/5 select-none overflow-hidden">
+        {/* Background Blur Overlay */}
+        <div className="absolute inset-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-[60px] z-0" />
         
         <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 md:gap-16 items-start relative z-10">
           {/* Pinned Left Side Content */}
@@ -564,64 +679,59 @@ export default function Home({ theme }) {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+        </div>
+      </section>
 
-      {/* 5. Natural Flow Domains Section */}
-      <section id="domains" className="py-16 md:py-32 px-4 sm:px-6 scroll-fade-in relative z-10 bg-white dark:bg-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col gap-4 text-left max-w-2xl mb-12 md:mb-16 animate-on-scroll">
+      {/* 5. Horizontal Scrolling Domains Section */}
+      <section id="domains" className="py-16 md:py-40 px-4 sm:px-6 relative z-10 bg-white dark:bg-slate-950 overflow-hidden">
+        <div className="max-w-6xl mx-auto mb-20">
+          <div className="flex flex-col gap-4 text-left max-w-2xl animate-on-scroll">
             <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand">Our Domains</span>
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white char-reveal">
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight text-slate-900 dark:text-white char-reveal">
               <SplitText text="Our Areas of Expertise" />
             </h2>
           </div>
+        </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 transition-all duration-700 ease-in-out">
-            {domainsLoading ? (
-              Array(3).fill(0).map((_, i) => (
-                <div key={i} className="glass-panel h-80 animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
-              ))
-            ) : domains.length === 0 ? (
-              <div className="col-span-full py-20 text-center opacity-30 font-black uppercase tracking-widest text-slate-500">
-                No active domains discovered
-              </div>
-            ) : (
-              domains.slice(0, showAllDomains ? 12 : 3).map((domain, idx) => (
-                <div key={domain._id} className="elite-card p-8 md:p-10 flex flex-col gap-6 animate-on-scroll group hover:scale-[1.02] transition-all duration-500">
-                  <div className={`w-14 h-14 rounded-2xl bg-${domain.color}-500/10 flex items-center justify-center text-${domain.color}-600 shadow-lg shadow-${domain.color}-500/5 group-hover:scale-110 transition-transform`}>
-                    {IconMap[domain.icon] || <Layers className="w-14 h-14" />}
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{domain.title}</h4>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {domain.desc}
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-3 mt-auto">
-                    <Link to={user ? "/profile" : "/auth"} className={`w-full py-3 rounded-xl bg-${domain.color}-600 text-white text-xs font-black tracking-widest hover:bg-${domain.color}-700 transition-colors shadow-lg shadow-${domain.color}-600/20 text-center flex items-center justify-center`}>
-                      {user ? "MY DASHBOARD" : "JOIN NOW"}
-                    </Link>
-                    <Link to={`/domain/${domain.slug}`} className="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-center inline-block">
-                      VIEW DETAILS
-                    </Link>
-                  </div>
+        {/* Horizontal Scroll Track */}
+        <div className="domain-scroll-container relative flex items-start gap-10 px-[5vw] md:px-[10vw]">
+          {domainsLoading ? (
+            Array(3).fill(0).map((_, i) => (
+              <div key={i} className="glass-panel h-80 min-w-[300px] md:min-w-[450px] animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
+            ))
+          ) : domains.length === 0 ? (
+            <div className="w-full py-20 text-center opacity-30 font-black uppercase tracking-widest text-slate-500">
+              No active domains discovered
+            </div>
+          ) : (
+            domains.map((domain, idx) => (
+              <div key={domain._id} className="domain-card-horizontal p-10 md:p-14 min-w-[320px] md:min-w-[500px] flex flex-col gap-8 elite-card group hover:scale-[1.02] transition-all duration-500 bg-white dark:bg-slate-900 shadow-2xl relative">
+                <div className={`w-20 h-20 rounded-3xl bg-brand/10 flex items-center justify-center text-brand shadow-lg shadow-brand/5 group-hover:scale-110 transition-transform`}>
+                  {IconMap[domain.icon] || <Layers className="w-20 h-20" />}
                 </div>
-              ))
-            )}
-          </div>
-
-          <div className="flex justify-center mt-12 animate-on-scroll">
-            <button 
-              onClick={() => setShowAllDomains(!showAllDomains)}
-              className="px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-black text-xs tracking-widest hover:scale-105 transition-transform shadow-xl flex items-center gap-2"
-            >
-              {showAllDomains ? 'VIEW LESS' : 'VIEW ALL DOMAINS'}
-              <ChevronRight className={`w-4 h-4 transition-transform duration-500 ${showAllDomains ? '-rotate-90' : 'rotate-90'}`} />
-            </button>
-          </div>
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{domain.title}</h4>
+                  <p className="text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+                    {domain.desc}
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 mt-auto">
+                  <Link to={`/register/domain/${domain._id}`} className="flex-1 py-4 rounded-2xl bg-brand text-white text-[11px] font-black tracking-widest hover:bg-emerald-700 transition-colors shadow-xl shadow-brand/20 text-center flex items-center justify-center uppercase">
+                    {user && user.joinedDomains?.includes(domain._id) ? "JOINED" : "JOIN NOW"}
+                  </Link>
+                  <Link to={`/domain/${domain.slug}`} className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-[11px] font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-center inline-block uppercase">
+                    DETAILS
+                  </Link>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
+
+
+
+
 
       {/* 6. Advanced Event Radar - REDESIGNED 2.0 */}
       <section id="events" className="relative py-16 md:py-40 px-4 sm:px-6 z-10 overflow-hidden border-t border-b border-black/5 dark:border-white/5 bg-white dark:bg-slate-950">
@@ -673,14 +783,12 @@ export default function Home({ theme }) {
                       </div>
                       
                       <div className="grid grid-cols-2 gap-3 mt-4 pt-6 border-t border-black/5 dark:border-white/5">
-                        <a 
-                          href={item.registrationLink || '#'} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
+                        <Link 
+                          to={`/register/event/${item._id}`}
                           className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-brand/20 text-center flex items-center justify-center"
                         >
                           REGISTER
-                        </a>
+                        </Link>
                         <Link to={`/event/${item._id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
                           DETAILS
                         </Link>
@@ -702,9 +810,93 @@ export default function Home({ theme }) {
         </div>
       </section>
 
+      {/* 6.2 — Live Arena Overview (NEW - Quiz Style) */}
+      <section id="live-rooms-preview" className="panel py-24 md:py-32 px-6 relative z-10 border-t border-black/5 dark:border-white/5 overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-center animate-on-scroll">
+          <div className="flex-1 flex flex-col gap-6 order-2 lg:order-1">
+            <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
+              <Video className="w-3.5 h-3.5" /> Live Community Arena
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+              Join Active{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-cyan-500">
+                Live
+              </span>{' '}
+              Sessions
+            </h2>
+            <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">
+              Engage with fellow developers in real-time. From technical workshops to coding marathons and intense debates, the Arena is where the club comes alive.
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              {[
+                { label: 'Real-time Interaction', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+                { label: 'Voice & Video', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
+                { label: 'Screen Share', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+              ].map(({ label, color }) => (
+                <span key={label} className={`px-4 py-1.5 rounded-full text-[10px] font-black border ${color} uppercase tracking-widest`}>
+                  {label}
+                </span>
+              ))}
+            </div>
+
+            <Link to="/live-rooms" className="w-max px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center gap-2 hover:scale-105 transition-all shadow-xl hover:shadow-emerald-500/20 uppercase tracking-widest">
+              Enter Arena <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="flex-1 w-full max-w-lg order-1 lg:order-2">
+            <div className="glass-panel p-6 md:p-8 flex flex-col gap-6 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-brand/20 transition-colors" />
+              
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex gap-2">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-emerald-500/10 text-emerald-600 border-emerald-500/20 uppercase tracking-widest animate-pulse">Live</span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/5 dark:border-white/5 uppercase tracking-widest">Coding Room</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <Users className="w-4 h-4" />
+                  <span className="text-xs font-black">12 Active</span>
+                </div>
+              </div>
+
+              <div className="space-y-4 relative z-10">
+                <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">System Architecture Deep Dive</h4>
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                      <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                  <div className="w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-brand text-white flex items-center justify-center text-[10px] font-black">+8</div>
+                </div>
+              </div>
+
+              <div className="bg-slate-950 rounded-2xl p-4 border border-white/5 relative z-10 group-hover:border-brand/30 transition-colors">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Streaming Terminal</span>
+                </div>
+                <div className="font-mono text-xs text-emerald-400/80 space-y-1">
+                  <div className="flex gap-2"><span className="text-slate-600">01</span> <span className="text-pink-400">async function</span> <span className="text-blue-400">optimizePipeline</span>() {"{"}</div>
+                  <div className="flex gap-2"><span className="text-slate-600">02</span> &nbsp;&nbsp;<span className="text-pink-400">const</span> nodes = <span className="text-pink-400">await</span> fetchNodes();</div>
+                  <div className="flex gap-2"><span className="text-slate-600">03</span> &nbsp;&nbsp;<span className="text-pink-400">return</span> nodes.<span className="text-blue-400">map</span>(n ={'>'} n.<span className="text-yellow-400">id</span>);</div>
+                  <div className="flex gap-2"><span className="text-slate-600">04</span> {"}"}</div>
+                </div>
+              </div>
+
+              <button className="w-full py-4 rounded-xl bg-brand text-white text-[11px] font-black tracking-widest uppercase shadow-xl shadow-brand/20 hover:scale-[1.02] transition-all" onClick={() => navigate('/live-rooms')}>
+                Quick Join
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* 7.5 — Quiz Overview Section */}
       <QuizSection />
+
 
       {/* 7. Premium SaaS-style Leaderboard Table Section */}
       <section id="leaderboard" className="py-16 md:py-32 px-4 sm:px-6 scroll-fade-in relative z-10">

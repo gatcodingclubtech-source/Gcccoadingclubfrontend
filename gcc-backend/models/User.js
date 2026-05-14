@@ -84,6 +84,22 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    xp: { type: Number, default: 0 },
+    rank: { 
+      type: String, 
+      enum: ['Rookie', 'Builder', 'Elite', 'Core Member', 'Legend'], 
+      default: 'Rookie' 
+    },
+    badges: [{
+      name: { type: String },
+      icon: { type: String },
+      awardedAt: { type: Date, default: Date.now }
+    }],
+    achievements: [{
+      id: { type: String },
+      title: { type: String },
+      unlockedAt: { type: Date, default: Date.now }
+    }],
     profileComplete: {
       type: Boolean,
       default: false,
@@ -92,6 +108,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    joinedDomains: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Domain',
+      }
+    ],
   },
   {
     timestamps: true,

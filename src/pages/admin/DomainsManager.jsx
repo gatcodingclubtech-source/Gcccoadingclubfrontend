@@ -93,7 +93,8 @@ export default function DomainsManager() {
       }
       closeModal();
     } catch (err) {
-      alert('Action failed');
+      const message = err.response?.data?.message || 'Action failed';
+      alert(message);
     }
   };
 
@@ -105,7 +106,8 @@ export default function DomainsManager() {
           setDomains(domains.filter(d => d._id !== id));
         }
       } catch (err) {
-        alert('Delete failed');
+        const message = err.response?.data?.message || 'Delete failed';
+        alert(message);
       }
     }
   };

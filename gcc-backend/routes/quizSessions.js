@@ -4,6 +4,7 @@ const QuizSession = require('../models/QuizSession');
 const Quiz = require('../models/Quiz');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
+const { triggerAutomation } = require('../utils/automation');
 
 // @desc    Generate random ID and Password for a new test
 // @route   GET /api/quiz-sessions/generate
@@ -90,6 +91,15 @@ router.post('/submit', protect, async (req, res) => {
     });
 
     await session.save();
+
+    // Trigger Automation: Notify user and potentially update rank/points
+    await triggerAutomation({
+      userId: req.user._id,
+      title: 'Quiz Completed!',
+      message: `You scored ${score}/${totalQuestions} in ${session.title}. Great job!`,
+      type: 'QUIZ'
+    });
+
     res.json({ success: true, message: 'Result submitted successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
