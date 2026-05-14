@@ -25,8 +25,12 @@ app.use(cookieParser());
 // Dynamic CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://10.43.253.148:5173',
   'https://gatcodingclubtech-source.github.io',
-  'https://naseer-047.github.io'
+  'https://naseer-047.github.io',
+  'https://gcc-coding-club.onrender.com'
 ];
 
 app.use(
