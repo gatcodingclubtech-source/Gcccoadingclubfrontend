@@ -12,16 +12,31 @@ export default function Navbar() {
   const { user, logout, theme, toggleTheme } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      const currentScrollY = window.scrollY;
+      
+      // Scrolled state for background change
+      setScrolled(currentScrollY > 20);
+
+      // Visibility logic: show on up, hide on down
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   const handleNavClick = (e, targetId) => {
     e.preventDefault();
@@ -60,30 +75,30 @@ export default function Navbar() {
 
   const navItems = [
     { label: 'Home', id: 'home' },
-    { label: 'About', id: 'about' },
-    { label: 'Domains', id: 'domains' },
     { label: 'Events', id: 'events' },
-    { label: 'Quiz', id: 'quiz' },
     { label: 'Arena', id: 'live-rooms' },
+    { label: 'Quiz', id: 'quiz' },
+    { label: 'Domains', id: 'domains' },
   ];
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-500 
       ${scrolled ? 'py-2' : 'py-4'} 
       ${mobileMenuOpen ? 'bg-white' : 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5'}
+      ${visible ? 'translate-y-0' : '-translate-y-full'}
       flex flex-col`}
       style={mobileMenuOpen ? { backgroundColor: '#ffffff', opacity: 1 } : {}}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-24 flex items-center justify-between w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-16 flex items-center justify-between w-full">
         {/* Logo & Brand */}
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-14 h-14 sm:w-14 sm:h-14 flex-shrink-0 relative">
+          <div className="w-14 h-14 sm:w-11 sm:h-11 flex-shrink-0 relative">
             <div className="absolute inset-0 bg-emerald-500/20 blur-lg rounded-full group-hover:bg-emerald-500/40 transition-all"></div>
             <img src={GccLogo} alt="GCC Logo" className="relative w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
           </div>
           <div className="flex flex-col">
-            <span className="text-slate-900 dark:text-white font-black tracking-tighter text-lg sm:text-xl leading-none uppercase">GCC CLUB</span>
-            <span className="text-[9px] sm:text-[11px] text-emerald-500 font-bold tracking-[0.2em] uppercase mt-1 sm:mt-1">GAT CHAPTER</span>
+            <span className="text-slate-900 dark:text-white font-black tracking-tighter text-lg sm:text-base leading-none uppercase">GCC CLUB</span>
+            <span className="text-[9px] sm:text-[9px] text-emerald-500 font-bold tracking-[0.2em] uppercase mt-1 sm:mt-1">GAT CHAPTER</span>
           </div>
         </Link>
 

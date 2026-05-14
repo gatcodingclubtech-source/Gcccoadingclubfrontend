@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,7 @@ import RecruitmentBanner from '../assets/banners/gcc-club-recruitment-instagram.
 import WorkshopBanner1 from '../assets/banners/workshop 1.webp';
 import GccLogo from '../assets/logo/gcc logo.png';
 import { 
-  Code, Menu, X, ArrowLeft, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen
+  Code, Menu, X, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen
 } from 'lucide-react';
 import HeroTerminal from '../components/HeroTerminal';
 import socket from '../utils/socket';
@@ -191,6 +191,60 @@ function QuizSection() {
   );
 }
 
+function DiscussionOverview({ discussions, loading }) {
+  return (
+    <section id="discussions-overview" className="py-24 md:py-32 px-6 relative z-10 bg-slate-50 dark:bg-slate-950/50">
+      <div className="max-w-6xl mx-auto space-y-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-on-scroll">
+          <div className="space-y-4">
+            <span className="text-xs font-bold tracking-widest text-brand flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5" /> Tech Arena
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+              Trending <span className="text-brand">Debates</span>
+            </h2>
+          </div>
+          <Link to="/discussions" className="text-sm font-black text-brand hover:underline flex items-center gap-2 tracking-widest">
+            Enter Arena <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {loading ? (
+            [1, 2, 3].map(i => <div key={i} className="glass-panel h-64 animate-pulse bg-slate-200 dark:bg-slate-800" />)
+          ) : (
+            discussions.map((disc, idx) => (
+              <Link to={`/discussions/${disc._id}`} key={disc._id} className="glass-panel p-8 flex flex-col gap-6 group hover:border-brand/40 transition-colors animate-on-scroll">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-black tracking-widest bg-brand/10 text-brand px-2 py-1 rounded">
+                    {disc.category}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400">
+                    {new Date(disc.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight group-hover:text-brand transition-colors">
+                  {disc.title}
+                </h3>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 line-clamp-3 flex-1">
+                  {disc.content}
+                </p>
+                <div className="flex items-center gap-4 pt-4 border-t border-black/5 dark:border-white/5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                   <div className="flex items-center gap-1.5">
+                      <ArrowBigUp className="w-4 h-4" /> {disc.upvotes?.length || 0}
+                   </div>
+                   <div className="flex items-center gap-1.5">
+                      <MessageSquare className="w-4 h-4" /> {disc.comments?.length || 0}
+                   </div>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function Home({ theme }) {
   const { user } = useAuth();
@@ -205,16 +259,18 @@ export default function Home({ theme }) {
   const [terminalInput, setTerminalInput] = useState('');
   const [events, setEvents] = useState([]);
   const [domains, setDomains] = useState([]);
+  const [discussions, setDiscussions] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [domainsLoading, setDomainsLoading] = useState(true);
+  const [discussionsLoading, setDiscussionsLoading] = useState(true);
   const [rooms, setRooms] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(true);
   const termRef = useRef(null);
-  const domainScrollRef = useRef(null);
 
   useEffect(() => {
     fetchEvents();
     fetchDomains();
+    fetchDiscussions();
     fetchRooms();
   }, []);
 
@@ -231,6 +287,16 @@ export default function Home({ theme }) {
     }
   };
 
+  const fetchDiscussions = async () => {
+    try {
+      const res = await axios.get('/api/discussions');
+      setDiscussions(res.data.slice(0, 3)); // Only show top 3
+    } catch (err) {
+      console.error('Error fetching discussions', err);
+    } finally {
+      setDiscussionsLoading(false);
+    }
+  };
 
   const fetchDomains = async () => {
     try {
@@ -255,64 +321,6 @@ export default function Home({ theme }) {
       setRoomsLoading(false);
     }
   };
-
-  const scrollDomains = (direction) => {
-    if (domainScrollRef.current) {
-      const scrollAmount = window.innerWidth * 1.2;
-      domainScrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  // Drag-to-scroll functionality for Domains
-  useEffect(() => {
-    const slider = domainScrollRef.current;
-    if (!slider) return;
-
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    const onMouseDown = (e) => {
-      isDown = true;
-      slider.style.cursor = 'grabbing';
-      startX = e.pageX - slider.offsetLeft;
-      scrollLeft = slider.scrollLeft;
-    };
-
-    const onMouseLeave = () => {
-      isDown = false;
-      slider.style.cursor = 'grab';
-    };
-
-    const onMouseUp = () => {
-      isDown = false;
-      slider.style.cursor = 'grab';
-    };
-
-    const onMouseMove = (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 2; // scroll speed
-      slider.scrollLeft = scrollLeft - walk;
-    };
-
-    slider.addEventListener('mousedown', onMouseDown);
-    slider.addEventListener('mouseleave', onMouseLeave);
-    slider.addEventListener('mouseup', onMouseUp);
-    slider.addEventListener('mousemove', onMouseMove);
-    slider.style.cursor = 'grab';
-
-    return () => {
-      slider.removeEventListener('mousedown', onMouseDown);
-      slider.removeEventListener('mouseleave', onMouseLeave);
-      slider.removeEventListener('mouseup', onMouseUp);
-      slider.removeEventListener('mousemove', onMouseMove);
-    };
-  }, [domainsLoading]);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -377,6 +385,8 @@ export default function Home({ theme }) {
         );
       });
 
+      // Removed conflicting animate-on-scroll trigger to fix opacity issues
+
       if (window.innerWidth >= 1024) {
         ScrollTrigger.create({
           trigger: '#about-left',
@@ -421,9 +431,9 @@ export default function Home({ theme }) {
         }
       });
 
-      // Domain Horizontal Scroll (Desktop)
+      // Domain Horizontal Scroll
       if (window.innerWidth >= 1024) {
-        const domainContainer = domainScrollRef.current;
+        const domainContainer = document.querySelector('.domain-scroll-container');
         if (domainContainer) {
           gsap.to(domainContainer, {
             x: () => -(domainContainer.scrollWidth - window.innerWidth + window.innerWidth * 0.2),
@@ -431,40 +441,16 @@ export default function Home({ theme }) {
             scrollTrigger: {
               trigger: '#domains',
               pin: true,
-              scrub: 0.5,
+              scrub: 1,
               start: 'top top',
-              end: () => `+=${domainContainer.scrollWidth * 0.7}`,
+              end: () => `+=${domainContainer.scrollWidth}`,
               invalidateOnRefresh: true,
             }
           });
         }
       }
-      
       // Digital Nexus Reveal Animation
       const nexusReveals = document.querySelectorAll('.nexus-reveal');
-      
-      // Mobile Wiggle Hint for Domains
-      if (window.innerWidth < 1024) {
-        const domainContainer = domainScrollRef.current;
-        if (domainContainer) {
-          gsap.fromTo(domainContainer, 
-            { x: 0 },
-            { 
-              x: -30, 
-              duration: 0.5, 
-              repeat: 1, 
-              yoyo: true, 
-              ease: 'power2.inOut',
-              scrollTrigger: {
-                trigger: '#domains',
-                start: 'top 80%',
-                once: true
-              }
-            }
-          );
-        }
-      }
-
       const blade = document.querySelector('.nexus-blade');
       if (nexusReveals.length > 0) {
         const tl = gsap.timeline({
@@ -538,17 +524,20 @@ export default function Home({ theme }) {
         </div>
       </div>
 
-      <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-32 md:pt-40 pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950">
+      <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-50 pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950">
         <div id="hero-door-l" className="hero-door hero-door-left"></div>
         <div id="hero-door-r" className="hero-door hero-door-right"></div>
         
+        {/* Subtle Cinematic Depth */}
         <div className="absolute inset-0 z-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_70%)]" />
         </div>
 
+        {/* High-Performance Canvas Code Blizzard (Zero Lag) */}
         <CodeRainCanvas />
 
         <div id="home-content" className="max-w-6xl mx-auto flex flex-col items-center text-center gap-6 w-full relative z-20">
+          
           <div className="flex flex-col gap-6 items-center">
             <h1 id="hero-title" className="font-black tracking-tight leading-[1.1] flex flex-col items-center text-center">
               <span className="text-[#10b981] text-5xl md:text-[72px]">Welcome to GCC.</span>
@@ -561,6 +550,7 @@ export default function Home({ theme }) {
             </p>
           </div>
 
+          
           <div id="hero-cta" className="flex flex-wrap items-center justify-center gap-4">
             <Link 
               to="/events"
@@ -580,6 +570,7 @@ export default function Home({ theme }) {
           </div>
         </div>
 
+        {/* Mobile Stats - Keep at bottom for better mobile UX */}
         <div id="hero-stats" className="flex lg:hidden items-center justify-center gap-12 mt-8 w-full">
             <div className="flex flex-col items-center gap-1 group">
               <span className="text-4xl font-black text-slate-950 dark:text-white leading-none group-hover:text-emerald-500 transition-colors">500+</span>
@@ -591,6 +582,7 @@ export default function Home({ theme }) {
             </div>
           </div>
         
+        {/* Floating Side Stats - Desktop Only, Positioned bottom-right */}
         <div className="hidden lg:block pointer-events-none">
           <div className="absolute right-[4vw] bottom-[10%] flex flex-col gap-8 items-end text-right z-30">
              <div className="flex flex-col gap-1.5 group animate-on-scroll items-end">
@@ -607,10 +599,13 @@ export default function Home({ theme }) {
         </div>
       </section>
 
+      {/* 4. Natural Flow About Section */}
       <section id="about" className="relative z-10 py-16 md:py-32 px-4 sm:px-6 border-t border-black/5 dark:border-white/5 select-none overflow-hidden">
+        {/* Background Blur Overlay */}
         <div className="absolute inset-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-[60px] z-0" />
         
         <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 md:gap-16 items-start relative z-10">
+          {/* Pinned Left Side Content */}
           <div id="about-left" className="lg:col-span-5 self-start flex flex-col gap-6 md:gap-8 animate-on-scroll">
             <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 animate-pulse" /> WHO WE ARE
@@ -629,11 +624,13 @@ export default function Home({ theme }) {
             </p>
           </div>
 
+            {/* Scrolling Right Side Content */}
             <div className="lg:col-span-7 flex flex-col gap-8 md:gap-12">
+              {/* Vision Card */}
               <div className="glass-panel p-8 md:p-12 flex flex-col gap-6 animate-on-scroll hover:scale-[1.02] transition-transform duration-500">
                 <div className="flex justify-between items-center">
                   <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                    <span className="text-yellow-400 text-3xl select-none">★</span> Vision
+                    <span className="text-yellow-400 text-3xl select-none">Ôÿà</span> Vision
                   </h3>
                 </div>
                 <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -641,9 +638,10 @@ export default function Home({ theme }) {
                 </p>
               </div>
 
+              {/* Mission Card */}
               <div className="glass-panel p-8 md:p-12 flex flex-col gap-8 animate-on-scroll hover:scale-[1.02] transition-transform duration-500">
                 <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                  <span className="text-green-500 font-bold select-none text-2xl">✓</span> Mission
+                  <span className="text-green-500 font-bold select-none text-2xl">Ô£ô</span> Mission
                 </h3>
                 <div className="flex flex-col gap-6">
                   {[
@@ -652,7 +650,7 @@ export default function Home({ theme }) {
                     { title: 'Career Help', desc: 'Get guidance on resumes and interviews to get ready for jobs.' }
                   ].map((item, idx) => (
                     <div key={idx} className="flex gap-4 items-start">
-                      <span className="text-green-500 font-bold select-none mt-0.5">✓</span>
+                      <span className="text-green-500 font-bold select-none mt-0.5">Ô£ô</span>
                       <div className="flex flex-col gap-1">
                         <span className="text-base md:text-lg font-black text-slate-900 dark:text-white leading-tight">{item.title}</span>
                         <span className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400">{item.desc}</span>
@@ -662,9 +660,10 @@ export default function Home({ theme }) {
                 </div>
               </div>
 
+              {/* Objectives Card */}
               <div className="glass-panel p-8 md:p-12 flex flex-col gap-8 animate-on-scroll hover:scale-[1.02] transition-transform duration-500">
                 <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                  <span className="text-brand font-bold select-none text-2xl">→</span> Objectives
+                  <span className="text-brand font-bold select-none text-2xl">ÔåÆ</span> Objectives
                 </h3>
                 <div className="flex flex-col gap-6">
                   {[
@@ -673,7 +672,7 @@ export default function Home({ theme }) {
                     'Help our college grow through technology.'
                   ].map((desc, idx) => (
                     <div key={idx} className="flex gap-4 items-start">
-                      <span className="text-brand font-bold select-none mt-0.5">→</span>
+                      <span className="text-brand font-bold select-none mt-0.5">ÔåÆ</span>
                       <span className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400">{desc}</span>
                     </div>
                   ))}
@@ -683,243 +682,136 @@ export default function Home({ theme }) {
         </div>
       </section>
 
-      {/* 5. Premium Redesigned Domains Section */}
-      <section id="domains" className="py-20 md:py-10 px-4 sm:px-6 relative z-10 bg-white dark:bg-slate-950 overflow-hidden">
-        {/* Header Section */}
-        <div className="max-w-7xl mx-auto mb-12 md:mb-3 flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div className="flex flex-col gap-4 max-w-2xl animate-on-scroll">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-[2px] bg-emerald-500"></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">The Ecosystem</span>
-            </div>
-            <h2 className="text-3xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9] uppercase char-reveal">
-              Specialized <span className="text-emerald-500">Domains</span>
+      {/* 5. Horizontal Scrolling Domains Section */}
+      <section id="domains" className="py-16 md:py-40 px-4 sm:px-6 relative z-10 bg-white dark:bg-slate-950 overflow-hidden">
+        <div className="max-w-6xl mx-auto mb-20">
+          <div className="flex flex-col gap-4 text-left max-w-2xl animate-on-scroll">
+            <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand">Our Domains</span>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight text-slate-900 dark:text-white char-reveal">
+              <SplitText text="Our Areas of Expertise" />
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-bold text-[11px] md:text-xs max-w-lg leading-relaxed">
-              Explore our elite vertical divisions. Dedicated ecosystems of tools, mentorship, and high-impact projects.
-            </p>
-          </div>
-          
-          {/* Custom Navigation */}
-          <div className="flex gap-3 animate-on-scroll">
-            <button 
-              onClick={() => scrollDomains('left')}
-              className="group w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-emerald-500 transition-all active:scale-95"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            </button>
-            <button 
-              onClick={() => scrollDomains('right')}
-              className="group w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all active:scale-95"
-            >
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </button>
           </div>
         </div>
 
-        {/* Horizontal Domain Scroll Container */}
-        <div 
-          ref={domainScrollRef}
-          className="domain-scroll-container relative flex items-start gap-5 md:gap-6 px-6 md:px-[6vw] overflow-x-auto snap-x snap-mandatory no-scrollbar pb-12"
-        >
+        {/* Horizontal Scroll Track */}
+        <div className="domain-scroll-container relative flex items-start gap-10 px-[5vw] md:px-[10vw]">
           {domainsLoading ? (
             Array(3).fill(0).map((_, i) => (
-              <div key={i} className="glass-panel h-[350px] min-w-[280px] md:min-w-[350px] animate-pulse bg-slate-100 dark:bg-slate-900/50 rounded-[2rem]" />
+              <div key={i} className="glass-panel h-80 min-w-[300px] md:min-w-[450px] animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
             ))
           ) : domains.length === 0 ? (
-            <div className="w-full py-20 text-center">
-               <Zap className="w-10 h-10 text-slate-200 dark:text-slate-800 mx-auto mb-4" />
-               <h3 className="text-lg font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">No Active Sectors Found</h3>
+            <div className="w-full py-20 text-center opacity-30 font-black uppercase tracking-widest text-slate-500">
+              No active domains discovered
             </div>
           ) : (
             domains.map((domain, idx) => (
-              <div 
-                key={domain._id} 
-                className="group relative flex flex-col h-[380px] md:h-[420px] min-w-[75vw] md:min-w-[350px] rounded-[2rem] overflow-hidden bg-slate-50 dark:bg-slate-900/40 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all duration-700 hover:shadow-xl hover:shadow-emerald-500/10 snap-center"
-              >
-                {/* Visual Accent */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-[100%] transition-all duration-700" />
-                
-                {/* Content Container */}
-                <div className="relative z-10 flex flex-col h-full p-6 md:p-10 justify-between">
-                  <div className="flex flex-col gap-6">
-                    <div className={`w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-md group-hover:scale-110 transition-all duration-700`}>
-                      {IconMap[domain.icon] || <Layers className="w-7 h-7" />}
-                    </div>
-                    
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2">
-                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                         <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Sector Active</span>
-                      </div>
-                      <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight tracking-tight uppercase group-hover:text-emerald-500 transition-colors">
-                        {domain.title}
-                      </h3>
-                      <p className="text-[11px] md:text-xs font-bold text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">
-                        {domain.desc}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-4 pt-6 border-t border-black/5 dark:border-white/5">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Link 
-                        to={`/register/domain/${domain._id}`} 
-                        className="py-3 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[9px] font-black tracking-widest uppercase hover:scale-[1.02] active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2"
-                      >
-                        JOIN <Zap className="w-2.5 h-2.5 text-emerald-500" />
-                      </Link>
-                      <Link 
-                        to={`/domain/${domain.slug}`} 
-                        className="py-3 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 text-slate-900 dark:text-white text-[9px] font-black tracking-widest uppercase hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-center flex items-center justify-center"
-                      >
-                        DETAILS
-                      </Link>
-                    </div>
-                  </div>
+              <div key={domain._id} className="domain-card-horizontal p-10 md:p-14 min-w-[320px] md:min-w-[500px] flex flex-col gap-8 elite-card group hover:scale-[1.02] transition-all duration-500 bg-white dark:bg-slate-900 shadow-2xl relative">
+                <div className={`w-20 h-20 rounded-3xl bg-brand/10 flex items-center justify-center text-brand shadow-lg shadow-brand/5 group-hover:scale-110 transition-transform`}>
+                  {IconMap[domain.icon] || <Layers className="w-20 h-20" />}
+                </div>
+                <div className="flex flex-col gap-4">
+                  <h4 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{domain.title}</h4>
+                  <p className="text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+                    {domain.desc}
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 mt-auto">
+                  <Link to={`/register/domain/${domain._id}`} className="flex-1 py-4 rounded-2xl bg-brand text-white text-[11px] font-black tracking-widest hover:bg-emerald-700 transition-colors shadow-xl shadow-brand/20 text-center flex items-center justify-center uppercase">
+                    {user && user.joinedDomains?.includes(domain._id) ? "JOINED" : "JOIN NOW"}
+                  </Link>
+                  <Link to={`/domain/${domain.slug}`} className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-[11px] font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-center inline-block uppercase">
+                    DETAILS
+                  </Link>
                 </div>
               </div>
             ))
           )}
         </div>
-
-        {/* Scroll Hint */}
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-32 h-[1px] bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
-             <div className="absolute top-0 left-0 h-full bg-emerald-500 w-1/3 animate-[shimmer_2s_infinite]" />
-          </div>
-          <span className="text-[8px] font-black uppercase tracking-[0.5em] text-slate-400 animate-pulse">Swipe Horizontal</span>
-        </div>
       </section>
 
-      {/* 6. Premium Redesigned Latest Activities Section */}
-      <section id="events" className="relative py-24 md:py-48 px-4 sm:px-6 z-10 overflow-hidden bg-white dark:bg-slate-950">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-          <div className="absolute top-[10%] right-[-5%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full animate-pulse" />
-          <div className="absolute bottom-[10%] left-[-5%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-        </div>
 
-        <div className="max-w-7xl mx-auto flex flex-col gap-20 md:gap-32 relative z-10">
-          {/* Header with Admin Shortcut */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 animate-on-scroll">
-            <div className="flex flex-col gap-6 max-w-2xl">
+
+
+
+      {/* 6. Advanced Event Radar - REDESIGNED 2.0 */}
+      <section id="events" className="relative py-16 md:py-40 px-4 sm:px-6 z-10 overflow-hidden border-t border-b border-black/5 dark:border-white/5 bg-white dark:bg-slate-950">
+
+        <div className="max-w-7xl mx-auto flex flex-col gap-16 md:gap-24">
+          <div className="flex flex-col gap-12 animate-on-scroll mb-16">
+            <div className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-[2px] bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-emerald-500">System Activity Log</span>
+                <div className="w-10 h-[2px] bg-brand"></div>
+                <span className="text-xs md:text-sm font-bold uppercase tracking-[0.3em] text-brand">Latest Activities</span>
               </div>
-              <h2 className="text-5xl md:text-8xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.85] uppercase char-reveal">
+              <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.9] font-cyber char-reveal">
                 Latest <span className="text-emerald-500">Activities</span>
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 font-bold text-sm md:text-base max-w-lg leading-relaxed">
-                The heartbeat of GAT Coding Club. From high-stakes hackathons to precision workshops and elite recruitment drives.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <Link 
-                to="/events" 
-                className="group flex items-center gap-4 px-10 py-5 rounded-2xl bg-emerald-500 text-white font-black text-[11px] tracking-widest uppercase shadow-2xl shadow-emerald-500/30 hover:scale-105 transition-all"
-              >
-                <span>Full Event Archive</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
             </div>
           </div>
 
-          {/* Dynamic Event Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
             {eventsLoading ? (
               Array(3).fill(0).map((_, i) => (
-                <div key={i} className="glass-panel h-[500px] animate-pulse bg-slate-100 dark:bg-slate-900/50 rounded-[3rem]" />
+                <div key={i} className="glass-panel h-[400px] animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
               ))
             ) : events.length === 0 ? (
-              <div className="col-span-full py-32 text-center">
-                 <Zap className="w-16 h-16 text-slate-200 dark:text-slate-800 mx-auto mb-6" />
-                 <h3 className="text-2xl font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">No Active Transmissions</h3>
+              <div className="col-span-full py-20 text-center opacity-30 font-black uppercase tracking-widest text-slate-500">
+                No active activities found
               </div>
             ) : (
               events
                 .filter(ev => ev.isActive !== false)
                 .slice(0, 3)
-                .map((item, idx) => (
-                  <div 
-                    key={item._id} 
-                    className="group relative flex flex-col h-[520px] md:h-[600px] rounded-[3rem] overflow-hidden bg-slate-50 dark:bg-slate-900/40 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all duration-700 hover:-translate-y-4 hover:shadow-2xl hover:shadow-emerald-500/10 animate-on-scroll"
-                    style={{ transitionDelay: `${idx * 100}ms` }}
-                  >
-                    {/* Background Image with Parallax-like Effect */}
-                    <div className="absolute inset-0 z-0">
-                      <img 
-                        src={item.image || 'https://via.placeholder.com/800x1200'} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 opacity-40 dark:opacity-30" 
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-slate-950 dark:via-slate-950/80 dark:to-transparent" />
+                .map((item) => (
+                  <div key={item._id} className="elite-card group bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl transition-all duration-500 animate-on-scroll flex flex-col hover:-translate-y-2">
+                    <div className="relative aspect-[16/10] overflow-hidden w-full bg-slate-200/30 dark:bg-slate-800/30 border-b border-black/5 dark:border-white/5">
+                      <img src={item.image || 'https://via.placeholder.com/800x500'} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <div className="absolute top-4 left-4">
+                        <span className="px-4 py-1.5 rounded-lg bg-brand/90 backdrop-blur-xl text-[9px] font-black text-white tracking-widest shadow-xl uppercase">{item.category}</span>
+                      </div>
                     </div>
-
-                    {/* Content Overlay */}
-                    <div className="relative z-10 flex flex-col h-full p-8 md:p-12 justify-end gap-8">
-                       <div className="flex flex-col gap-4">
-                          <div className="flex items-center gap-3">
-                             <span className="px-4 py-1.5 rounded-full bg-emerald-500 text-white text-[9px] font-black tracking-widest uppercase shadow-lg shadow-emerald-500/20">
-                               {item.type || 'Event'}
-                             </span>
-                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 backdrop-blur-md border border-black/5 dark:border-white/10">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[9px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest">{item.category}</span>
-                             </div>
-                          </div>
-                          
-                          <h3 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white leading-[0.95] tracking-tighter uppercase group-hover:text-emerald-500 transition-colors">
-                            {item.title}
-                          </h3>
-                       </div>
-
-                       <p className="text-sm font-bold text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                          {item.description || "An elite technical gathering hosted by GAT Coding Club."}
-                       </p>
-
-                       <div className="flex flex-col gap-6 pt-6 border-t border-black/5 dark:border-white/5">
-                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                             <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-emerald-500" />
-                                <span>{new Date(item.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                             </div>
-                             <div className="flex items-center gap-2">
-                                <Globe className="w-4 h-4 text-emerald-500" />
-                                <span>{item.venue}</span>
-                             </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                             <Link 
-                               to={`/register/event/${item._id}`}
-                               className="py-4 rounded-2xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[10px] font-black tracking-widest uppercase hover:scale-[1.02] active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2 group/btn shadow-xl"
-                             >
-                               Register <Zap className="w-3 h-3 text-emerald-500" />
-                             </Link>
-                             
-                             <Link 
-                               to={`/event/${item._id}`}
-                               className="py-4 rounded-2xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 text-slate-900 dark:text-white text-[10px] font-black tracking-widest uppercase hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-center flex items-center justify-center"
-                             >
-                               Details
-                             </Link>
-                          </div>
-                       </div>
+                    <div className="p-6 md:p-8 flex flex-col gap-6">
+                      <div className="flex flex-col gap-3">
+                        <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase group-hover:text-brand transition-colors leading-tight line-clamp-2 min-h-[3.5rem]">{item.title}</h4>
+                        <div className="flex flex-wrap gap-2 text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                          <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                            <Calendar className="w-3 h-3 text-brand" /> 
+                            {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                          <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg"><Globe className="w-3 h-3 text-brand" /> {item.venue}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 mt-4 pt-6 border-t border-black/5 dark:border-white/5">
+                        <Link 
+                          to={`/register/event/${item._id}`}
+                          className="py-3.5 rounded-xl bg-brand text-white text-[9px] font-black tracking-widest hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-brand/20 text-center flex items-center justify-center"
+                        >
+                          REGISTER
+                        </Link>
+                        <Link to={`/event/${item._id}`} className="py-3.5 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white text-[9px] font-black tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 text-center flex items-center justify-center">
+                          DETAILS
+                        </Link>
+                      </div>
                     </div>
-
-                    {/* Elite Corner Decoration */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-[100%] transition-all duration-700 group-hover:bg-emerald-500/10" />
                   </div>
                 ))
             )}
           </div>
+
+          <div className="flex justify-center mt-12">
+            <Link 
+              to="/events"
+              className="px-12 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-black text-xs tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-xl"
+            >
+              VIEW ALL ACTIVITIES
+            </Link>
+          </div>
         </div>
       </section>
-      {/* 6.2 — Live Arena Overview (NEW - Quiz Style) */}
-      <section id="live-rooms-preview" className="panel py-24 md:py-32 px-6 relative z-10 border-t border-b border-black/5 dark:border-white/5 overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center">
+
+      {/* 6.2 ÔÇö Live Arena Overview (NEW - Quiz Style) */}
+      <section id="live-rooms-preview" className="panel py-24 md:py-32 px-6 relative z-10 border-t border-black/5 dark:border-white/5 overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-center animate-on-scroll">
           <div className="flex-1 flex flex-col gap-6 order-2 lg:order-1">
             <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
@@ -1001,81 +893,53 @@ export default function Home({ theme }) {
         </div>
       </section>
 
+
+      {/* 7.5 ÔÇö Quiz Overview Section */}
       <QuizSection />
 
+
       {/* 7. Premium SaaS-style Leaderboard Table Section */}
-      <section id="leaderboard" className="py-24 md:py-48 px-4 sm:px-6 relative z-10 overflow-hidden bg-slate-50 dark:bg-slate-950/50">
-        <div className="max-w-6xl mx-auto flex flex-col gap-20 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 animate-on-scroll">
-            <div className="flex flex-col gap-6 max-w-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-[2px] bg-brand shadow-[0_0_10px_rgba(var(--brand-rgb),0.5)]"></div>
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-brand">Global Rankings</span>
-              </div>
-              <h2 className="text-5xl md:text-8xl font-black tracking-tighter text-slate-900 dark:text-white leading-[0.85] uppercase char-reveal">
-                Elite <span className="text-brand">Leaderboard</span>
-              </h2>
-              <p className="text-slate-500 dark:text-slate-400 font-bold text-sm md:text-base max-w-lg leading-relaxed">
-                The absolute vanguard of technical excellence. Track the top performers as they compete for dominance in the GAT ecosystem.
-              </p>
-            </div>
+      <section id="leaderboard" className="py-16 md:py-32 px-4 sm:px-6 scroll-fade-in relative z-10">
+        <div className="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
+          <div className="flex flex-col gap-4 text-left max-w-2xl animate-on-scroll">
+            <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand">Leaderboard</span>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white char-reveal">
+              <SplitText text="Our Top Contributors" />
+            </h2>
           </div>
 
-          <div className="glass-panel overflow-hidden border-black/5 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-3xl rounded-[3rem] shadow-2xl animate-on-scroll">
-            <div className="overflow-x-auto scrollbar-hide">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-black/5 dark:border-white/10 bg-black/5 dark:bg-white/5">
-                    <th className="px-8 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Rank</th>
-                    <th className="px-8 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Operator</th>
-                    <th className="px-8 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-right">XP Credits</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                  {[
-                    { rank: '01', name: 'Mohammed Naseer', role: 'Next.js Wizard', xp: '9481', color: 'text-brand' },
-                    { rank: '02', name: 'Ananya Sharma', role: 'Python Architect', xp: '8122', color: 'text-emerald-500' },
-                    { rank: '03', name: 'Rahul Murthy', role: 'System Optimizer', xp: '7450', color: 'text-blue-500' },
-                    { rank: '04', name: 'Pooja Reddy', role: 'Full Stack Dev', xp: '6814', color: 'text-slate-400' },
-                  ].map((row, idx) => (
-                    <tr key={idx} className="group hover:bg-brand/5 transition-all duration-300">
-                      <td className="px-8 py-8">
-                        <span className={`text-2xl font-black tracking-tighter ${idx < 3 ? row.color : 'text-slate-300 dark:text-slate-700'}`}>
-                          {row.rank}
-                        </span>
-                      </td>
-                      <td className="px-8 py-8">
-                        <div className="flex items-center gap-5">
-                          <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-slate-400 border border-black/5 dark:border-white/10 group-hover:border-brand/30 transition-all">
-                             {row.name.charAt(0)}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-brand transition-colors">{row.name}</span>
-                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.1em]">{row.role}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-8 text-right">
-                        <div className="flex flex-col items-end">
-                           <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter group-hover:text-brand transition-all">
-                             {row.xp}
-                           </span>
-                           <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
-                              <div className="h-full bg-brand rounded-full" style={{ width: `${100 - (idx * 15)}%` }} />
-                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="glass-panel overflow-hidden w-full flex flex-col animate-on-scroll">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-2 md:gap-4 px-4 sm:px-8 py-6 border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 font-black text-[10px] sm:text-xs md:text-sm text-slate-900 dark:text-white uppercase tracking-wider text-left">
+              <div className="col-span-2">Rank</div>
+              <div className="col-span-6 flex items-center gap-3">Member</div>
+              <div className="col-span-2 text-right">PRs</div>
+              <div className="col-span-2 text-right">Pts</div>
             </div>
-            
-            <div className="p-8 bg-black/5 dark:bg-white/5 flex items-center justify-center">
-               <button className="text-[10px] font-black text-brand uppercase tracking-[0.3em] hover:underline flex items-center gap-2">
-                  View Full Global Index <ArrowRight className="w-4 h-4" />
-               </button>
-            </div>
+
+            {/* Table Rows */}
+            {[
+              { rank: '­ƒÑç #1', name: 'Tharun Prasad', role: 'Next.js Wizard', prs: 142, points: 9481 },
+              { rank: '­ƒÑê #2', name: 'Ananya Sharma', role: 'Python Architect', prs: 118, points: 8122 },
+              { rank: '­ƒÑë #3', name: 'Rahul Murthy', role: 'System Optimizer', prs: 94, points: 7450 },
+              { rank: '#4', name: 'Pooja Reddy', role: 'Full Stack Dev', prs: 88, points: 6814 },
+            ].map((row, idx) => (
+              <div key={idx} className="grid grid-cols-12 gap-2 md:gap-4 px-4 sm:px-8 py-6 border-b border-black/5 dark:border-white/5 last:border-b-0 items-center text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                <div className="col-span-2 text-[10px] sm:text-sm md:text-base font-black text-slate-900 dark:text-white tracking-tight">
+                  {row.rank}
+                </div>
+                <div className="col-span-6 flex flex-col">
+                  <span className="text-[11px] sm:text-sm md:text-base font-black text-slate-900 dark:text-white leading-tight truncate">{row.name}</span>
+                  <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">{row.role}</span>
+                </div>
+                <div className="col-span-2 text-right text-[10px] sm:text-xs md:text-sm font-black text-slate-700 dark:text-slate-300">
+                  {row.prs}
+                </div>
+                <div className="col-span-2 text-right text-[11px] sm:text-sm md:text-base font-black tracking-tight text-brand">
+                  {row.points}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -1149,8 +1013,6 @@ export default function Home({ theme }) {
           </div>
         </div>
       </section>
-
-      {/* Footer is handled globally in App.jsx */}
     </div>
   );
 }
