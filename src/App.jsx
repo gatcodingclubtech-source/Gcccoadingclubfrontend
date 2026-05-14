@@ -29,6 +29,7 @@ import TestSessionManager from './pages/admin/TestSessionManager';
 import LiveRoomsManager from './pages/admin/LiveRoomsManager';
 import RegistrationsManager from './pages/admin/RegistrationsManager';
 import ManageDiscussions from './pages/admin/ManageDiscussions';
+import DomainRegistrationsManager from './pages/admin/DomainRegistrationsManager';
 import LiveRooms from './pages/LiveRooms';
 import LiveRoomDetail from './pages/LiveRoomDetail';
 import CodingHub from './pages/CodingHub';
@@ -98,12 +99,13 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
   useEffect(() => {
     // Initialize Lenis smooth scroll
     const lenis = new Lenis({
-      duration: window.innerWidth < 768 ? 0.8 : 1.2, // Snappier on mobile
+      duration: 1.5,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 1,
+      wheelMultiplier: 1.2,
+      lerp: 0.1,
       smoothTouch: false,
       touchMultiplier: 1.5,
       infinite: false,
@@ -182,6 +184,8 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               <Route path="live-rooms" element={<LiveRoomsManager />} />
               <Route path="test-sessions" element={<TestSessionManager />} />
               <Route path="events/:id/registrations" element={<RegistrationsManager />} />
+              <Route path="domain-apps" element={<DomainRegistrationsManager />} />
+              <Route path="domains/registrations" element={<Navigate to="/admin/domain-apps" replace />} />
             </Route>
 
             <Route path="/admin-login" element={<AdminLogin />} />

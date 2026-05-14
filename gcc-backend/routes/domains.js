@@ -5,6 +5,8 @@ const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
 
+const DomainRegistration = require('../models/DomainRegistration');
+
 // @desc    Get all domains
 // @route   GET /api/domains
 // @access  Public
@@ -81,7 +83,7 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
   }
 });
 
-// @desc    Join a domain
+// @desc    Apply for a domain
 // @route   POST /api/domains/:id/join
 // @access  Private
 router.post('/:id/join', protect, async (req, res) => {
@@ -93,26 +95,44 @@ router.post('/:id/join', protect, async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    // Check if already joined
+    // Check if already joined (approved)
     if (user.joinedDomains.includes(domain._id)) {
-      return res.status(400).json({ success: false, message: 'Already joined this domain' });
+      return res.status(400).json({ success: false, message: 'You are already a member of this domain' });
     }
 
-    user.joinedDomains.push(domain._id);
-    // Also update domainInterest if not set
-    if (!user.domainInterest) {
-      user.domainInterest = domain.title;
-    }
-    
-    await user.save();
+    // Check if there's a pending application
+    const existingApp = await DomainRegistration.findOne({ 
+      domain: domain._id, 
+      user: user._id, 
+      status: 'pending' 
+    });
 
-    res.json({ success: true, message: `Successfully joined ${domain.title}!` });
+    if (existingApp) {
+      return res.status(400).json({ success: false, message: 'Your application is already pending review' });
+    }
+
+    // Create application
+    const application = new DomainRegistration({
+      domain: domain._id,
+      user: user._id,
+      status: 'pending',
+      name: user.name,
+      email: user.email,
+      usn: user.usn,
+      department: user.department,
+      year: user.year,
+      phone: user.phone
+    });
+
+    await application.save();
+
+    res.json({ success: true, message: `Application for ${domain.title} submitted successfully! Please wait for admin approval.` });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// @desc    Join a domain as guest
+// @desc    Apply for a domain as guest
 // @route   POST /api/domains/:id/join-guest
 // @access  Public
 router.post('/:id/join-guest', async (req, res) => {
@@ -126,18 +146,8 @@ router.post('/:id/join-guest', async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    if (user) {
-      // If user exists, check if already joined
-      if (user.joinedDomains.includes(domain._id)) {
-        return res.status(400).json({ success: false, message: 'Already joined this domain with this email' });
-      }
-      // Update details
-      if (usn) user.usn = usn;
-      if (department) user.department = department;
-      if (year) user.year = year;
-      if (phone) user.phone = phone;
-    } else {
-      // Create guest user
+    if (!user) {
+      // Create guest user record first (but don't add to domain yet)
       user = new User({
         name,
         email,
@@ -148,12 +158,94 @@ router.post('/:id/join-guest', async (req, res) => {
         domainInterest: domain.title,
         profileComplete: !!(name && email && usn && department && year)
       });
+      await user.save();
+    } else {
+      // Check if already joined
+      if (user.joinedDomains.includes(domain._id)) {
+        return res.status(400).json({ success: false, message: 'Already joined this domain with this email' });
+      }
     }
 
-    user.joinedDomains.push(domain._id);
-    await user.save();
+    // Check for pending application
+    const existingApp = await DomainRegistration.findOne({ 
+      domain: domain._id, 
+      user: user._id, 
+      status: 'pending' 
+    });
 
-    res.json({ success: true, message: `Successfully joined ${domain.title} as guest!` });
+    if (existingApp) {
+      return res.status(400).json({ success: false, message: 'An application is already pending for this email' });
+    }
+
+    // Create application
+    const application = new DomainRegistration({
+      domain: domain._id,
+      user: user._id,
+      status: 'pending',
+      name: name || user.name,
+      email: email || user.email,
+      usn: usn || user.usn,
+      department: department || user.department,
+      year: year || user.year,
+      phone: phone || user.phone
+    });
+
+    await application.save();
+
+    res.json({ success: true, message: `Application for ${domain.title} submitted! Our team will review your profile shortly.` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Get all domain registrations (Admin)
+// @route   GET /api/domains/registrations/all
+// @access  Private/Admin
+router.get('/registrations/all', protect, adminOnly, async (req, res) => {
+  try {
+    const registrations = await DomainRegistration.find()
+      .populate('domain', 'title slug color')
+      .populate('user', 'name email avatar')
+      .sort('-createdAt');
+    res.json({ success: true, registrations });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Decide on a domain registration (Admin)
+// @route   PUT /api/domains/registrations/:id/decide
+// @access  Private/Admin
+router.put('/registrations/:id/decide', protect, adminOnly, async (req, res) => {
+  try {
+    const { status } = req.body; // 'approved' or 'rejected'
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const registration = await DomainRegistration.findById(req.params.id);
+    if (!registration) {
+      return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+
+    if (registration.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'This application has already been processed' });
+    }
+
+    registration.status = status;
+    registration.decidedAt = Date.now();
+    registration.decidedBy = req.user._id;
+    await registration.save();
+
+    if (status === 'approved') {
+      const user = await User.findById(registration.user);
+      if (user && !user.joinedDomains.includes(registration.domain)) {
+        user.joinedDomains.push(registration.domain);
+        await user.save();
+      }
+    }
+
+    res.json({ success: true, message: `Application ${status} successfully!` });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

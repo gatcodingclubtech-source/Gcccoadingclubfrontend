@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, Calendar, HelpCircle, 
   Layers, LogOut, Menu, X, Bell, Search, 
-  Settings, ExternalLink, Shield, MessageSquare, Video
+  Settings, ExternalLink, Shield, MessageSquare, Video, CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import GccLogo from '../../assets/logo/gcc logo.png';
@@ -23,6 +23,7 @@ export default function AdminLayout() {
     { name: 'Live Rooms', path: '/admin/live-rooms', icon: <Video className="w-5 h-5" /> },
     { name: 'Quiz', path: '/admin/quiz', icon: <HelpCircle className="w-5 h-5" /> },
     { name: 'Domains', path: '/admin/domains', icon: <Layers className="w-5 h-5" /> },
+    { name: 'Domain Apps', path: '/admin/domain-apps', icon: <CheckCircle2 className="w-5 h-5" /> },
     { name: 'Live Tests', path: '/admin/test-sessions', icon: <ExternalLink className="w-5 h-5" /> },
   ];
 
@@ -32,7 +33,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-400 font-cyber flex overflow-x-hidden relative">
+    <div className="h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-400 font-cyber flex overflow-hidden relative">
       <AnimatedBackground />
       
       {/* Sidebar - Now fixed always on large screens too with proper transition */}
@@ -58,7 +59,7 @@ export default function AdminLayout() {
           </div>
 
           {/* Sidebar Content */}
-          <nav className="flex-1 px-4 py-8 flex flex-col gap-2 overflow-y-auto scrollbar-hide">
+          <nav className="flex-1 px-4 py-8 flex flex-col gap-2 overflow-y-auto custom-scrollbar" data-lenis-prevent>
             {menuItems.map((item) => (
               <Link
                 key={item.path}
@@ -108,7 +109,7 @@ export default function AdminLayout() {
 
       {/* Main Content - Added dynamic padding to account for fixed sidebar */}
       <div 
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-500 ease-in-out ${
+        className={`flex-1 flex flex-col min-w-0 h-screen overflow-hidden transition-all duration-500 ease-in-out ${
           isSidebarOpen ? 'lg:pl-64' : 'lg:pl-20'
         } pl-0 relative`}
       >
@@ -161,7 +162,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Viewport */}
-        <main className="flex-1 p-4 md:p-8 lg:p-12 relative overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-8 lg:p-12 relative overflow-y-auto overflow-x-hidden custom-scrollbar" data-lenis-prevent>
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

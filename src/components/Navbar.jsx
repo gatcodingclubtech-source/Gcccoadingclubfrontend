@@ -86,16 +86,16 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
       flex flex-col`}
       style={mobileMenuOpen ? { backgroundColor: '#ffffff', opacity: 1 } : {}}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-20 flex items-center justify-between w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-24 sm:h-20 flex items-center justify-between w-full">
         {/* Logo & Brand */}
-        <Link to="/" className="flex items-center gap-2 sm:gap-4 group">
-          <div className="w-9 h-9 sm:w-12 sm:h-12 flex-shrink-0 relative">
+        <Link to="/" className="flex items-center gap-3 sm:gap-4 group">
+          <div className="w-16 h-16 sm:w-12 sm:h-12 flex-shrink-0 relative">
             <div className="absolute inset-0 bg-emerald-500/20 blur-lg rounded-full group-hover:bg-emerald-500/40 transition-all"></div>
             <img src={GccLogo} alt="GCC Logo" className="relative w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
           </div>
           <div className="flex flex-col">
-            <span className="text-slate-900 dark:text-white font-black tracking-tighter text-sm sm:text-lg leading-none">GCC CLUB</span>
-            <span className="text-[7px] sm:text-[10px] text-emerald-500 font-bold tracking-[0.2em] uppercase mt-0.5 sm:mt-1">GAT CHAPTER</span>
+            <span className="text-slate-900 dark:text-white font-black tracking-tighter text-lg sm:text-lg leading-none uppercase">GCC CLUB</span>
+            <span className="text-[9px] sm:text-[10px] text-emerald-500 font-bold tracking-[0.2em] uppercase mt-1">GAT CHAPTER</span>
           </div>
         </Link>
 
@@ -115,11 +115,11 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {user && <NotificationCenter />}
           <button
             onClick={toggleTheme}
-            className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400"
+            className="w-10 h-10 hidden md:flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400"
             title="Toggle Theme"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -127,11 +127,12 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
 
           {user ? (
             <div className="flex items-center gap-2 sm:gap-4 sm:pl-6 sm:border-l border-black/5 dark:border-white/5">
+              {/* Profile Icon - Hidden on mobile, moved to drawer */}
               <Link 
                 to="/profile" 
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"
+                className="hidden sm:flex w-10 h-10 rounded-xl bg-emerald-500 items-center justify-center text-white shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"
               >
-                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Users className="w-5 h-5" />
               </Link>
               <button 
                 onClick={handleLogout}
@@ -151,37 +152,37 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
               </Link>
               <Link 
                 to="/auth" 
-                className="sm:hidden w-8 h-8 rounded-lg bg-slate-950 dark:bg-white text-white dark:text-slate-950 flex items-center justify-center hover:scale-105 transition-all shadow-xl"
+                className="sm:hidden w-12 h-12 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 flex items-center justify-center hover:scale-105 transition-all shadow-xl"
               >
-                <img src={GccLogo} alt="Join" className="w-5 h-5 object-contain" />
+                <img src={GccLogo} alt="Join" className="w-6 h-6 object-contain" />
               </Link>
             </>
           )}
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle - Increased Size */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white"
+            className="md:hidden w-12 h-12 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white border border-black/5"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu Overlay */}
       <div 
-        className={`md:hidden fixed inset-0 top-14 bg-white z-[9999] transition-all duration-300 ease-in-out
+        className={`md:hidden fixed inset-0 top-24 bg-white z-[9999] transition-all duration-300 ease-in-out
         ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
         style={{ backgroundColor: '#ffffff', opacity: 1 }}
       >
-        <div className="flex flex-col p-6 gap-5 pt-10 bg-white min-h-screen">
-          <div className="flex items-center justify-between mb-2">
-             <span className="text-[10px] font-black text-slate-400 tracking-[0.3em] uppercase">Navigation</span>
+        <div className="flex flex-col p-8 gap-6 pt-10 bg-white min-h-screen">
+          <div className="flex items-center justify-between mb-4">
+             <span className="text-[12px] font-black text-slate-400 tracking-[0.3em] uppercase">Navigation</span>
              <button
               onClick={toggleTheme}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-900 font-black text-[10px] tracking-widest uppercase border border-black/5"
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-50 text-slate-900 font-black text-[12px] tracking-widest uppercase border border-black/10 shadow-sm"
             >
-              {theme === 'dark' ? <><Sun className="w-3.5 h-3.5 text-emerald-500" /> LIGHT</> : <><Moon className="w-3.5 h-3.5 text-emerald-500" /> DARK</>}
+              {theme === 'dark' ? <><Sun className="w-4 h-4 text-emerald-500" /> LIGHT</> : <><Moon className="w-4 h-4 text-emerald-500" /> DARK</>}
             </button>
           </div>
           
@@ -189,23 +190,23 @@ export default function Navbar({ navVisible, theme, toggleTheme, mobileMenuOpen,
             <button
               key={item.id}
               onClick={(e) => handleNavClick(e, item.id)}
-              className="text-2xl font-black text-slate-950 tracking-tighter text-left py-1 bg-white relative z-10"
+              className="text-4xl font-black text-slate-950 tracking-tighter text-left py-2 bg-white relative z-10 uppercase"
             >
               {item.label}
             </button>
           ))}
           
-          <div className="mt-6 flex flex-col gap-3">
+          <div className="mt-8 flex flex-col gap-4">
             {user ? (
               <>
-                <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between py-4 px-6 rounded-xl bg-emerald-500 text-white font-black text-base shadow-xl shadow-emerald-500/20">
-                  MY PROFILE <Users className="w-5 h-5" />
+                <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between py-6 px-8 rounded-[2rem] bg-emerald-500 text-white font-black text-xl shadow-2xl shadow-emerald-500/30">
+                  MY PROFILE <Users className="w-7 h-7" />
                 </Link>
-                <button onClick={handleLogout} className="py-4 px-6 rounded-xl bg-slate-50 text-red-500 font-black text-base text-center border border-red-500/10">LOGOUT</button>
+                <button onClick={handleLogout} className="py-5 px-8 rounded-[2rem] bg-slate-50 text-red-500 font-black text-lg text-center border border-red-500/20 uppercase tracking-widest">LOGOUT</button>
               </>
             ) : (
-              <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="py-4 px-6 rounded-xl bg-slate-950 text-white font-black text-center text-base shadow-xl shadow-slate-950/20 flex items-center justify-center gap-3">
-                JOIN GCC CLUB <ArrowRight className="w-5 h-5 text-emerald-500" />
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="py-6 px-8 rounded-[2rem] bg-slate-950 text-white font-black text-center text-lg shadow-2xl shadow-slate-950/30 flex items-center justify-center gap-4">
+                JOIN GCC CLUB <ArrowRight className="w-6 h-6 text-emerald-500" />
               </Link>
             )}
           </div>

@@ -1,25 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Users, PlayCircle, Code, Sparkles, Terminal as TerminalIcon, Layers, Shield, Globe, ChevronRight } from 'lucide-react';
+import { 
+  ArrowLeft, BookOpen, Users, Code, Sparkles, 
+  Terminal as TerminalIcon, Layers, Shield, Globe, 
+  ChevronRight, Zap, Target, Star, Brain, CheckCircle2
+} from 'lucide-react';
 import axios from 'axios';
-import gsap from 'gsap';
 
 const IconMap = {
-  Code: <Code className="w-8 h-8" />,
-  Sparkles: <Sparkles className="w-8 h-8" />,
-  Terminal: <TerminalIcon className="w-8 h-8" />,
-  Layers: <Layers className="w-8 h-8" />,
-  Shield: <Shield className="w-8 h-8" />,
-  Globe: <Globe className="w-8 h-8" />
+  Code: <Code />,
+  Sparkles: <Sparkles />,
+  Terminal: <TerminalIcon />,
+  Layers: <Layers />,
+  Shield: <Shield />,
+  Globe: <Globe />
 };
 
 export default function DomainDetails() {
   const { id } = useParams();
   const [domain, setDomain] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  const containerRef = useRef(null);
-  const elementsRef = useRef([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -28,53 +29,43 @@ export default function DomainDetails() {
 
   const fetchDomain = async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await axios.get(`/api/domains/${id}`);
       if (res.data.success) {
         setDomain(res.data.domain);
+      } else {
+        setError(true);
       }
     } catch (err) {
       console.error('Error fetching domain', err);
+      setError(true);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!domain) return;
-
-    // Reset elements
-    gsap.set('.bg-watermark', { opacity: 0, scale: 0.5, rotate: -20 });
-    gsap.set(elementsRef.current, { y: 50, opacity: 0 });
-
-    const tl = gsap.timeline({ defaults: { ease: 'back.out(1.2)' } });
-
-    tl.to('.bg-watermark', { opacity: 1, scale: 1, rotate: 0, duration: 1.5, ease: 'power3.out' })
-      .to(elementsRef.current, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 }, "-=1");
-
-    return () => tl.kill();
-  }, [domain]);
-
-  const addToRefs = (el) => {
-    if (el && !elementsRef.current.includes(el)) {
-      elementsRef.current.push(el);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
-        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Syncing Data...</span>
+        </div>
       </div>
     );
   }
 
-  if (!domain) {
+  if (error || !domain) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
-        <div className="flex flex-col gap-6 text-center items-center">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Domain Not Found</h1>
-          <Link to="/" className="px-8 py-4 rounded-full bg-emerald-500 text-white font-black hover:scale-105 transition-transform shadow-xl uppercase tracking-widest text-xs">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black p-6">
+        <div className="flex flex-col gap-6 text-center items-center max-w-md">
+          <div className="w-20 h-20 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-500">
+             <AlertTriangle className="w-10 h-10" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Domain Not Found</h1>
+          <p className="text-sm text-slate-500 font-medium leading-relaxed">The technical domain you are looking for does not exist or has been moved. Check the URL or return to the hub.</p>
+          <Link to="/" className="px-10 py-4 rounded-xl bg-emerald-500 text-white font-black hover:scale-105 transition-transform shadow-xl uppercase tracking-widest text-[10px]">
             Return to Home
           </Link>
         </div>
@@ -84,101 +75,119 @@ export default function DomainDetails() {
 
   const getColorClasses = (colorName) => {
     const map = {
-      blue: { text: 'text-blue-500', bg: 'bg-blue-500', bgLight: 'bg-blue-500/10', border: 'border-blue-500/20', gradient: 'from-blue-600 to-cyan-500' },
-      purple: { text: 'text-purple-500', bg: 'bg-purple-500', bgLight: 'bg-purple-500/10', border: 'border-purple-500/20', gradient: 'from-purple-600 to-pink-500' },
-      cyan: { text: 'text-cyan-500', bg: 'bg-cyan-500', bgLight: 'bg-cyan-500/10', border: 'border-cyan-500/20', gradient: 'from-cyan-500 to-emerald-500' },
-      emerald: { text: 'text-emerald-500', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-500 to-teal-400' },
-      red: { text: 'text-red-500', bg: 'bg-red-500', bgLight: 'bg-red-500/10', border: 'border-red-500/20', gradient: 'from-red-600 to-orange-500' },
-      amber: { text: 'text-amber-500', bg: 'bg-amber-500', bgLight: 'bg-amber-500/10', border: 'border-amber-500/20', gradient: 'from-amber-500 to-yellow-400' },
+      blue: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+      purple: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+      cyan: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20',
+      emerald: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+      red: 'text-red-500 bg-red-500/10 border-red-500/20',
+      amber: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
     };
     return map[colorName] || map.emerald;
   };
 
-  const themeColors = getColorClasses(domain.color);
+  const colors = getColorClasses(domain.color);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black relative overflow-hidden selection:bg-slate-900 selection:text-white dark:selection:bg-white dark:selection:text-slate-900" ref={containerRef}>
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white pb-32">
       
-      {/* Massive Background Watermark */}
-      <div className={`bg-watermark absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/4 ${themeColors.text} opacity-5 dark:opacity-10 pointer-events-none select-none blur-sm`}>
-        {React.cloneElement(IconMap[domain.icon] || <Layers />, { className: "w-[800px] h-[800px]" })}
+      {/* 1. Hero Banner */}
+      <div className="bg-white dark:bg-slate-950 border-b border-black/5 dark:border-white/5 pt-32 pb-16 md:pt-44 md:pb-24 px-6 relative overflow-hidden">
+        {/* Decor */}
+        <div className={`absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 blur-[120px] rounded-full translate-x-1/4 -translate-y-1/4 pointer-events-none`} />
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col gap-8 md:gap-12">
+             <Link to="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-emerald-500 transition-all w-fit">
+                <ArrowLeft className="w-4 h-4" /> Back to Domains
+             </Link>
+
+             <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div className="flex flex-col gap-6">
+                   <div className={`w-16 h-16 rounded-2xl ${colors} flex items-center justify-center`}>
+                      {IconMap[domain.icon] ? React.cloneElement(IconMap[domain.icon], { className: "w-8 h-8" }) : <Layers className="w-8 h-8" />}
+                   </div>
+                   <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9]">
+                      {domain.title}
+                   </h1>
+                   <p className="text-lg md:text-xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-xl">
+                      {domain.desc}
+                   </p>
+                </div>
+
+                <div className="flex flex-col gap-6">
+                   <div className="p-8 rounded-[2.5rem] bg-slate-950 dark:bg-white text-white dark:text-slate-900 flex flex-col gap-6 shadow-2xl">
+                      <div className="flex flex-col gap-1">
+                         <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Current Enrollment</span>
+                         <h4 className="text-2xl font-black uppercase tracking-tighter">Applications Open</h4>
+                      </div>
+                      <Link 
+                        to={`/register/domain/${domain._id}`}
+                        className={`w-full py-5 rounded-xl bg-emerald-500 text-white text-[11px] font-black tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all uppercase shadow-lg shadow-emerald-500/20`}
+                      >
+                        JOIN INTEREST GROUP <ChevronRight className="w-5 h-5" />
+                      </Link>
+                      <p className="text-[9px] font-bold text-center opacity-40 uppercase tracking-widest">
+                        Requires Admin Approval After Submission
+                      </p>
+                   </div>
+                </div>
+             </div>
+          </div>
+        </div>
       </div>
 
-      <div className="relative z-10 pt-32 pb-24 px-6 max-w-6xl mx-auto">
-        <Link to="/" className="inline-flex items-center gap-2 w-12 h-12 rounded-full bg-white dark:bg-slate-900 shadow-xl border border-black/5 dark:border-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all justify-center group mb-12 relative z-20">
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-        </Link>
-        
-        <div className="grid lg:grid-cols-12 gap-16 lg:gap-24 items-center">
-          
-          {/* Left Column: Title & Description */}
-          <div className="lg:col-span-7 flex flex-col gap-8 relative z-20">
-            <div ref={addToRefs} className="flex items-center gap-4">
-              <div className={`w-16 h-16 rounded-2xl ${themeColors.bgLight} flex items-center justify-center ${themeColors.text} shadow-xl shadow-${domain.color}-500/20`}>
-                {IconMap[domain.icon] || <Layers className="w-8 h-8" />}
-              </div>
-              <span className="text-xs font-black tracking-[0.3em] text-slate-400 uppercase">Domain Overview</span>
-            </div>
-            
-            <h1 ref={addToRefs} className="text-5xl md:text-7xl font-black tracking-tighter leading-[1.1] text-slate-900 dark:text-white uppercase">
-              <span className={`bg-clip-text text-transparent bg-gradient-to-r ${themeColors.gradient}`}>
-                {domain.title}
-              </span>
-            </h1>
-            
-            <p ref={addToRefs} className="text-lg md:text-xl font-medium text-slate-600 dark:text-slate-400 leading-relaxed border-l-4 border-slate-200 dark:border-slate-800 pl-6 py-2 max-w-2xl">
-              {domain.desc}
-            </p>
+      {/* 2. Features Grid */}
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid md:grid-cols-3 gap-8">
+           {[
+             { icon: <Brain />, title: 'Advanced Logic', desc: 'Deep dive into complex algorithms and architectural patterns used in the industry.' },
+             { icon: <Zap />, title: 'Real-time Build', desc: 'Work on live projects and contribute to the club\'s open-source ecosystem.' },
+             { icon: <Users />, title: 'Mentorship', desc: 'Get direct guidance from core team members and experienced industry seniors.' }
+           ].map((feature, i) => (
+             <div key={i} className="p-10 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
+                <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-emerald-500 mb-8">
+                   {feature.icon ? React.cloneElement(feature.icon, { className: "w-6 h-6" }) : <Zap className="w-6 h-6" />}
+                </div>
+                <h4 className="text-xl font-black uppercase tracking-tighter mb-4">{feature.title}</h4>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">{feature.desc}</p>
+             </div>
+           ))}
+        </div>
 
-            <div ref={addToRefs} className="flex flex-wrap gap-4 mt-4">
-              <Link to={`/register/domain/${domain.slug}`} className={`px-10 py-5 rounded-full bg-gradient-to-r ${themeColors.gradient} text-white text-sm font-black tracking-widest hover:scale-105 transition-transform shadow-xl flex items-center gap-2 uppercase`}>
-                JOIN {domain.title} <ChevronRight className="w-4 h-4" />
-              </Link>
-              <button className="px-10 py-5 rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm font-black tracking-widest border border-black/10 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-xl uppercase">
-                <PlayCircle className="w-4 h-4" /> WATCH INTRO
-              </button>
-            </div>
-          </div>
+        {/* 3. The Roadmap Section */}
+        <div className="mt-20 md:mt-32">
+           <div className="flex flex-col gap-4 mb-16 text-center">
+              <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic">What you'll master</h3>
+              <div className="w-20 h-1 bg-emerald-500 mx-auto rounded-full" />
+           </div>
 
-          {/* Right Column: Floating Cards */}
-          <div className="lg:col-span-5 flex flex-col gap-6 relative z-20">
-            
-            {/* Card 1 */}
-            <div ref={addToRefs} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 p-8 rounded-[2rem] shadow-2xl hover:-translate-y-2 transition-transform duration-500">
-              <div className={`w-12 h-12 rounded-xl ${themeColors.bgLight} ${themeColors.text} flex items-center justify-center mb-6`}>
-                <BookOpen className="w-6 h-6" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tighter">What You'll Learn</h3>
-              <ul className="flex flex-col gap-3 text-sm font-medium text-slate-600 dark:text-slate-400">
-                <li className="flex items-start gap-3">
-                  <div className={`mt-1 w-1.5 h-1.5 rounded-full ${themeColors.bg}`}></div>
-                  Industry-standard tools and frameworks
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className={`mt-1 w-1.5 h-1.5 rounded-full ${themeColors.bg}`}></div>
-                  Hands-on project building from scratch
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className={`mt-1 w-1.5 h-1.5 rounded-full ${themeColors.bg}`}></div>
-                  Best practices for scalable architecture
-                </li>
-              </ul>
-            </div>
-
-            {/* Card 2 */}
-            <div ref={addToRefs} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-8 rounded-[2rem] shadow-2xl hover:-translate-y-2 transition-transform duration-500 ml-0 md:ml-12 mt-0 md:-mt-12 relative">
-              <div className="w-12 h-12 rounded-xl bg-white/10 dark:bg-black/10 flex items-center justify-center mb-6">
-                <Users className="w-6 h-6 text-white dark:text-slate-900" />
-              </div>
-              <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter">Who Should Join?</h3>
-              <p className="text-sm font-medium leading-relaxed opacity-80">
-                Anyone with a passion for {domain.title.toLowerCase()}. No prior experience is strictly required, but a strong desire to learn, experiment, and collaborate with peers is essential. We start from the basics and move to advanced concepts.
-              </p>
-            </div>
-
-          </div>
+           <div className="grid gap-6">
+              {[
+                { title: 'Foundational Knowledge', desc: 'Syntax, environment setup, and understanding the core ecosystem.' },
+                { title: 'Project Implementation', desc: 'Building functional prototypes and mastering state management.' },
+                { title: 'Advanced Scalability', desc: 'Optimizing for performance, security, and global deployment.' }
+              ].map((step, i) => (
+                <div key={i} className="group p-8 md:p-10 rounded-3xl bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 flex items-center gap-8 hover:border-emerald-500/30 transition-all">
+                   <div className="w-14 h-14 md:w-20 md:h-20 rounded-full border-2 border-slate-100 dark:border-white/5 flex items-center justify-center shrink-0 group-hover:border-emerald-500/50 transition-colors">
+                      <span className="text-xl md:text-2xl font-black text-slate-300 dark:text-white/10 group-hover:text-emerald-500/50 transition-colors">0{i+1}</span>
+                   </div>
+                   <div className="flex flex-col gap-2">
+                      <h4 className="text-lg md:text-xl font-black uppercase tracking-tighter">{step.title}</h4>
+                      <p className="text-sm text-slate-500 font-medium">{step.desc}</p>
+                   </div>
+                   <div className="ml-auto hidden sm:block">
+                      <CheckCircle2 className="w-6 h-6 text-slate-100 dark:text-white/5 group-hover:text-emerald-500 transition-colors" />
+                   </div>
+                </div>
+              ))}
+           </div>
         </div>
       </div>
     </div>
   );
 }
+
+// Missing icon fallback
+const AlertTriangle = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+);
