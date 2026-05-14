@@ -69,11 +69,11 @@ export default function NotificationCenter() {
     <div className="relative">
       <button 
         onClick={toggleOpen}
-        className="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center rounded-2xl md:rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400 relative border border-black/5 md:border-none"
+        className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400 relative border border-black/5 md:border-none"
       >
-        <Bell className="w-6 h-6 md:w-5 md:h-5 text-emerald-500 md:text-inherit" />
+        <Bell className="w-5 h-5 md:w-5 md:h-5 text-emerald-500 md:text-inherit" />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 w-4 h-4 bg-emerald-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white dark:border-slate-900 animate-pulse">
+          <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-emerald-500 text-white text-[7px] font-black flex items-center justify-center rounded-full border-2 border-white dark:border-slate-900 animate-pulse">
             {unreadCount}
           </span>
         )}
