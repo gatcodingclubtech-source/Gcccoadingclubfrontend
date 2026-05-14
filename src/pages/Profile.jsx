@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { 
   User, Mail, Hash, BookOpen, Calendar, 
@@ -22,6 +23,34 @@ const Linkedin = ({ className }) => (
 const Instagram = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
 );
+
+const getTimelineIcon = (iconName) => {
+  const icons = {
+    award: Award,
+    book: BookOpen,
+    code: Code2,
+    zap: Zap,
+    activity: Activity,
+    trophy: Trophy,
+    star: Star,
+    globe: Globe,
+    cpu: Cpu,
+    terminal: Terminal,
+    briefcase: Briefcase,
+    graduation: GraduationCap
+  };
+  return icons[iconName?.toLowerCase()] || Activity;
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+};
 
 export default function Profile() {
   const { user, logout, loading, checkUserLoggedIn } = useAuth();
@@ -206,7 +235,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen pt-32 pb-24 px-4 sm:px-6 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
+    <div className="min-h-screen pt-32 pb-24 px-4 sm:px-6 relative overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-500">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand/10 rounded-full blur-[120px] pointer-events-none opacity-50" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none opacity-50" />
@@ -259,7 +288,7 @@ export default function Profile() {
             {/* XP PROGRESS BAR */}
             <div className="w-full max-w-2xl space-y-3">
                <div className="flex justify-between items-end">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                   <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                     XP PROGRESS: <span className="text-brand">{user.xp || 0} XP</span>
                   </span>
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -364,19 +393,19 @@ export default function Profile() {
                 <div className="profile-fade-in grid grid-cols-2 gap-4">
                    <div className="glass-panel p-6 flex flex-col gap-2 border-emerald-500/20 group hover:bg-emerald-500/5 transition-colors">
                       <span className="text-3xl font-black">{statsData.eventCount}</span>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Events</span>
+                       <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Events</span>
                    </div>
                    <div className="glass-panel p-6 flex flex-col gap-2 border-cyan-500/20 group hover:bg-cyan-500/5 transition-colors">
                       <span className="text-3xl font-black">{user.xp || 0}</span>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total XP</span>
+                       <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total XP</span>
                    </div>
                 </div>
 
                 {/* Skills Showcase */}
                 <div className="profile-fade-in glass-panel p-8 space-y-8">
-                   <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-3">
-                      <Terminal className="w-4 h-4 text-brand" /> Tech Stack
-                   </h3>
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-3 text-slate-900 dark:text-white">
+                       <Terminal className="w-4 h-4 text-brand" /> Tech Stack
+                    </h3>
                    <div className="flex flex-wrap gap-2">
                       {(user.skills?.length > 0 ? user.skills : ['React', 'Node.js', 'Python', 'UI Design']).map((skill, i) => (
                         <span key={i} className="px-3 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider border border-black/5 dark:border-white/5">
@@ -389,7 +418,7 @@ export default function Profile() {
                 {/* Badges Corridor */}
                 <div className="profile-fade-in glass-panel p-8 space-y-8 overflow-hidden relative">
                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-3">
+                       <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-3 text-slate-900 dark:text-white">
                         <Award className="w-4 h-4 text-amber-500" /> Achievements
                       </h3>
                    </div>
@@ -419,7 +448,7 @@ export default function Profile() {
                 <div className="profile-fade-in glass-panel p-8 md:p-12 space-y-10">
                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div className="space-y-1">
-                        <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase font-cyber flex items-center gap-3">
+                        <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase font-cyber flex items-center gap-3 text-slate-900 dark:text-white">
                           <Activity className="w-6 h-6 text-emerald-500" /> Performance Node
                         </h2>
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Real-time activity logs from the portal</p>
@@ -462,8 +491,8 @@ export default function Profile() {
                                      <span className="text-[8px] font-black tracking-widest text-brand uppercase">{act.type}</span>
                                      <span className="text-[9px] font-bold text-slate-500">{formatDate(act.date)}</span>
                                   </div>
-                                  <h4 className="text-lg font-black tracking-tight leading-none uppercase">{act.title}</h4>
-                                  <p className="text-[11px] text-slate-500 font-medium mt-1">{act.desc}</p>
+                                  <h4 className="text-lg font-black tracking-tight leading-none uppercase text-slate-900 dark:text-white">{act.title}</h4>
+                                  <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mt-1">{act.desc}</p>
                                </div>
                                <button className="px-5 py-2.5 bg-white dark:bg-slate-800 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm hover:bg-brand hover:text-white transition-all border border-black/5 dark:border-white/10">
                                   DETAILS

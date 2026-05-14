@@ -1,9 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Globe, Users, Share2, MapPin, Clock, CheckCircle2 } from 'lucide-react';
+import { 
+  ArrowLeft, Calendar, Globe, Users, Share2, 
+  MapPin, Clock, CheckCircle2, Zap, Timer,
+  AlertTriangle, Rocket, ChevronRight
+} from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import gsap from 'gsap';
 
 export default function EventDetails() {
   const { id } = useParams();
@@ -11,16 +14,14 @@ export default function EventDetails() {
   const { user } = useAuth();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [registering, setRegistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
-  const [regSuccess, setRegSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   
-  const heroRef = useRef(null);
-  const contentRef = useRef(null);
-  const elementsRef = useRef([]);
-
   useEffect(() => {
     const fetchEvent = async () => {
+      setLoading(true);
+      setError(false);
       try {
         const res = await axios.get(`/api/events/${id}`);
         if (res.data.success) {
@@ -28,9 +29,12 @@ export default function EventDetails() {
           if (user && res.data.event.attendees?.includes(user._id)) {
             setIsRegistered(true);
           }
+        } else {
+          setError(true);
         }
       } catch (err) {
         console.error('Error fetching event:', err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -38,49 +42,56 @@ export default function EventDetails() {
     fetchEvent();
   }, [id, user]);
 
+  // Countdown Logic
   useEffect(() => {
-    window.scrollTo(0, 0);
-    
     if (!event) return;
+    
+    const targetDate = new Date(event.date);
+    
+    const calculateTime = () => {
+      const now = new Date();
+      const difference = targetDate - now;
+      
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60)
+        });
+      }
+    };
 
-    // Reset elements for animation
-    gsap.set(heroRef.current, { scale: 1.1, opacity: 0 });
-    gsap.set(contentRef.current, { y: 100, opacity: 0 });
-    gsap.set(elementsRef.current, { y: 30, opacity: 0 });
-
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-    tl.to(heroRef.current, { scale: 1, opacity: 1, duration: 1.5 })
-      .to(contentRef.current, { y: 0, opacity: 1, duration: 1 }, "-=1")
-      .to(elementsRef.current, { y: 0, opacity: 1, duration: 0.8, stagger: 0.1 }, "-=0.6");
-
-    return () => tl.kill();
+    calculateTime();
+    const timer = setInterval(calculateTime, 1000);
+    return () => clearInterval(timer);
   }, [event]);
 
-  const addToRefs = (el) => {
-    if (el && !elementsRef.current.includes(el)) {
-      elementsRef.current.push(el);
-    }
-  };
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
-        <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Experience...</span>
+        </div>
       </div>
     );
   }
 
-  if (!event) {
+  if (error || !event) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
-        <div className="flex flex-col gap-6 text-center items-center">
-          <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center text-brand">
-            <span className="text-4xl font-black">?</span>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black p-6">
+        <div className="flex flex-col gap-6 text-center items-center max-w-md">
+          <div className="w-20 h-20 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-500">
+             <Calendar className="w-10 h-10" />
           </div>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white">Event Not Found</h1>
-          <p className="text-slate-500 font-medium">The event you are looking for does not exist or has been removed.</p>
-          <Link to="/" className="px-8 py-4 rounded-full bg-brand text-white font-black hover:scale-105 transition-transform shadow-xl shadow-brand/20">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Event Not Found</h1>
+          <p className="text-sm text-slate-500 font-medium leading-relaxed">The event you are looking for does not exist or has been removed. Check the URL or return to home.</p>
+          <Link to="/" className="px-10 py-4 rounded-xl bg-emerald-500 text-white font-black hover:scale-105 transition-transform shadow-xl uppercase tracking-widest text-[10px]">
             Return to Home
           </Link>
         </div>
@@ -89,125 +100,129 @@ export default function EventDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black selection:bg-brand selection:text-white">
-      {/* 1. Massive Hero Image Header */}
-      <div className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden flex items-start p-6 md:p-10 z-0">
-        <div 
-          ref={heroRef}
-          className="absolute inset-0 w-full h-full"
-        >
-          {event.image ? (
-            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-slate-900 flex items-center justify-center">No Image Available</div>
-          )}
-          {/* Gradient Overlay for text readability and premium fade effect */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-900/40 to-transparent dark:from-black"></div>
-        </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white pb-32">
+      
+      {/* 1. Header Section */}
+      <div className="relative w-full bg-slate-900 overflow-hidden pt-24 pb-12">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]" />
+        
+        <div className="max-w-7xl mx-auto px-6 py-12 md:py-24 relative z-10">
+          <div className="flex flex-col gap-8">
+            <Link to="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/50 hover:text-emerald-400 transition-all w-fit">
+              <ArrowLeft className="w-4 h-4" /> Back to Events
+            </Link>
 
-        {/* Floating Back Button */}
-        <Link 
-          to="/" 
-          className="relative z-10 w-12 h-12 rounded-full bg-white/20 dark:bg-black/20 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all duration-300 shadow-2xl group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-        </Link>
-      </div>
+            <div className="grid lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-7 flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                   <span className="px-4 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest">
+                     {event.category}
+                   </span>
+                   <div className="flex items-center gap-2 text-emerald-400">
+                      <Zap className="w-4 h-4 animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Live Now</span>
+                   </div>
+                </div>
+                
+                <h1 className="text-4xl md:text-7xl font-black tracking-tighter text-white uppercase leading-[0.9]">
+                  {event.title}
+                </h1>
 
-      {/* 2. Overlapping Content Panel */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 -mt-32 md:-mt-48 pb-32">
-        <div 
-          ref={contentRef}
-          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-3xl border border-white/50 dark:border-white/10 rounded-[2.5rem] p-8 md:p-14 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
-        >
-          {/* Header Area */}
-          <div className="flex flex-col gap-6 border-b border-black/5 dark:border-white/5 pb-10">
-            <div ref={addToRefs} className="flex items-center justify-between">
-              <span className="text-xs font-black tracking-[0.2em] text-brand uppercase bg-brand/10 px-5 py-2 rounded-xl border border-brand/20">
-                {event.category}
-              </span>
-              <button className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-brand transition-colors">
-                <Share2 className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <h1 ref={addToRefs} className="text-4xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white tracking-tighter leading-[1.1]">
-              {event.title}
-            </h1>
-            
-            <div ref={addToRefs} className="flex flex-wrap gap-3 md:gap-6 mt-2">
-              <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center"><Calendar className="w-4 h-4 text-emerald-500" /></div>
-                <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">
-                  {new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </span>
+                <div className="flex flex-wrap gap-4 text-white/60 text-xs font-bold uppercase tracking-widest mt-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-emerald-500" /> 
+                    {new Date(event.date).toLocaleDateString()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-emerald-500" /> {event.venue}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center"><MapPin className="w-4 h-4 text-emerald-500" /></div>
-                <span className="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">{event.venue}</span>
-              </div>
-              <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50">
-                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center"><Users className="w-4 h-4 text-purple-500" /></div>
-                <span className="text-xs md:text-sm font-bold text-slate-950 dark:text-slate-300">{event.registeredCount || 0} Registered</span>
+
+              {/* Countdown Card */}
+              <div className="lg:col-span-5">
+                <div className="bg-white/10 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 flex flex-col gap-8 shadow-2xl">
+                   <div className="flex flex-col gap-2 text-center">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">Event Starts In</h4>
+                      <div className="grid grid-cols-4 gap-4">
+                        {[
+                          { label: 'Days', val: timeLeft.days },
+                          { label: 'Hrs', val: timeLeft.hours },
+                          { label: 'Min', val: timeLeft.minutes },
+                          { label: 'Sec', val: timeLeft.seconds }
+                        ].map((t, idx) => (
+                          <div key={idx} className="flex flex-col items-center">
+                            <span className="text-3xl md:text-4xl font-black text-white">{String(t.val).padStart(2, '0')}</span>
+                            <span className="text-[8px] font-black uppercase tracking-widest text-white/40">{t.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+
+                   <div className="h-px bg-white/10" />
+
+                   <Link 
+                     to={`/register/event/${id}`}
+                     className={`w-full py-5 rounded-2xl text-xs font-black tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 uppercase shadow-xl ${isRegistered ? 'bg-emerald-500 text-white' : 'bg-white text-slate-900 hover:bg-emerald-500 hover:text-white'}`}
+                   >
+                     {isRegistered ? <><CheckCircle2 className="w-4 h-4" /> YOU ARE IN</> : 'REGISTER FOR EVENT'}
+                   </Link>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Body Content */}
-          <div className="grid lg:grid-cols-3 gap-12 mt-10">
-            <div className="lg:col-span-2 flex flex-col gap-8">
-              <div ref={addToRefs}>
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">About this {event.category === 'events' ? 'Event' : 'Workshop'}</h3>
-                <p className="text-base md:text-lg text-slate-800 dark:text-slate-400 font-medium leading-relaxed">
-                  {event.description}
-                </p>
-                <p className="text-base md:text-lg text-slate-800 dark:text-slate-400 font-medium leading-relaxed mt-4">
-                  Join us for an exciting session where we dive deep into the subject matter. Whether you are a beginner or an experienced developer, there's something for everyone to learn and enjoy. Networking opportunities and hands-on guidance will be provided by our core team and special guests.
-                </p>
-              </div>
-              
-              <div ref={addToRefs} className="p-6 md:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-black/5 dark:border-white/5">
-                <h4 className="text-lg font-black text-slate-900 dark:text-white mb-3">Agenda</h4>
-                <ul className="flex flex-col gap-4 text-sm font-medium text-slate-600 dark:text-slate-400">
-                  <li className="flex items-start gap-4"><span className="text-brand font-black w-16">10:00 AM</span> Registration & Welcome</li>
-                  <li className="flex items-start gap-4"><span className="text-brand font-black w-16">10:30 AM</span> Main Keynote & Intro</li>
-                  <li className="flex items-start gap-4"><span className="text-brand font-black w-16">11:30 AM</span> Hands-on Session starts</li>
-                  <li className="flex items-start gap-4"><span className="text-brand font-black w-16">01:00 PM</span> Networking & Conclusion</li>
-                </ul>
-              </div>
+      {/* 2. Content Sections */}
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid lg:grid-cols-3 gap-16">
+          
+          <div className="lg:col-span-2 flex flex-col gap-12">
+            <div>
+               <h2 className="text-2xl font-black uppercase tracking-tighter mb-6 flex items-center gap-3 text-slate-900 dark:text-white">
+                  <div className="w-1 h-8 bg-emerald-500 rounded-full" />
+                  Overview
+               </h2>
+               <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+                 {event.description}
+               </p>
             </div>
 
-            {/* Sidebar Action Area */}
-            <div className="lg:col-span-1 flex flex-col gap-6">
-              <div ref={addToRefs} className="p-8 rounded-[2rem] bg-gradient-to-br from-brand to-emerald-600 text-white shadow-2xl shadow-brand/30 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700"></div>
-                <h4 className="text-xl font-black mb-2 relative z-10">
-                  {isRegistered ? 'Spot Secured!' : 'Ready to join?'}
+            <div className="grid sm:grid-cols-2 gap-8">
+               <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-emerald-500 mb-6">
+                    <Rocket className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-lg font-black uppercase tracking-tighter mb-3 text-slate-900 dark:text-white">The Experience</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">A high-energy session designed to accelerate your technical skills through collaborative building and expert guidance.</p>
+               </div>
+               <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-emerald-500 mb-6">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-lg font-black uppercase tracking-tighter mb-3 text-slate-900 dark:text-white">Requirements</h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">Open to all students with basic coding knowledge. Please bring your laptop and high enthusiasm!</p>
+               </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-1 flex flex-col gap-10">
+             <div className="p-8 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-white/10">
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+                  <Clock className="w-4 h-4" /> Registration Due In
                 </h4>
-                <p className="text-xs font-medium text-white/80 mb-8 relative z-10">
-                  {isRegistered ? 'You are officially registered for this event.' : 'Secure your spot before seats run out.'}
-                </p>
-                <Link 
-                  to={`/register/event/${id}`}
-                  className={`w-full py-4 rounded-xl font-black tracking-widest transition-all active:scale-95 shadow-xl relative z-10 flex items-center justify-center gap-2 ${isRegistered ? 'bg-white/20 text-white cursor-default' : 'bg-white text-brand hover:scale-105'}`}
-                >
-                  {isRegistered ? (
-                    <><CheckCircle2 className="w-4 h-4" /> REGISTERED</>
-                  ) : (
-                    'REGISTER NOW'
-                  )}
-                </Link>
-              </div>
-
-              <div ref={addToRefs} className="p-6 rounded-[2rem] border border-black/10 dark:border-white/10 flex flex-col gap-4">
-                <button className="w-full py-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-black tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
-                  <Calendar className="w-4 h-4" /> ADD TO CALENDAR
-                </button>
-                <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Open to all GAT students
-                </p>
-              </div>
-            </div>
+                <div className="flex items-center gap-4 text-emerald-500">
+                  <div className="flex flex-col">
+                    <span className="text-3xl font-black leading-none">{timeLeft.days}d</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Left</span>
+                  </div>
+                  <div className="w-px h-10 bg-slate-200 dark:bg-white/10" />
+                  <p className="text-[11px] font-medium leading-tight text-slate-500 max-w-[120px]">
+                    Register before the portal closes to ensure entry.
+                  </p>
+                </div>
+             </div>
           </div>
         </div>
       </div>

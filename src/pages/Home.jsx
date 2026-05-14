@@ -16,7 +16,7 @@ import RecruitmentBanner from '../assets/banners/gcc-club-recruitment-instagram.
 import WorkshopBanner1 from '../assets/banners/workshop 1.webp';
 import GccLogo from '../assets/logo/gcc logo.png';
 import { 
-  Code, Menu, X, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen
+  Code, Menu, X, ArrowLeft, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen
 } from 'lucide-react';
 import HeroTerminal from '../components/HeroTerminal';
 import socket from '../utils/socket';
@@ -266,6 +266,7 @@ export default function Home({ theme }) {
   const [rooms, setRooms] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(true);
   const termRef = useRef(null);
+  const domainScrollRef = useRef(null);
 
   useEffect(() => {
     fetchEvents();
@@ -319,6 +320,16 @@ export default function Home({ theme }) {
       console.error('Error fetching rooms', err);
     } finally {
       setRoomsLoading(false);
+    }
+  };
+
+  const scrollDomains = (direction) => {
+    if (domainScrollRef.current) {
+      const scrollAmount = window.innerWidth * 0.8;
+      domainScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -385,8 +396,6 @@ export default function Home({ theme }) {
         );
       });
 
-      // Removed conflicting animate-on-scroll trigger to fix opacity issues
-
       if (window.innerWidth >= 1024) {
         ScrollTrigger.create({
           trigger: '#about-left',
@@ -431,9 +440,9 @@ export default function Home({ theme }) {
         }
       });
 
-      // Domain Horizontal Scroll
+      // Domain Horizontal Scroll (Desktop)
       if (window.innerWidth >= 1024) {
-        const domainContainer = document.querySelector('.domain-scroll-container');
+        const domainContainer = domainScrollRef.current;
         if (domainContainer) {
           gsap.to(domainContainer, {
             x: () => -(domainContainer.scrollWidth - window.innerWidth + window.innerWidth * 0.2),
@@ -449,8 +458,32 @@ export default function Home({ theme }) {
           });
         }
       }
+      
       // Digital Nexus Reveal Animation
       const nexusReveals = document.querySelectorAll('.nexus-reveal');
+      
+      // Mobile Wiggle Hint for Domains
+      if (window.innerWidth < 1024) {
+        const domainContainer = domainScrollRef.current;
+        if (domainContainer) {
+          gsap.fromTo(domainContainer, 
+            { x: 0 },
+            { 
+              x: -30, 
+              duration: 0.5, 
+              repeat: 1, 
+              yoyo: true, 
+              ease: 'power2.inOut',
+              scrollTrigger: {
+                trigger: '#domains',
+                start: 'top 80%',
+                once: true
+              }
+            }
+          );
+        }
+      }
+
       const blade = document.querySelector('.nexus-blade');
       if (nexusReveals.length > 0) {
         const tl = gsap.timeline({
@@ -524,20 +557,17 @@ export default function Home({ theme }) {
         </div>
       </div>
 
-      <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-50 pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950">
+      <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-32 md:pt-40 pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950">
         <div id="hero-door-l" className="hero-door hero-door-left"></div>
         <div id="hero-door-r" className="hero-door hero-door-right"></div>
         
-        {/* Subtle Cinematic Depth */}
         <div className="absolute inset-0 z-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_70%)]" />
         </div>
 
-        {/* High-Performance Canvas Code Blizzard (Zero Lag) */}
         <CodeRainCanvas />
 
         <div id="home-content" className="max-w-6xl mx-auto flex flex-col items-center text-center gap-6 w-full relative z-20">
-          
           <div className="flex flex-col gap-6 items-center">
             <h1 id="hero-title" className="font-black tracking-tight leading-[1.1] flex flex-col items-center text-center">
               <span className="text-[#10b981] text-5xl md:text-[72px]">Welcome to GCC.</span>
@@ -550,7 +580,6 @@ export default function Home({ theme }) {
             </p>
           </div>
 
-          
           <div id="hero-cta" className="flex flex-wrap items-center justify-center gap-4">
             <Link 
               to="/events"
@@ -570,7 +599,6 @@ export default function Home({ theme }) {
           </div>
         </div>
 
-        {/* Mobile Stats - Keep at bottom for better mobile UX */}
         <div id="hero-stats" className="flex lg:hidden items-center justify-center gap-12 mt-8 w-full">
             <div className="flex flex-col items-center gap-1 group">
               <span className="text-4xl font-black text-slate-950 dark:text-white leading-none group-hover:text-emerald-500 transition-colors">500+</span>
@@ -582,7 +610,6 @@ export default function Home({ theme }) {
             </div>
           </div>
         
-        {/* Floating Side Stats - Desktop Only, Positioned bottom-right */}
         <div className="hidden lg:block pointer-events-none">
           <div className="absolute right-[4vw] bottom-[10%] flex flex-col gap-8 items-end text-right z-30">
              <div className="flex flex-col gap-1.5 group animate-on-scroll items-end">
@@ -599,13 +626,10 @@ export default function Home({ theme }) {
         </div>
       </section>
 
-      {/* 4. Natural Flow About Section */}
       <section id="about" className="relative z-10 py-16 md:py-32 px-4 sm:px-6 border-t border-black/5 dark:border-white/5 select-none overflow-hidden">
-        {/* Background Blur Overlay */}
         <div className="absolute inset-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-[60px] z-0" />
         
         <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 md:gap-16 items-start relative z-10">
-          {/* Pinned Left Side Content */}
           <div id="about-left" className="lg:col-span-5 self-start flex flex-col gap-6 md:gap-8 animate-on-scroll">
             <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 animate-pulse" /> WHO WE ARE
@@ -624,9 +648,7 @@ export default function Home({ theme }) {
             </p>
           </div>
 
-            {/* Scrolling Right Side Content */}
             <div className="lg:col-span-7 flex flex-col gap-8 md:gap-12">
-              {/* Vision Card */}
               <div className="glass-panel p-8 md:p-12 flex flex-col gap-6 animate-on-scroll hover:scale-[1.02] transition-transform duration-500">
                 <div className="flex justify-between items-center">
                   <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
@@ -638,7 +660,6 @@ export default function Home({ theme }) {
                 </p>
               </div>
 
-              {/* Mission Card */}
               <div className="glass-panel p-8 md:p-12 flex flex-col gap-8 animate-on-scroll hover:scale-[1.02] transition-transform duration-500">
                 <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                   <span className="text-green-500 font-bold select-none text-2xl">✓</span> Mission
@@ -660,7 +681,6 @@ export default function Home({ theme }) {
                 </div>
               </div>
 
-              {/* Objectives Card */}
               <div className="glass-panel p-8 md:p-12 flex flex-col gap-8 animate-on-scroll hover:scale-[1.02] transition-transform duration-500">
                 <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                   <span className="text-brand font-bold select-none text-2xl">→</span> Objectives
@@ -682,19 +702,36 @@ export default function Home({ theme }) {
         </div>
       </section>
 
-      {/* 5. Horizontal Scrolling Domains Section */}
-      <section id="domains" className="py-16 md:py-40 px-4 sm:px-6 relative z-10 bg-white dark:bg-slate-950 overflow-hidden">
-        <div className="max-w-6xl mx-auto mb-20">
+      <section id="domains" className="py-16 md:py-30 px-4 sm:px-6 relative z-10 bg-white dark:bg-slate-950 overflow-hidden">
+        <div className="max-w-6xl mx-auto mb-16 flex justify-between items-end">
           <div className="flex flex-col gap-4 text-left max-w-2xl animate-on-scroll">
             <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand">Our Domains</span>
             <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight text-slate-900 dark:text-white char-reveal">
               <SplitText text="Our Areas of Expertise" />
             </h2>
           </div>
+          
+          {/* Navigation Arrows (Visible only on mobile/touch) */}
+          <div className="flex lg:hidden gap-3 mb-2">
+            <button 
+              onClick={() => scrollDomains('left')}
+              className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white active:scale-95 transition-all shadow-lg"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => scrollDomains('right')}
+              className="p-4 rounded-2xl bg-brand text-white active:scale-95 transition-all shadow-lg shadow-brand/20"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Horizontal Scroll Track */}
-        <div className="domain-scroll-container relative flex items-start gap-10 px-[5vw] md:px-[10vw]">
+        <div 
+          ref={domainScrollRef}
+          className="domain-scroll-container relative flex items-start gap-5 md:gap-10 px-6 md:px-[10vw] overflow-x-auto lg:overflow-visible snap-x snap-mandatory no-scrollbar pb-10"
+        >
           {domainsLoading ? (
             Array(3).fill(0).map((_, i) => (
               <div key={i} className="glass-panel h-80 min-w-[300px] md:min-w-[450px] animate-pulse bg-black/5 dark:bg-white/5 rounded-[2.5rem]" />
@@ -705,7 +742,7 @@ export default function Home({ theme }) {
             </div>
           ) : (
             domains.map((domain, idx) => (
-              <div key={domain._id} className="domain-card-horizontal p-10 md:p-14 min-w-[320px] md:min-w-[500px] flex flex-col gap-8 elite-card group hover:scale-[1.02] transition-all duration-500 bg-white dark:bg-slate-900 shadow-2xl relative">
+              <div key={domain._id} className="domain-card-horizontal p-8 md:p-14 min-w-[78vw] sm:min-w-[400px] md:min-w-[500px] flex flex-col gap-8 elite-card group hover:scale-[1.02] transition-all duration-500 bg-white dark:bg-slate-900 shadow-2xl relative snap-center">
                 <div className={`w-20 h-20 rounded-3xl bg-brand/10 flex items-center justify-center text-brand shadow-lg shadow-brand/5 group-hover:scale-110 transition-transform`}>
                   {IconMap[domain.icon] || <Layers className="w-20 h-20" />}
                 </div>
@@ -727,15 +764,27 @@ export default function Home({ theme }) {
             ))
           )}
         </div>
+
+        {/* Scroll Progress Visualization & Hint (Mobile Only) */}
+        <div className="flex lg:hidden flex-col items-center gap-4 mt-8">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 border border-black/5 dark:border-white/5 animate-pulse">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Swipe to Explore</span>
+            <div className="flex gap-1.5 items-center">
+              <div className="w-1 h-1 rounded-full bg-brand animate-[bounce_1s_infinite_0ms]" />
+              <div className="w-1 h-1 rounded-full bg-brand animate-[bounce_1s_infinite_200ms]" />
+              <div className="w-1 h-1 rounded-full bg-brand animate-[bounce_1s_infinite_400ms]" />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            {domains.map((_, i) => (
+               <div key={i} className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800" />
+            ))}
+          </div>
+        </div>
       </section>
 
-
-
-
-
-      {/* 6. Advanced Event Radar - REDESIGNED 2.0 */}
       <section id="events" className="relative py-16 md:py-40 px-4 sm:px-6 z-10 overflow-hidden border-t border-b border-black/5 dark:border-white/5 bg-white dark:bg-slate-950">
-
         <div className="max-w-7xl mx-auto flex flex-col gap-16 md:gap-24">
           <div className="flex flex-col gap-12 animate-on-scroll mb-16">
             <div className="flex flex-col gap-5">
@@ -798,221 +847,14 @@ export default function Home({ theme }) {
                 ))
             )}
           </div>
-
-          <div className="flex justify-center mt-12">
-            <Link 
-              to="/events"
-              className="px-12 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-black text-xs tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-xl"
-            >
-              VIEW ALL ACTIVITIES
-            </Link>
-          </div>
         </div>
       </section>
 
-      {/* 6.2 — Live Arena Overview (NEW - Quiz Style) */}
-      <section id="live-rooms-preview" className="panel py-24 md:py-32 px-6 relative z-10 border-t border-black/5 dark:border-white/5 overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-center animate-on-scroll">
-          <div className="flex-1 flex flex-col gap-6 order-2 lg:order-1">
-            <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
-              <Video className="w-3.5 h-3.5" /> Live Community Arena
-            </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
-              Join Active{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-cyan-500">
-                Live
-              </span>{' '}
-              Sessions
-            </h2>
-            <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">
-              Engage with fellow developers in real-time. From technical workshops to coding marathons and intense debates, the Arena is where the club comes alive.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
-              {[
-                { label: 'Real-time Interaction', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-                { label: 'Voice & Video', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
-                { label: 'Screen Share', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-              ].map(({ label, color }) => (
-                <span key={label} className={`px-4 py-1.5 rounded-full text-[10px] font-black border ${color} uppercase tracking-widest`}>
-                  {label}
-                </span>
-              ))}
-            </div>
-
-            <Link to="/live-rooms" className="w-max px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center gap-2 hover:scale-105 transition-all shadow-xl hover:shadow-emerald-500/20 uppercase tracking-widest">
-              Enter Arena <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="flex-1 w-full max-w-lg order-1 lg:order-2">
-            <div className="glass-panel p-6 md:p-8 flex flex-col gap-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-brand/20 transition-colors" />
-              
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-emerald-500/10 text-emerald-600 border-emerald-500/20 uppercase tracking-widest animate-pulse">Live</span>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/5 dark:border-white/5 uppercase tracking-widest">Coding Room</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Users className="w-4 h-4" />
-                  <span className="text-xs font-black">12 Active</span>
-                </div>
-              </div>
-
-              <div className="space-y-4 relative z-10">
-                <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">System Architecture Deep Dive</h4>
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                      <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" className="w-full h-full object-cover" />
-                    </div>
-                  ))}
-                  <div className="w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-brand text-white flex items-center justify-center text-[10px] font-black">+8</div>
-                </div>
-              </div>
-
-              <div className="bg-slate-950 rounded-2xl p-4 border border-white/5 relative z-10 group-hover:border-brand/30 transition-colors">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Streaming Terminal</span>
-                </div>
-                <div className="font-mono text-xs text-emerald-400/80 space-y-1">
-                  <div className="flex gap-2"><span className="text-slate-600">01</span> <span className="text-pink-400">async function</span> <span className="text-blue-400">optimizePipeline</span>() {"{"}</div>
-                  <div className="flex gap-2"><span className="text-slate-600">02</span> &nbsp;&nbsp;<span className="text-pink-400">const</span> nodes = <span className="text-pink-400">await</span> fetchNodes();</div>
-                  <div className="flex gap-2"><span className="text-slate-600">03</span> &nbsp;&nbsp;<span className="text-pink-400">return</span> nodes.<span className="text-blue-400">map</span>(n ={'>'} n.<span className="text-yellow-400">id</span>);</div>
-                  <div className="flex gap-2"><span className="text-slate-600">04</span> {"}"}</div>
-                </div>
-              </div>
-
-              <button className="w-full py-4 rounded-xl bg-brand text-white text-[11px] font-black tracking-widest uppercase shadow-xl shadow-brand/20 hover:scale-[1.02] transition-all" onClick={() => navigate('/live-rooms')}>
-                Quick Join
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* 7.5 — Quiz Overview Section */}
       <QuizSection />
+      
+      <DiscussionOverview discussions={discussions} loading={discussionsLoading} />
 
-
-      {/* 7. Premium SaaS-style Leaderboard Table Section */}
-      <section id="leaderboard" className="py-16 md:py-32 px-4 sm:px-6 scroll-fade-in relative z-10">
-        <div className="max-w-6xl mx-auto flex flex-col gap-12 md:gap-16">
-          <div className="flex flex-col gap-4 text-left max-w-2xl animate-on-scroll">
-            <span className="text-xs md:text-sm font-bold uppercase tracking-widest text-brand">Leaderboard</span>
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white char-reveal">
-              <SplitText text="Our Top Contributors" />
-            </h2>
-          </div>
-
-          <div className="glass-panel overflow-hidden w-full flex flex-col animate-on-scroll">
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-2 md:gap-4 px-4 sm:px-8 py-6 border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 font-black text-[10px] sm:text-xs md:text-sm text-slate-900 dark:text-white uppercase tracking-wider text-left">
-              <div className="col-span-2">Rank</div>
-              <div className="col-span-6 flex items-center gap-3">Member</div>
-              <div className="col-span-2 text-right">PRs</div>
-              <div className="col-span-2 text-right">Pts</div>
-            </div>
-
-            {/* Table Rows */}
-            {[
-              { rank: '🥇 #1', name: 'Tharun Prasad', role: 'Next.js Wizard', prs: 142, points: 9481 },
-              { rank: '🥈 #2', name: 'Ananya Sharma', role: 'Python Architect', prs: 118, points: 8122 },
-              { rank: '🥉 #3', name: 'Rahul Murthy', role: 'System Optimizer', prs: 94, points: 7450 },
-              { rank: '#4', name: 'Pooja Reddy', role: 'Full Stack Dev', prs: 88, points: 6814 },
-            ].map((row, idx) => (
-              <div key={idx} className="grid grid-cols-12 gap-2 md:gap-4 px-4 sm:px-8 py-6 border-b border-black/5 dark:border-white/5 last:border-b-0 items-center text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                <div className="col-span-2 text-[10px] sm:text-sm md:text-base font-black text-slate-900 dark:text-white tracking-tight">
-                  {row.rank}
-                </div>
-                <div className="col-span-6 flex flex-col">
-                  <span className="text-[11px] sm:text-sm md:text-base font-black text-slate-900 dark:text-white leading-tight truncate">{row.name}</span>
-                  <span className="text-[9px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">{row.role}</span>
-                </div>
-                <div className="col-span-2 text-right text-[10px] sm:text-xs md:text-sm font-black text-slate-700 dark:text-slate-300">
-                  {row.prs}
-                </div>
-                <div className="col-span-2 text-right text-[11px] sm:text-sm md:text-base font-black tracking-tight text-brand">
-                  {row.points}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Team Accordion Section */}
-      <section id="team" className="py-16 md:py-32 px-4 sm:px-6 relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col gap-20">
-          {/* Header Section */}
-          <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto animate-on-scroll">
-            <span className="text-sm font-bold uppercase tracking-widest text-brand">Our Team</span>
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-tight char-reveal">
-              Meet the People Behind <span className="text-emerald-500">GAT Club</span>
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 font-medium max-w-2xl mx-auto animate-on-scroll">The teachers and students who make everything happen.</p>
-          </div>
-
-          {/* Faculty Mentor Spotlight */}
-          <div className="flex flex-col gap-10 animate-on-scroll">
-            <h3 className="text-center text-xs font-black tracking-widest text-slate-400 uppercase">Faculty Mentor</h3>
-            <div className="flex justify-center">
-              <div className="glass-panel group max-w-4xl w-full p-8 md:p-12 flex flex-col md:flex-row items-center gap-10">
-                <div className="w-48 h-48 md:w-64 md:h-64 rounded-3xl overflow-hidden shadow-2xl">
-                  <img src={DrGirish} alt="Dr. Girish Rao Salanke N S" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex flex-col gap-4 text-center md:text-left flex-1">
-                  <h4 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white">Dr. Girish Rao Salanke N S</h4>
-                  <span className="text-lg font-bold text-brand">Faculty Mentor</span>
-                  <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
-                    "Guiding students to become great engineers and leaders."
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Faculty Coordinators Grid */}
-          <div className="flex flex-col gap-12 animate-on-scroll">
-            <h3 className="text-center text-xs font-black tracking-widest text-slate-400 uppercase">Faculty Coordinators</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-16 md:gap-20">
-              {[
-                { name: 'Prof. Ashoka S', role: 'Faculty Coordinator', img: ProfAshoka, dept: 'AIDS' },
-                { name: 'Prof. Vasugi I', role: 'Faculty Coordinator', img: ProfVasugi, dept: 'AIML' },
-                { name: 'Prof. R C Ravindranath', role: 'Faculty Coordinator', img: ProfRavindranath, dept: 'CSE' },
-                { name: 'Prof. Sharadadevi Kaganurmath', role: 'Faculty Coordinator', img: ProfSharadadevi, dept: 'CS-AIML' },
-                { name: 'Prof. Sharmila Chidaravalli', role: 'Faculty Coordinator', img: ProfSharmila, dept: 'ISE' },
-              ].map((member, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-6 text-center">
-                  <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl">
-                    <img src={member.img} alt={member.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight">{member.name}</h4>
-                    <span className="text-sm font-bold text-brand">{member.dept} Department</span>
-                    <span className="text-xs font-medium text-slate-500">{member.role}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Future Teams */}
-          <div className="flex flex-col md:flex-row gap-8 justify-center mt-12 animate-on-scroll">
-            <div className="px-12 py-8 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center flex-1 max-w-md">
-              <h4 className="text-xl font-black text-slate-900 dark:text-white mb-2">Core Team</h4>
-              <p className="text-sm font-bold text-brand uppercase tracking-widest">Coming Soon</p>
-            </div>
-            <div className="px-12 py-8 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center flex-1 max-w-md">
-              <h4 className="text-xl font-black text-slate-900 dark:text-white mb-2">Sub Core Team</h4>
-              <p className="text-sm font-bold text-brand uppercase tracking-widest">Coming Soon</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Footer is handled globally in App.jsx */}
     </div>
   );
 }

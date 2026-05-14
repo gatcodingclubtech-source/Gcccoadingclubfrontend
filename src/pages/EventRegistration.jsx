@@ -5,6 +5,41 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import gsap from 'gsap';
 
+const InputField = ({ label, icon: Icon, name, type = "text", placeholder, required = true, disabled = false, options = null, formData, onChange }) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{label}</label>
+    <div className={`relative group ${disabled ? 'opacity-70' : ''}`}>
+      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors">
+        <Icon className="w-4 h-4" />
+      </div>
+      {options ? (
+        <select
+          name={name}
+          value={formData[name]}
+          onChange={onChange}
+          required={required}
+          disabled={disabled}
+          className="w-full bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all appearance-none"
+        >
+          <option value="">Select {label}</option>
+          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={onChange}
+          placeholder={placeholder}
+          required={required}
+          disabled={disabled}
+          className="w-full bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+        />
+      )}
+    </div>
+  </div>
+);
+
 export default function EventRegistration() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -119,40 +154,6 @@ export default function EventRegistration() {
     );
   }
 
-  const InputField = ({ label, icon: Icon, name, type = "text", placeholder, required = true, disabled = false, options = null }) => (
-    <div className="flex flex-col gap-2">
-      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{label}</label>
-      <div className={`relative group ${disabled ? 'opacity-70' : ''}`}>
-        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors">
-          <Icon className="w-4 h-4" />
-        </div>
-        {options ? (
-          <select
-            name={name}
-            value={formData[name]}
-            onChange={handleChange}
-            required={required}
-            disabled={disabled}
-            className="w-full bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all appearance-none"
-          >
-            <option value="">Select {label}</option>
-            {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-        ) : (
-          <input
-            type={type}
-            name={name}
-            value={formData[name]}
-            onChange={handleChange}
-            placeholder={placeholder}
-            required={required}
-            disabled={disabled}
-            className="w-full bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
-          />
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black pt-24 pb-20 px-6">
@@ -213,13 +214,13 @@ export default function EventRegistration() {
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <InputField label="Full Name" icon={UserIcon} name="name" placeholder="John Doe" disabled={!!user} />
-                    <InputField label="Email Address" icon={Mail} name="email" type="email" placeholder="john@example.com" disabled={!!user} />
+                    <InputField label="Full Name" icon={UserIcon} name="name" placeholder="John Doe" disabled={!!user} formData={formData} onChange={handleChange} />
+                    <InputField label="Email Address" icon={Mail} name="email" type="email" placeholder="john@example.com" disabled={!!user} formData={formData} onChange={handleChange} />
                   </div>
                   
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <InputField label="USN / ID" icon={Hash} name="usn" placeholder="1GT21CS001" />
-                    <InputField label="Phone Number" icon={Phone} name="phone" placeholder="+91 9876543210" />
+                    <InputField label="USN / ID" icon={Hash} name="usn" placeholder="1GT21CS001" formData={formData} onChange={handleChange} />
+                    <InputField label="Phone Number" icon={Phone} name="phone" placeholder="+91 9876543210" formData={formData} onChange={handleChange} />
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-6">
@@ -228,12 +229,16 @@ export default function EventRegistration() {
                       icon={Book} 
                       name="department" 
                       options={['CS', 'IS', 'AI/ML', 'EC', 'ME', 'CV', 'Other']} 
+                      formData={formData} 
+                      onChange={handleChange}
                     />
                     <InputField 
                       label="Current Year" 
                       icon={Calendar} 
                       name="year" 
                       options={['1st Year', '2nd Year', '3rd Year', '4th Year']} 
+                      formData={formData} 
+                      onChange={handleChange}
                     />
                   </div>
 

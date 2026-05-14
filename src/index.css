@@ -26,6 +26,10 @@ html.lenis, html.lenis body {
   scroll-behavior: auto !important;
 }
 
+* {
+  scroll-behavior: smooth !important;
+}
+
 .technical-bg {
   background-color: #ffffff;
   background-image: 
@@ -91,13 +95,26 @@ html.dark body {
     color: #f8fafc;
 }
 
-/* Base custom classes */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.4);
 }
 
 .navbar-glow-glass {
