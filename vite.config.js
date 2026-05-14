@@ -6,6 +6,7 @@ export default defineConfig({
   base: '/Gcccoadingclubfrontend/',
   plugins: [react()],
   server: {
+    host: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5001',
