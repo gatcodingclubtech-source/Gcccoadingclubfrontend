@@ -13,7 +13,6 @@ import Profile from './pages/Profile';
 import ProfileComplete from './pages/ProfileComplete';
 import EventRegistration from './pages/EventRegistration';
 import DomainRegistration from './pages/DomainRegistration';
-import Leaderboard from './pages/Leaderboard';
 import Discussions from './pages/Discussions';
 import DiscussionDetail from './pages/DiscussionDetail';
 
@@ -146,7 +145,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
             <Route path="/domain/:id" element={<DomainDetails />} />
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/leaderboard" element={<Navigate to="/" replace />} />
             <Route path="/discussions" element={<Discussions />} />
             <Route path="/discussions/:id" element={<DiscussionDetail />} />
             <Route path="/live-rooms" element={<LiveRooms />} />
