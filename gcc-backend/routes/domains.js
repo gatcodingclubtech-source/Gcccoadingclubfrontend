@@ -36,6 +36,20 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// @desc    Get current user's domain applications
+// @route   GET /api/domains/my-applications
+// @access  Private
+router.get('/my-applications', protect, async (req, res) => {
+  try {
+    const applications = await DomainRegistration.find({ user: req.user._id })
+      .populate('domain', 'title icon color')
+      .sort('-createdAt');
+    res.json({ success: true, applications });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // @desc    Create domain
 // @route   POST /api/domains
 // @access  Private/Admin
