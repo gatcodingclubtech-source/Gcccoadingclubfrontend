@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Save, Share2, Users, MessageCircle, Settings, LogOut, Code, Terminal as TerminalIcon, File as FileIcon, Plus, X, Folder, ChevronRight, ChevronDown, Trash2, Camera } from 'lucide-react';
 import socket from '../utils/socket';
 import { useAuth } from '../context/AuthContext';
+import { useOnboarding } from '../hooks/useOnboarding';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 
@@ -49,6 +50,7 @@ const getLanguageFromFilename = (filename) => {
 export default function CodingHub() {
   const { roomId } = useParams();
   const { user } = useAuth();
+  const { startCodingHubTour } = useOnboarding();
   const navigate = useNavigate();
   
   // Workspace State
@@ -84,6 +86,10 @@ export default function CodingHub() {
   const [isUploading, setIsUploading] = useState(false);
 
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
+
+  useEffect(() => {
+    startCodingHubTour();
+  }, []);
 
   useEffect(() => {
     if (isCreatingFile && newFileInputRef.current) {
@@ -269,7 +275,7 @@ export default function CodingHub() {
     <div className="h-screen w-full flex bg-[#1e1e1e] text-[#cccccc] overflow-hidden font-sans">
       
       {/* Activity Bar (VS Code left-most bar) */}
-      <div className="w-12 shrink-0 border-r border-[#2d2d2d] bg-[#181818] flex flex-col items-center py-4 gap-6 z-20">
+      <div id="activity-bar" className="w-12 shrink-0 border-r border-[#2d2d2d] bg-[#181818] flex flex-col items-center py-4 gap-6 z-20">
          <button 
            onClick={() => { setSidebarMode('explorer'); setIsSidebarOpen(true); }}
            className={`p-2.5 rounded-xl transition-all duration-200 ${sidebarMode === 'explorer' && isSidebarOpen ? 'text-white bg-brand shadow-lg shadow-brand/20' : 'text-[#858585] hover:text-white hover:bg-[#2a2d2e]'}`}
@@ -327,6 +333,7 @@ export default function CodingHub() {
       <AnimatePresence initial={false}>
         {isSidebarOpen && (
           <motion.div 
+            id="workspace-sidebar"
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 260, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
@@ -457,7 +464,7 @@ export default function CodingHub() {
       </AnimatePresence>
 
       {/* Main Editor Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div id="workspace-editor" className="flex-1 flex flex-col min-w-0">
          
          {/* Top Navbar */}
          <div className="h-10 border-b border-[#2d2d2d] bg-[#1e1e1e] flex items-center justify-between pr-4">
@@ -495,6 +502,7 @@ export default function CodingHub() {
                </div>
                
                <button 
+                 id="run-code-btn"
                  onClick={runCode}
                  disabled={isRunning}
                  className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#007fd4] hover:bg-[#0069a1] text-white text-[11px] font-semibold tracking-wide transition-colors disabled:opacity-50"
@@ -531,7 +539,7 @@ export default function CodingHub() {
          </div>
 
          {/* Terminal / Output Panel */}
-         <div className="h-64 border-t border-[#2d2d2d] bg-[#1e1e1e] flex flex-col shrink-0">
+         <div id="output-terminal" className="h-64 border-t border-[#2d2d2d] bg-[#1e1e1e] flex flex-col shrink-0">
             <div className="flex items-center justify-between px-4 h-9 border-b border-[#2d2d2d] shrink-0">
                <div className="flex gap-4 h-full">
                   <button 
