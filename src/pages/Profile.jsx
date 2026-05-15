@@ -515,17 +515,19 @@ export default function Profile() {
                                <span className="text-[10px] font-black uppercase tracking-widest">No domain applications found</span>
                             </div>
                           ) : (
-                            applications.map((app, i) => (
-                              <motion.div 
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.1 }}
-                                key={app._id}
-                                className="flex items-center gap-5 p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all group"
-                              >
-                                <div className={`w-14 h-14 rounded-2xl bg-${app.domain?.color || 'emerald'}-500/10 flex items-center justify-center text-${app.domain?.color || 'emerald'}-500 shrink-0`}>
-                                  {getTimelineIcon(app.domain?.icon)}
-                                </div>
+                            applications.map((app, i) => {
+                              const AppIcon = getTimelineIcon(app.domain?.icon);
+                              return (
+                                <motion.div 
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: i * 0.1 }}
+                                  key={app._id}
+                                  className="flex items-center gap-5 p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all group"
+                                >
+                                  <div className={`w-14 h-14 rounded-2xl bg-${app.domain?.color || 'emerald'}-500/10 flex items-center justify-center text-${app.domain?.color || 'emerald'}-500 shrink-0`}>
+                                    <AppIcon className="w-7 h-7 md:w-8 md:h-8" />
+                                  </div>
                                 <div className="flex-1 flex flex-col gap-1">
                                   <div className="flex items-center justify-between">
                                     <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{app.domain?.title}</h4>
@@ -543,7 +545,8 @@ export default function Profile() {
                                   </div>
                                 </div>
                               </motion.div>
-                            ))
+                            );
+                            })
                           )}
                         </div>
                       ) : fetchingActivities ? (
