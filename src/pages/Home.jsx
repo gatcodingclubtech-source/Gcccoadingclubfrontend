@@ -17,7 +17,7 @@ import RecruitmentBanner from '../assets/banners/gcc-club-recruitment-instagram.
 import WorkshopBanner1 from '../assets/banners/workshop 1.webp';
 import GccLogo from '../assets/logo/gcc logo.png';
 import { 
-  Code, Menu, X, ArrowLeft, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen
+  Code, Menu, X, ArrowLeft, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen, Rocket, Trophy
 } from 'lucide-react';
 import HeroTerminal from '../components/HeroTerminal';
 import BannerSpotlight from '../components/BannerSpotlight';
@@ -35,66 +35,70 @@ const Linkedin = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
 );
 
-const CodeRainCanvas = () => {
-  const canvasRef = React.useRef(null);
+const CodeNebula = () => {
+  const codeSnippets = [
+    { text: 'async await', color: 'text-emerald-500', top: '15%', left: '10%', scale: 1.2, delay: 0 },
+    { text: '=>', color: 'text-cyan-400', top: '25%', left: '80%', scale: 1.5, delay: 2 },
+    { text: '{...}', color: 'text-amber-400', top: '65%', left: '15%', scale: 1.3, delay: 1 },
+    { text: 'GCC.init()', color: 'text-emerald-400', top: '75%', left: '75%', scale: 1.1, delay: 3 },
+    { text: 'const', color: 'text-purple-400', top: '45%', left: '5%', scale: 1.4, delay: 0.5 },
+    { text: 'return', color: 'text-rose-400', top: '10%', left: '60%', scale: 1.2, delay: 1.5 },
+    { text: '<html>', color: 'text-blue-400', top: '85%', left: '40%', scale: 1.6, delay: 2.5 },
+    { text: '[ ]', color: 'text-emerald-500', top: '55%', left: '90%', scale: 1.4, delay: 0.2 },
+    { text: 'await GAT()', color: 'text-cyan-500', top: '35%', left: '70%', scale: 1.3, delay: 1.8 },
+    { text: 'import { Node }', color: 'text-slate-400', top: '80%', left: '10%', scale: 1.1, delay: 0.7 },
+  ];
 
-  React.useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
+  return (
+    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      {codeSnippets.map((snippet, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ 
+            opacity: [0.3, 0.6, 0.3, 0.7, 0.4],
+            scale: [snippet.scale, snippet.scale * 1.05, snippet.scale],
+            x: [0, 30, -30, 0],
+            y: [0, -40, 40, 0],
+            rotate: [0, 3, -3, 0]
+          }}
+          transition={{
+            duration: 20 + Math.random() * 10,
+            repeat: Infinity,
+            delay: snippet.delay,
+            ease: "easeInOut"
+          }}
+          className={`absolute font-black font-mono select-none tracking-tighter ${snippet.color}`}
+          style={{ 
+            top: snippet.top, 
+            left: snippet.left,
+            fontSize: `${20 * snippet.scale}px`,
+            textShadow: '0 0 10px currentColor'
+          }}
+        >
+          <motion.span
+            initial={{ width: 0 }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 2, delay: snippet.delay + 1, ease: "steps(12)" }}
+            className="inline-block overflow-hidden whitespace-nowrap"
+          >
+            {snippet.text}
+          </motion.span>
+        </motion.div>
+      ))}
+      
+      {/* Neural Network Connections (Subtle) */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.03] dark:opacity-[0.07]">
+        <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+          <path d="M 100 0 L 0 0 0 100" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+        </pattern>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+      </svg>
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', resize);
-    resize();
-
-    const symbols = ["await", "GCC", "React", "GAT", "const", "<div />", "JSON", "Map", "Git", "{...}", "</b>", "</h>", "<html>", "<body>", "API", "Node", "npm", "fetch", "async", "import", "export", "=>", "[ ]", "( )", "< >"];
-    const drops = [];
-    const columns = Math.floor(canvas.width / 40);
-
-    for (let i = 0; i < columns * 2; i++) {
-      drops[i] = {
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        scale: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.005 + Math.random() * 0.01,
-        symbol: symbols[Math.floor(Math.random() * symbols.length)],
-        baseOpacity: 0.08 + Math.random() * 0.12
-      };
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      drops.forEach(drop => {
-        drop.scale += drop.pulseSpeed;
-        const currentScale = 0.5 + Math.sin(drop.scale) * 0.5;
-        const size = 20 + currentScale * 40;
-        
-        ctx.font = `900 ${size}px monospace`;
-        ctx.fillStyle = `rgba(16, 185, 129, ${drop.baseOpacity * currentScale})`;
-        ctx.fillText(drop.symbol, drop.x, drop.y);
-
-        drop.x += Math.cos(drop.scale * 0.05) * 0.05;
-        drop.y += Math.sin(drop.scale * 0.05) * 0.05;
-      });
-
-      animationFrameId = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none opacity-100" />;
+      {/* Central focus glow (Cleaned for White Backgrounds) */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(255,255,255,0.8)_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_20%,rgba(15,23,42,0.6)_100%)]" />
+    </div>
+  );
 };
 
 const SplitText = ({ text, className }) => {
@@ -106,6 +110,55 @@ const SplitText = ({ text, className }) => {
         </span>
       ))}
     </span>
+  );
+};
+
+const MobileHero = ({ banners }) => {
+  return (
+    <section className="md:hidden relative h-[100dvh] flex flex-col items-center justify-center px-6 overflow-hidden bg-white dark:bg-slate-950">
+      <CodeNebula />
+      
+      <div className="relative z-10 flex flex-col items-center text-center gap-12">
+        <div className="flex flex-col gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-max mx-auto px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-500 text-[10px] font-black uppercase tracking-[0.2em]"
+          >
+            GAT Coding Club
+          </motion.div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]"
+          >
+            CODE. <br />
+            BUILD. <br />
+            <span className="text-emerald-500 underline decoration-4 underline-offset-8">INNOVATE.</span>
+          </motion.h1>
+        </div>
+
+        <motion.button
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            const el = document.getElementById('about');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="px-12 py-5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black uppercase tracking-widest shadow-2xl"
+        >
+          Explore Now
+        </motion.button>
+      </div>
+
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 opacity-20">
+        <ArrowRight className="w-6 h-6 rotate-90 text-slate-900 dark:text-white" />
+      </div>
+    </section>
   );
 };
 
@@ -351,29 +404,11 @@ export default function Home({ theme }) {
   }, [domainsLoading]);
 
   useEffect(() => {
-    document.documentElement.classList.remove('dark');
-    
     let interval = setInterval(() => {
       setCounter(prev => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => {
-            const tl = gsap.timeline();
-            tl.to('#preloader-content', { opacity: 0, y: -20, duration: 0.5, ease: 'power2.inOut' })
-              .to('#preloader-line-fill', { scaleX: 1.2, opacity: 0, duration: 0.4, ease: 'power2.inOut' }, '-=0.2')
-              .to('#preloader', { opacity: 0, scale: 0.98, duration: 0.6, ease: 'power2.inOut', onComplete: () => {
-                window.scrollTo(0, 0);
-                setLoading(false);
-                const preloaderEl = document.getElementById('preloader');
-                if (preloaderEl) preloaderEl.style.display = 'none';
-                gsap.to('#hero-door-l', { x: '-100%', duration: 1.5, ease: 'power4.inOut', delay: 0.1 });
-                gsap.to('#hero-door-r', { x: '100%', duration: 1.5, ease: 'power4.inOut', delay: 0.1 });
-                gsap.fromTo('#hero-title', { y: 60, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 1.5, delay: 0.4, ease: 'power4.out' });
-                gsap.fromTo('#hero-desc', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1.5, delay: 0.55, ease: 'power4.out' });
-                gsap.fromTo('#hero-cta', { y: 30, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 1.5, delay: 0.7, ease: 'power4.out' });
-                gsap.fromTo('#hero-stats', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1.5, delay: 0.8, ease: 'power4.out' });
-              }});
-          }, 300);
+          setTimeout(() => setLoading(false), 500);
           return 100;
         }
         return prev + 4;
@@ -382,6 +417,18 @@ export default function Home({ theme }) {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Hero Reveal Animation
+  useEffect(() => {
+    if (loading) return;
+
+    const tl = gsap.timeline();
+    tl.to('#hero-door-l', { x: '-100%', duration: 1.5, ease: 'power4.inOut', delay: 0.2 })
+      .to('#hero-door-r', { x: '100%', duration: 1.5, ease: 'power4.inOut' }, '-=1.5')
+      .fromTo('#hero-title', { y: 60, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 1.5, ease: 'power4.out' }, '-=0.8')
+      .fromTo('#hero-subtitle', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1.5, ease: 'power4.out' }, '-=1.2')
+      .fromTo('#hero-actions', { y: 30, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 1.5, ease: 'power4.out' }, '-=1.2');
+  }, [loading]);
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -555,53 +602,76 @@ export default function Home({ theme }) {
 
   return (
     <div className="relative font-sans select-none overflow-x-hidden min-h-screen">
-      <div id="preloader" className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 font-sans select-none overflow-hidden transition-all duration-700">
-        <div id="preloader-content" className="relative flex flex-col items-center max-w-lg w-full px-8 gap-6">
-          <div className="flex justify-between items-baseline w-full">
-            <span className="text-sm font-mono tracking-widest text-brand font-black uppercase">GAT CLUB</span>
-            <span className="text-6xl md:text-8xl font-black font-sans text-slate-900 tracking-tight leading-none tabular-nums select-none flex items-start">
-              {counter < 10 ? `0${counter}` : counter}
-              <span className="text-xl md:text-2xl text-brand font-light ml-1">%</span>
-            </span>
-          </div>
-
-          <div className="w-full h-1.5 md:h-2 bg-slate-200/80 rounded-full overflow-hidden backdrop-blur-md border border-black/5 relative flex items-center">
-            <div 
-              id="preloader-line-fill" 
-              className="h-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-cyan-400 rounded-full transition-all duration-300 ease-out flex items-center justify-end relative select-none"
-              style={{ width: `${counter}%` }}
+      <AnimatePresence>
+        {loading && (
+          <motion.div 
+            key="preloader"
+            id="preloader" 
+            initial={{ opacity: 1 }}
+            exit={{ 
+              opacity: 0, 
+              scale: 1.05,
+              transition: { duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] } 
+            }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-black font-sans select-none overflow-hidden"
+          >
+            <motion.div 
+              initial={{ opacity: 1 }}
+              animate={counter === 100 ? { opacity: 0, y: -20 } : {}}
+              className="relative flex flex-col items-center max-w-lg w-full px-8 gap-6"
             >
-              <div className="w-4 h-4 rounded-full bg-white absolute -right-1 filter drop-shadow-[0_0_10px_#10b981]"></div>
-            </div>
-          </div>
+              <div className="flex justify-between items-baseline w-full">
+                <span className="text-sm font-mono tracking-widest text-brand font-black uppercase">GAT CLUB</span>
+                <span className="text-6xl md:text-8xl font-black font-sans text-slate-900 dark:text-white tracking-tight leading-none tabular-nums select-none flex items-start">
+                  {counter < 10 ? `0${counter}` : counter}
+                  <span className="text-xl md:text-2xl text-brand font-light ml-1">%</span>
+                </span>
+              </div>
 
-          <div className="flex justify-between items-center w-full text-xs font-mono font-bold tracking-widest text-slate-600 uppercase select-none">
-            <span className="animate-pulse">
-              {counter < 30 && 'Initializing Core Systems'}
-              {counter >= 30 && counter < 60 && 'Constructing Nodes & Pipelines'}
-              {counter >= 60 && counter < 90 && 'Compiling Premium Sections'}
-              {counter >= 90 && counter <= 100 && 'Launch Imminent'}
-            </span>
-            <span className="text-brand/80">v1.0.0</span>
-          </div>
-        </div>
-      </div>
+              <div className="w-full h-1.5 md:h-2 bg-slate-200/80 rounded-full overflow-hidden backdrop-blur-md border border-black/5 relative flex items-center">
+                <div 
+                  id="preloader-line-fill" 
+                  className="h-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-cyan-400 rounded-full transition-all duration-300 ease-out flex items-center justify-end relative select-none"
+                  style={{ width: `${counter}%` }}
+                >
+                  <div className="w-4 h-4 rounded-full bg-white absolute -right-1 filter drop-shadow-[0_0_10px_#10b981]"></div>
+                </div>
+              </div>
 
-      <div className="absolute top-24 left-0 right-0 z-[60] pointer-events-none">
+              <div className="flex justify-between items-center w-full text-xs font-mono font-bold tracking-widest text-slate-600 uppercase select-none">
+                <span className="animate-pulse">
+                  {counter < 30 && 'Initializing Core Systems'}
+                  {counter >= 30 && counter < 60 && 'Constructing Nodes & Pipelines'}
+                  {counter >= 60 && counter < 90 && 'Compiling Premium Sections'}
+                  {counter >= 90 && counter <= 100 && 'Launch Imminent'}
+                </span>
+                <span className="text-brand/80">v1.0.0</span>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="absolute top-[8rem] left-0 right-0 z-[60] pointer-events-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pointer-events-auto">
           <BannerSpotlight banners={banners} />
         </div>
       </div>
 
-      <section id="hero" className={`relative min-h-[100vh] flex flex-col items-center justify-center pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950 ${banners.length > 0 ? 'pt-24 md:pt-32' : 'pt-32 md:pt-40'}`}>
+      {/* DESKTOP HERO */}
+      <section id="hero" className={`hidden md:flex relative min-h-[100vh] flex-col items-center justify-center pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950 ${banners.length > 0 ? 'pt-24 md:pt-32' : 'pt-32 md:pt-40'}`}>
+        {/* Shutter Doors */}
         <div id="hero-door-l" className="hero-door hero-door-left"></div>
         <div id="hero-door-r" className="hero-door hero-door-right"></div>
         
+        {/* Background Layers (Solid White for Desktop) */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_70%)]" />
+          {/* Technical Grid Overlay */}
+          <div className="technical-grid opacity-10 dark:opacity-40" />
         </div>
 
-        <CodeRainCanvas />
+        {/* Code Nebula Layer (Faded in center) */}
+        <CodeNebula />
 
         <div id="home-content" className="max-w-6xl mx-auto flex flex-col items-center text-center gap-6 w-full relative z-20">
           <div className="flex flex-col gap-6 items-center">
@@ -610,21 +680,20 @@ export default function Home({ theme }) {
               <span className="text-[#0f172a] dark:text-white text-5xl md:text-[72px]">Learn Coding.</span>
               <span className="text-[#10b981] text-5xl md:text-[72px]">Build Cool Projects.</span>
             </h1>
-            
-            <p id="hero-desc" className="text-sm md:text-base font-bold text-slate-600 dark:text-slate-400 max-w-2xl mx-auto animate-on-scroll leading-relaxed px-4">
-              Step into the nexus of creativity and technology. Join an elite community building the software foundations of tomorrow.
+            <p id="hero-subtitle" className="text-[#334155] dark:text-slate-300 max-w-2xl text-base md:text-lg font-medium opacity-90 leading-relaxed px-4">
+              Unlock your potential at GAT Coding Club. Where innovation meets expertise, and beginners become masters of the digital realm.
             </p>
           </div>
 
-          <div id="hero-cta" className="flex flex-wrap items-center justify-center gap-4">
+          <div id="hero-actions" className="flex flex-wrap items-center justify-center gap-4 mt-4 px-4">
             <Link 
-              to="/events"
-              className="px-10 py-4 rounded-xl bg-[#0a0c10] text-white text-xs font-black flex items-center gap-3 hover:scale-105 transition-all shadow-2xl uppercase tracking-widest"
+              to="/domains"
+              className="px-10 py-4 rounded-xl bg-[#10b981] text-white text-xs font-black hover:bg-emerald-600 transition-all shadow-[0_15px_30px_rgba(16,185,129,0.25)] flex items-center gap-3 group uppercase tracking-widest"
             >
-              Explore Activities <ArrowRight className="w-4 h-4" />
+              Explore Domains <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <button 
-              onClick={(e) => {
+              onClick={() => {
                 const el = document.getElementById('about');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
@@ -634,33 +703,25 @@ export default function Home({ theme }) {
             </button>
           </div>
         </div>
-
-        <div id="hero-stats" className="flex lg:hidden items-center justify-center gap-12 mt-8 w-full">
-            <div className="flex flex-col items-center gap-1 group">
-              <span className="text-4xl font-black text-slate-950 dark:text-white leading-none group-hover:text-emerald-500 transition-colors">500+</span>
-              <span className="text-[9px] font-black tracking-[0.4em] text-slate-400 dark:text-slate-500 uppercase">Members</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 group">
-              <span className="text-4xl font-black text-slate-950 dark:text-white leading-none group-hover:text-emerald-500 transition-colors">15+</span>
-              <span className="text-[9px] font-black tracking-[0.4em] text-slate-400 dark:text-slate-500 uppercase">Projects</span>
-            </div>
-          </div>
-        
-        <div className="hidden lg:block pointer-events-none">
-          <div className="absolute right-[4vw] bottom-[10%] flex flex-col gap-8 items-end text-right z-30">
-             <div className="flex flex-col gap-1.5 group animate-on-scroll items-end">
-               <div className="w-6 h-[2px] bg-brand mb-1"></div>
-               <span className="text-4xl font-black text-slate-950 dark:text-white leading-none">500+</span>
-               <span className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Members</span>
-             </div>
-             <div className="flex flex-col gap-1.5 group animate-on-scroll items-end">
-               <div className="w-6 h-[2px] bg-brand mb-1"></div>
-               <span className="text-4xl font-black text-slate-950 dark:text-white leading-none">15+</span>
-               <span className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Projects</span>
-             </div>
-          </div>
-        </div>
       </section>
+
+      {/* MOBILE HERO (The Magnet) */}
+      <MobileHero banners={banners} />
+      {/* Stats Overlay for Desktop */}
+      <div className="hidden lg:block pointer-events-none relative">
+        <div className="absolute right-[4vw] bottom-[10dvh] flex flex-col gap-8 items-end text-right z-30">
+           <div className="flex flex-col gap-1.5 group animate-on-scroll items-end text-right">
+             <div className="w-6 h-[2px] bg-emerald-500 mb-1"></div>
+             <span className="text-4xl font-black text-slate-900 dark:text-white leading-none">500+</span>
+             <span className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Members</span>
+           </div>
+           <div className="flex flex-col gap-1.5 group animate-on-scroll items-end text-right">
+             <div className="w-6 h-[2px] bg-emerald-500 mb-1"></div>
+             <span className="text-4xl font-black text-slate-900 dark:text-white leading-none">15+</span>
+             <span className="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Projects</span>
+           </div>
+        </div>
+      </div>
 
       <section id="about" className="relative z-10 py-16 md:py-32 px-4 sm:px-6 border-t border-black/5 dark:border-white/5 select-none overflow-hidden">
         <div className="absolute inset-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-[60px] z-0" />

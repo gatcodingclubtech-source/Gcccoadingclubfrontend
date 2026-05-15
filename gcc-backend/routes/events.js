@@ -5,6 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
 const { triggerAutomation, notifyAllUsers } = require('../utils/automation');
 const Banner = require('../models/Banner');
+const Registration = require('../models/Registration');
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -119,34 +120,116 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
   }
 });
 
-// @desc    Register for an event
+// @desc    Register for an event (Team or Solo)
 // @route   POST /api/events/:id/register
 // @access  Private
 router.post('/:id/register', protect, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-    if (event) {
-      // Check if user already registered
-      if (event.attendees.includes(req.user._id)) {
-        return res.status(400).json({ success: false, message: 'Already registered for this event' });
-      }
-
-      event.attendees.push(req.user._id);
-      event.registeredCount = event.attendees.length;
-      await event.save();
-
-      // Trigger Automation: Notify user
-      await triggerAutomation({
-        userId: req.user._id,
-        title: 'Event Registered!',
-        message: `You have successfully registered for ${event.title}. See you there!`,
-        type: 'EVENT'
-      });
-
-      res.json({ success: true, message: 'Registered successfully', registeredCount: event.registeredCount });
-    } else {
-      res.status(404).json({ success: false, message: 'Event not found' });
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
     }
+
+    const { teamName, members, teamLeader, additionalInfo } = req.body;
+
+    // Check if user already registered
+    const existingReg = await Registration.findOne({ event: req.params.id, user: req.user._id });
+    if (existingReg) {
+      return res.status(400).json({ success: false, message: 'You have already registered for this event' });
+    }
+
+    // Validate team size
+    if (event.maxTeamSize > 1) {
+      if (!members || members.length < event.minTeamSize || members.length > event.maxTeamSize) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Invalid team size. Must be between ${event.minTeamSize} and ${event.maxTeamSize} members.` 
+        });
+      }
+    }
+
+    // Create registration
+    const registration = await Registration.create({
+      event: event._id,
+      user: req.user._id,
+      teamName,
+      teamLeader,
+      members,
+      additionalInfo
+    });
+
+    // Update event attendees and count
+    event.attendees.push(req.user._id);
+    event.registeredCount = await Registration.countDocuments({ event: event._id });
+    await event.save();
+
+    // Trigger Automation: Notify user
+    await triggerAutomation({
+      userId: req.user._id,
+      title: 'Registration Successful! 🎫',
+      message: `You have successfully registered for ${event.title}${teamName ? ` as part of team ${teamName}` : ''}.`,
+      type: 'EVENT'
+    });
+
+    res.status(201).json({ success: true, message: 'Registered successfully', registration });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Update event registration
+// @route   PUT /api/events/:id/register
+// @access  Private
+router.put('/:id/register', protect, async (req, res) => {
+  try {
+    const { teamName, members, teamLeader, additionalInfo } = req.body;
+    
+    const registration = await Registration.findOneAndUpdate(
+      { event: req.params.id, user: req.user._id },
+      { teamName, members, teamLeader, additionalInfo },
+      { new: true, runValidators: true }
+    );
+
+    if (!registration) {
+      return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+
+    res.json({ success: true, message: 'Registration updated successfully', registration });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Get my registration for an event
+// @route   GET /api/events/:id/my-registration
+// @access  Private
+router.get('/:id/my-registration', protect, async (req, res) => {
+  try {
+    const registration = await Registration.findOne({ 
+      event: req.params.id, 
+      user: req.user._id 
+    });
+    
+    if (!registration) {
+      return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+    
+    res.json({ success: true, registration });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Get all registrations for an event
+// @route   GET /api/events/:id/registrations
+// @access  Private/Admin
+router.get('/:id/registrations', protect, adminOnly, async (req, res) => {
+  try {
+    const registrations = await Registration.find({ event: req.params.id })
+      .populate('user', 'name email usn department year phone')
+      .sort('-createdAt');
+
+    res.json({ success: true, registrations });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

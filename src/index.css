@@ -153,7 +153,7 @@ html.dark .navbar-glow-glass {
 }
 
 html.dark .hero-door {
-    background: #020617; /* Even darker in dark mode */
+    background: #020617; /* Reverted to deep slate */
 }
 
 .hero-door-left {
@@ -844,4 +844,17 @@ html.dark .glass-nav {
   position: relative;
   z-index: 1;
 }
+@keyframes scan {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
 
+.animate-scan {
+  animation: scan 8s linear infinite;
+}
+
+.bg-coding-glow {
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+}

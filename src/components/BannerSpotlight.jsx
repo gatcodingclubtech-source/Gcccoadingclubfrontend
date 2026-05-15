@@ -78,13 +78,21 @@ export default function BannerSpotlight({ banners }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {!isVisible ? null : (
           <motion.div 
             key={currentIndex}
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
+            initial={{ x: "100%", rotateY: 45, opacity: 0, scale: 0.9 }}
+            animate={{ x: 0, rotateY: 0, opacity: 1, scale: 1 }}
+            exit={{ x: "-100%", rotateY: -45, opacity: 0, scale: 0.9 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 250, // Higher stiffness for instant snap
+              damping: 30,    // Controlled bounce
+              mass: 0.8,      // Lighter weight for speed
+              opacity: { duration: 0.2 }
+            }}
+            style={{ perspective: 1200 }}
             drag="x"
             dragElastic={0.2}
             dragConstraints={{ left: 0, right: 0 }}

@@ -1,44 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, AlertCircle, Calendar, MapPin, Users, Send, User as UserIcon, Mail, Book, Hash, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  Users, UserPlus, Trash2, CheckCircle, 
+  ArrowLeft, Sparkles, Shield, Mail, 
+  CreditCard, Phone, Trophy, Crown
+} from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import gsap from 'gsap';
-
-const InputField = ({ label, icon: Icon, name, type = "text", placeholder, required = true, disabled = false, options = null, formData, onChange }) => (
-  <div className="flex flex-col gap-2">
-    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{label}</label>
-    <div className={`relative group ${disabled ? 'opacity-70' : ''}`}>
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors">
-        <Icon className="w-4 h-4" />
-      </div>
-      {options ? (
-        <select
-          name={name}
-          value={formData[name]}
-          onChange={onChange}
-          required={required}
-          disabled={disabled}
-          className="w-full bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all appearance-none"
-        >
-          <option value="">Select {label}</option>
-          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-      ) : (
-        <input
-          type={type}
-          name={name}
-          value={formData[name]}
-          onChange={onChange}
-          placeholder={placeholder}
-          required={required}
-          disabled={disabled}
-          className="w-full bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
-        />
-      )}
-    </div>
-  </div>
-);
 
 export default function EventRegistration() {
   const { id } = useParams();
@@ -46,252 +14,349 @@ export default function EventRegistration() {
   const { user } = useAuth();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [registering, setRegistering] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
-
-  // Form states for guest registration
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    usn: '',
-    department: '',
-    year: '',
-    phone: ''
-  });
-
-  const cardRef = useRef(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  const [teamName, setTeamName] = useState('');
+  const [members, setMembers] = useState([]);
+  const [leaderIndex, setLeaderIndex] = useState(0);
 
   useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const res = await axios.get(`/api/events/${id}`);
-        if (res.data.success) {
-          setEvent(res.data.event);
-          // Check if already registered
-          if (user && res.data.event.attendees?.includes(user._id)) {
-            setSuccess(true);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching event:', err);
-        setError('Failed to load event details.');
-      } finally {
-        setLoading(false);
-      }
+    const init = async () => {
+      await fetchEvent();
+      await fetchMyRegistration();
     };
-    fetchEvent();
+    init();
   }, [id, user]);
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        usn: user.usn || '',
-        department: user.department || '',
-        year: user.year || '',
-        phone: user.phone || ''
-      });
+  const fetchMyRegistration = async () => {
+    if (!user) return;
+    try {
+      const res = await axios.get(`/api/events/${id}/my-registration`);
+      if (res.data.success && res.data.registration) {
+        const reg = res.data.registration;
+        setTeamName(reg.teamName || '');
+        setMembers(reg.members || []);
+        setIsEditing(true);
+        
+        // Find leader index
+        const idx = reg.members.findIndex(m => m.email === reg.teamLeader?.email);
+        if (idx !== -1) setLeaderIndex(idx);
+      } else {
+        // New registration defaults
+        setMembers([{
+          name: user.name || '',
+          email: user.email || '',
+          usn: user.usn || '',
+          phone: user.phone || '',
+          isRegisteredUser: true
+        }]);
+      }
+    } catch (err) {
+      // If 404, it just means no registration yet
+      if (err.response?.status !== 404) console.error(err);
+      
+      // Default for new reg if not found
+      if (user && members.length === 0) {
+        setMembers([{
+          name: user.name || '',
+          email: user.email || '',
+          usn: user.usn || '',
+          phone: user.phone || '',
+          isRegisteredUser: true
+        }]);
+      }
     }
-  }, [user]);
+  };
 
-  useEffect(() => {
-    if (loading || !event) return;
-    
-    gsap.fromTo(cardRef.current, 
-      { y: 40, opacity: 0, scale: 0.95 },
-      { y: 0, opacity: 1, scale: 1, duration: 1, ease: 'power4.out' }
-    );
-  }, [loading, event]);
+  const fetchEvent = async () => {
+    try {
+      const res = await axios.get(`/api/events/${id}`);
+      if (res.data.success) {
+        setEvent(res.data.event);
+      }
+    } catch (err) {
+      console.error('Error fetching event', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const addMember = () => {
+    if (members.length >= (event?.maxTeamSize || 1)) return;
+    setMembers([...members, { name: '', email: '', usn: '', phone: '', isRegisteredUser: false }]);
+  };
+
+  const removeMember = (index) => {
+    if (members.length <= 1) return;
+    const newMembers = members.filter((_, i) => i !== index);
+    setMembers(newMembers);
+    if (leaderIndex === index) setLeaderIndex(0);
+    else if (leaderIndex > index) setLeaderIndex(leaderIndex - 1);
+  };
+
+  const updateMember = (index, field, value) => {
+    const newMembers = [...members];
+    newMembers[index][field] = value;
+    setMembers(newMembers);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setRegistering(true);
-    setError('');
-
+    setSubmitting(true);
     try {
-      // If logged in, use the standard register endpoint
-      // If not logged in, we'll use a new guest-register endpoint
-      const endpoint = user ? `/api/events/${id}/register` : `/api/events/${id}/register-guest`;
-      const res = await axios.post(endpoint, formData);
-      
+      const payload = {
+        teamName: event.maxTeamSize > 1 ? teamName : '',
+        members,
+        teamLeader: members[leaderIndex],
+        additionalInfo: ''
+      };
+
+      const res = isEditing 
+        ? await axios.put(`/api/events/${id}/register`, payload)
+        : await axios.post(`/api/events/${id}/register`, payload);
+
       if (res.data.success) {
-        setSuccess(true);
-        gsap.fromTo('.success-check', 
-          { scale: 0, rotate: -45 },
-          { scale: 1, rotate: 0, duration: 0.6, ease: 'back.out(2)' }
-        );
+        navigate('/profile'); 
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+      const message = err.response?.data?.message || 'Action failed';
+      alert(message);
     } finally {
-      setRegistering(false);
+      setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
-        <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+      <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
-  if (!event && !loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white">Event Not Found</h1>
-          <Link to="/" className="text-brand font-bold hover:underline mt-4 inline-block">Back to Home</Link>
-        </div>
-      </div>
-    );
-  }
+  if (!event) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-950 gap-4">
+      <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Event Not Found</h2>
+      <button onClick={() => navigate(-1)} className="text-emerald-500 font-bold flex items-center gap-2">
+        <ArrowLeft className="w-4 h-4" /> Go Back
+      </button>
+    </div>
+  );
 
+  const isTeamEvent = event.maxTeamSize > 1;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black pt-24 pb-20 px-6">
-      <div className="max-w-4xl mx-auto">
-        <Link to={`/event/${id}`} className="inline-flex items-center gap-2 text-slate-500 hover:text-brand font-bold mb-8 transition-colors group">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Event Details
-        </Link>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#050811] py-24 px-6 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[150px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-        <div ref={cardRef} className="glass-panel overflow-hidden border border-black/5 dark:border-white/10 shadow-2xl">
-          {!success ? (
-            <div className="grid lg:grid-cols-5">
-              {/* Event Info Sidebar */}
-              <div className="lg:col-span-2 p-8 md:p-12 bg-brand/5 border-r border-black/5 dark:border-white/5">
-                <div className="flex flex-col gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-brand/10 flex items-center justify-center text-brand">
-                    <Calendar className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-brand mb-2 block">Event Registration</span>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
-                      {event.title}
-                    </h1>
-                  </div>
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-3 text-sm font-bold text-slate-600 dark:text-slate-400">
-                      <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center shadow-sm"><Calendar className="w-4 h-4 text-brand" /></div>
-                      {new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm font-bold text-slate-600 dark:text-slate-400">
-                      <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center shadow-sm"><MapPin className="w-4 h-4 text-brand" /></div>
-                      {event.venue}
-                    </div>
-                  </div>
-                  <div className="mt-8 p-6 rounded-2xl bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5">
-                    <p className="text-xs font-medium text-slate-500 leading-relaxed italic">
-                      "Join our community of innovators and creators. This event is a great opportunity to network and learn new skills."
-                    </p>
-                  </div>
-                </div>
+      <div className="max-w-4xl mx-auto relative z-10">
+        {/* Header */}
+        <div className="flex flex-col gap-6 mb-12">
+          <button onClick={() => navigate(-1)} className="group flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-emerald-500 transition-colors">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Event
+          </button>
+          
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-[2px] bg-emerald-500" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">
+                  {isEditing ? 'Refine Enrollment' : 'Registration Portal'}
+                </span>
               </div>
-
-              {/* Registration Form */}
-              <div className="lg:col-span-3 p-8 md:p-12">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-black text-slate-900 dark:text-white">Registration Details</h2>
-                  {user && (
-                    <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20">
-                      Logged In
-                    </span>
-                  )}
+              <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+                {event.title}
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">
+                {isEditing ? 'You are updating your existing squad details.' : (isTeamEvent ? `Team Event (${event.minTeamSize}-${event.maxTeamSize} Members)` : 'Individual Participation')}
+              </p>
+            </div>
+            
+            <div className="hidden md:flex flex-col items-end gap-2">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-black/5 dark:border-white/5">
+                <Users className="w-8 h-8 text-emerald-500" />
+                <div className="flex flex-col">
+                  <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{event.registeredCount || 0}</span>
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Registrations</span>
                 </div>
-
-                {error && (
-                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold mb-6 flex items-center gap-3">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <InputField label="Full Name" icon={UserIcon} name="name" placeholder="John Doe" disabled={!!user} formData={formData} onChange={handleChange} />
-                    <InputField label="Email Address" icon={Mail} name="email" type="email" placeholder="john@example.com" disabled={!!user} formData={formData} onChange={handleChange} />
-                  </div>
-                  
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <InputField label="USN / ID" icon={Hash} name="usn" placeholder="1GT21CS001" formData={formData} onChange={handleChange} />
-                    <InputField label="Phone Number" icon={Phone} name="phone" placeholder="+91 9876543210" formData={formData} onChange={handleChange} />
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <InputField 
-                      label="Department" 
-                      icon={Book} 
-                      name="department" 
-                      options={['CS', 'IS', 'AI/ML', 'EC', 'ME', 'CV', 'Other']} 
-                      formData={formData} 
-                      onChange={handleChange}
-                    />
-                    <InputField 
-                      label="Current Year" 
-                      icon={Calendar} 
-                      name="year" 
-                      options={['1st Year', '2nd Year', '3rd Year', '4th Year']} 
-                      formData={formData} 
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  <div className="mt-4">
-                    <p className="text-[10px] font-medium text-slate-400 leading-relaxed mb-6">
-                      * Please ensure all details are correct. By clicking register, you agree to our community guidelines and code of conduct.
-                    </p>
-                    
-                    <button 
-                      type="submit"
-                      disabled={registering}
-                      className="w-full py-5 rounded-2xl bg-brand text-white font-black tracking-[0.2em] text-xs hover:bg-emerald-600 transition-all hover:shadow-2xl hover:shadow-brand/20 active:scale-95 flex items-center justify-center gap-3 group"
-                    >
-                      {registering ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <>CONFIRM REGISTRATION <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /></>
-                      )}
-                    </button>
-                  </div>
-                </form>
-
-                {!user && (
-                  <div className="mt-8 pt-8 border-t border-black/5 dark:border-white/5 text-center">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                      Already have an account? <Link to="/auth" className="text-brand hover:underline">Log in for faster registration</Link>
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
-          ) : (
-            <div className="p-16 text-center flex flex-col items-center gap-8">
-              <div className="w-32 h-32 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 success-check">
-                <CheckCircle2 className="w-16 h-16" />
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+          {/* Team Basic Info */}
+          {isTeamEvent && (
+            <div className="glass-panel p-8 flex flex-col gap-6 animate-in slide-in-from-bottom duration-500">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Team Identity</h3>
               </div>
-              <div className="flex flex-col gap-4">
-                <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Registration Confirmed!</h2>
-                <p className="text-slate-500 font-medium max-w-md mx-auto text-lg leading-relaxed">
-                  You have successfully registered for <span className="font-bold text-slate-900 dark:text-white">{event.title}</span>. We've sent a confirmation to your email.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full max-w-md">
-                <Link to={user ? "/profile" : "/"} className="flex-1 py-5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black tracking-widest hover:scale-105 transition-transform shadow-xl">
-                  {user ? 'VIEW IN DASHBOARD' : 'BACK TO HOME'}
-                </Link>
-                <Link to="/events" className="flex-1 py-5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-black tracking-widest hover:bg-slate-200 transition-colors">
-                  EXPLORE EVENTS
-                </Link>
+              
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Team Name</label>
+                <input 
+                  required
+                  placeholder="Enter a cool team name..."
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                />
               </div>
             </div>
           )}
-        </div>
+
+          {/* Members List */}
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <Users className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Member Details</h3>
+              </div>
+              
+              {isTeamEvent && members.length < event.maxTeamSize && (
+                <button 
+                  type="button"
+                  onClick={addMember}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all"
+                >
+                  <UserPlus className="w-4 h-4" /> Add Member
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {members.map((member, idx) => (
+                <div key={idx} className="glass-panel p-8 relative animate-in zoom-in duration-300">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-8 h-8 rounded-lg ${leaderIndex === idx ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-800'} flex items-center justify-center text-white text-xs font-black`}>
+                        {idx + 1}
+                      </div>
+                      <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">
+                        Member {idx + 1} {leaderIndex === idx && <span className="ml-2 text-amber-500">(Leader)</span>}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      {isTeamEvent && (
+                        <button 
+                          type="button"
+                          onClick={() => setLeaderIndex(idx)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${
+                            leaderIndex === idx 
+                            ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' 
+                            : 'bg-black/5 dark:bg-white/5 text-slate-400 hover:text-amber-500'
+                          }`}
+                        >
+                          <Crown className="w-3 h-3" /> Set Leader
+                        </button>
+                      )}
+                      
+                      {idx > 0 && (
+                        <button 
+                          type="button"
+                          onClick={() => removeMember(idx)}
+                          className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-3">
+                      <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Full Name</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          placeholder="John Doe"
+                          value={member.name}
+                          onChange={(e) => updateMember(idx, 'name', e.target.value)}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                        />
+                        <Shield className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">USN / ID</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          placeholder="1GT21CS000"
+                          value={member.usn}
+                          onChange={(e) => updateMember(idx, 'usn', e.target.value)}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                        />
+                        <CreditCard className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Email Address</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          type="email"
+                          placeholder="name@gmail.com"
+                          value={member.email}
+                          onChange={(e) => updateMember(idx, 'email', e.target.value)}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                        />
+                        <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Phone Number</label>
+                      <div className="relative">
+                        <input 
+                          required
+                          placeholder="9876543210"
+                          value={member.phone}
+                          onChange={(e) => updateMember(idx, 'phone', e.target.value)}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                        />
+                        <Phone className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit Section */}
+          <div className="mt-8 flex flex-col gap-6">
+            <div className="flex items-start gap-4 p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+              <Sparkles className="w-6 h-6 text-amber-500 shrink-0" />
+              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 leading-relaxed uppercase tracking-widest">
+                By registering, you confirm that all member details are accurate. A confirmation notification will be sent to the team leader.
+              </p>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={submitting || members.length < (event?.minTeamSize || 1)}
+              className="w-full py-6 rounded-[2rem] bg-emerald-500 text-white text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-4"
+            >
+              {submitting ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle className="w-6 h-6" /> {isEditing ? 'Save Changes' : 'Complete Registration'}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

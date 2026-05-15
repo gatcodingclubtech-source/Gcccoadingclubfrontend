@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Calendar, Globe, Users, Share2, 
   MapPin, Clock, CheckCircle2, Zap, Timer,
-  AlertTriangle, Rocket, ChevronRight
+  AlertTriangle, Rocket, ChevronRight, Edit2
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -163,9 +163,9 @@ export default function EventDetails() {
 
                    <Link 
                      to={`/register/event/${id}`}
-                     className={`w-full py-5 rounded-2xl text-xs font-black tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 uppercase shadow-xl ${isRegistered ? 'bg-emerald-500 text-white' : 'bg-white text-slate-900 hover:bg-emerald-500 hover:text-white'}`}
+                     className={`w-full py-5 rounded-2xl text-xs font-black tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 uppercase shadow-xl ${isRegistered ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-white text-slate-900 hover:bg-emerald-500 hover:text-white'}`}
                    >
-                     {isRegistered ? <><CheckCircle2 className="w-4 h-4" /> YOU ARE IN</> : 'REGISTER FOR EVENT'}
+                     {isRegistered ? <><Edit2 className="w-4 h-4" /> EDIT REGISTRATION</> : 'REGISTER FOR EVENT'}
                    </Link>
                 </div>
               </div>
