@@ -10,6 +10,7 @@ import {
   Globe, Cpu, Star, Briefcase, GraduationCap,
   Layout, Fingerprint, Rocket, Swords, Code, Camera
 } from 'lucide-react';
+import ImageUpload from '../components/ImageUpload';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
@@ -90,7 +91,6 @@ export default function Profile() {
   const [applications, setApplications] = useState([]);
   const [fetchingApps, setFetchingApps] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = React.useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -129,32 +129,16 @@ export default function Profile() {
     }
   };
 
-  const handleProfileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    setIsUploading(true);
-    const uploadToast = toast.loading('Uploading profile picture...');
-
+  const handleAvatarUpdate = async (url) => {
+    const uploadToast = toast.loading('Syncing your new look...');
     try {
-      const { data } = await axios.post('/api/users/profile-picture', formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('gcc_token')}` 
-        }
-      });
-
+      const { data } = await axios.put('/api/users/profile', { avatar: url });
       if (data.success) {
         toast.success('Looking sharp! Profile updated.', { id: uploadToast });
         window.location.reload();
       }
     } catch (error) {
-      toast.error('Upload failed. Try again.', { id: uploadToast });
-    } finally {
-      setIsUploading(false);
+      toast.error('Sync failed. Try again.', { id: uploadToast });
     }
   };
 
@@ -252,26 +236,14 @@ export default function Profile() {
           
           {/* Avatar Area */}
           <div className="relative group shrink-0">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*"
-              onChange={handleProfileUpload}
-            />
             <div className="absolute -inset-1.5 bg-gradient-to-tr from-emerald-500 to-cyan-400 rounded-[2.8rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-            <div 
-              onClick={() => fileInputRef.current.click()}
-              className="relative w-36 h-36 md:w-52 md:h-52 rounded-[2.5rem] bg-white dark:bg-slate-900 border-4 border-white dark:border-slate-800 overflow-hidden shadow-2xl flex items-center justify-center cursor-pointer group-hover:scale-[1.02] transition-all"
-            >
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-16 h-16 md:w-20 md:h-20 text-slate-300" />
-              )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <Camera className="w-8 h-8 text-white" />
-              </div>
+            <div className="relative w-36 h-36 md:w-52 md:h-52 rounded-[2.5rem] bg-white dark:bg-slate-900 border-4 border-white dark:border-slate-800 overflow-hidden shadow-2xl">
+              <ImageUpload 
+                value={user.avatar} 
+                onChange={handleAvatarUpdate}
+                label={null}
+                className="w-full h-full !gap-0"
+              />
             </div>
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-emerald-500 text-white rounded-full text-[9px] font-black tracking-widest shadow-xl border-2 border-white dark:border-slate-900 uppercase whitespace-nowrap">
               {user.rank}

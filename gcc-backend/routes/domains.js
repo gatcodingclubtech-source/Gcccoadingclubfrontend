@@ -4,6 +4,7 @@ const Domain = require('../models/Domain');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
+const { notifyAllUsers } = require('../utils/automation');
 
 const DomainRegistration = require('../models/DomainRegistration');
 const Notification = require('../models/Notification');
@@ -41,6 +42,15 @@ router.post('/', protect, adminOnly, async (req, res) => {
   try {
     const domain = new Domain(req.body);
     const savedDomain = await domain.save();
+
+    // Notify all users about the new domain
+    await notifyAllUsers({
+      title: 'New Domain Alert! 🚀',
+      message: `${savedDomain.title} interest group is now live! Check it out and apply today.`,
+      type: 'DOMAIN',
+      icon: 'Rocket'
+    });
+
     res.status(201).json({ success: true, domain: savedDomain });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

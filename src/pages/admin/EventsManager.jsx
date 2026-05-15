@@ -5,6 +5,7 @@ import {
   Save, X, Clock, ToggleLeft, ToggleRight, Users
 } from 'lucide-react';
 import axios from 'axios';
+import ImageUpload from '../../components/ImageUpload';
 
 export default function EventsManager() {
   const [events, setEvents] = useState([]);
@@ -231,22 +232,22 @@ export default function EventsManager() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-md" onClick={closeModal} />
-          <div data-lenis-prevent className="glass-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 animate-in zoom-in duration-500 shadow-2xl">
-            <div className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-10 px-6 md:px-10 py-6 md:py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                  {editingEvent ? 'Edit Event' : 'New Event'}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 backdrop-blur-sm bg-black/40">
+          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl md:rounded-[2rem] shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col relative z-10">
+            <div className="p-6 md:p-8 border-b border-black/5 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+              <div className="flex flex-col">
+                <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                  {editingEvent ? 'Refine' : 'Create'} Event
                 </h2>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Fill in the details below.</p>
+                <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-0.5">Event Configuration</p>
               </div>
-              <button onClick={closeModal} className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
+              <button onClick={closeModal} className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-white/5 transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="flex flex-col gap-3 md:col-span-2">
                 <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Event Name</label>
                 <input 
@@ -296,13 +297,11 @@ export default function EventsManager() {
                 </select>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Image URL</label>
-                <input 
-                  name="image"
-                  value={formData.image}
-                  onChange={handleChange}
-                  className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+              <div className="md:col-span-2">
+                <ImageUpload 
+                  value={formData.image} 
+                  onChange={(url) => setFormData({...formData, image: url})}
+                  label="Event Thumbnail"
                 />
               </div>
 
@@ -397,6 +396,7 @@ export default function EventsManager() {
                 </div>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

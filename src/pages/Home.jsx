@@ -20,6 +20,7 @@ import {
   Code, Menu, X, ArrowLeft, ArrowRight, Sun, Moon, Sparkles, Terminal as TerminalIcon, Shield, Layers, Award, Users, ChevronRight, Check, Calendar, Globe, MessageSquare, ArrowBigUp, Monitor, Zap, Video, Mic, Sword, BookOpen
 } from 'lucide-react';
 import HeroTerminal from '../components/HeroTerminal';
+import BannerSpotlight from '../components/BannerSpotlight';
 import socket from '../utils/socket';
 
 const Github = ({ className }) => (
@@ -208,8 +209,10 @@ export default function Home({ theme }) {
     { text: 'Starting GAT Club System...', type: 'system' },
     { text: 'Type "help" to see what you can do.', type: 'info' }
   ]);
-  const [terminalInput, setTerminalInput] = useState('');
-  const [events, setEvents] = useState([]);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState('events');
+  const [banners, setBanners] = useState([]);
+  const [loadingBanners, setLoadingBanners] = useState(true);
   const [domains, setDomains] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [domainsLoading, setDomainsLoading] = useState(true);
@@ -378,9 +381,22 @@ export default function Home({ theme }) {
   }, []);
 
   useEffect(() => {
-    if (loading) return;
+    const fetchBanners = async () => {
+      try {
+        const res = await axios.get('/api/banners');
+        if (res.data.success) setBanners(res.data.banners);
+      } catch (err) {
+        console.error('Failed to fetch banners:', err);
+      } finally {
+        setLoadingBanners(false);
+      }
+    };
+    fetchBanners();
+  }, []);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
-  }, [loading]);
+  }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -566,6 +582,10 @@ export default function Home({ theme }) {
             <span className="text-brand/80">v1.0.0</span>
           </div>
         </div>
+      </div>
+
+      <div className="pt-24 relative z-[60]">
+        <BannerSpotlight banners={banners} />
       </div>
 
       <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-32 md:pt-40 pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950">

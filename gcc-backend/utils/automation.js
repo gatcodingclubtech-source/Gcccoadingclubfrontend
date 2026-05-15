@@ -77,4 +77,24 @@ const triggerAutomation = async (event, data) => {
     }
 };
 
-module.exports = { triggerAutomation };
+const notifyAllUsers = async ({ title, message, type = 'SYSTEM', icon = 'Activity' }) => {
+    try {
+        const users = await User.find({}, '_id');
+        const notifications = users.map(user => ({
+            user: user._id,
+            title,
+            message,
+            type,
+            icon
+        }));
+        await Notification.insertMany(notifications);
+        
+        // Broadcast to all connected clients
+        socketService.broadcast('NOTIFICATION_GLOBAL', { title, message, type, icon });
+        console.log(`[AUTOMATION] Global notification sent to ${users.length} users.`);
+    } catch (error) {
+        console.error('[AUTOMATION ERROR] Global notify failed:', error);
+    }
+};
+
+module.exports = { triggerAutomation, notifyAllUsers };

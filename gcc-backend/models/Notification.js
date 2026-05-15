@@ -17,8 +17,12 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['EVENT', 'QUIZ', 'RANK', 'SYSTEM', 'ACHIEVEMENT'],
+      enum: ['EVENT', 'QUIZ', 'RANK', 'SYSTEM', 'ACHIEVEMENT', 'DOMAIN'],
       default: 'SYSTEM',
+    },
+    icon: {
+      type: String,
+      default: 'Activity'
     },
     isRead: {
       type: Boolean,
