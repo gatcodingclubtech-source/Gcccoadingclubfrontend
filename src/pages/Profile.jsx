@@ -87,6 +87,8 @@ export default function Profile() {
   const [fetchingStats, setFetchingStats] = useState(true);
   const [activities, setActivities] = useState([]);
   const [fetchingActivities, setFetchingActivities] = useState(true);
+  const [applications, setApplications] = useState([]);
+  const [fetchingApps, setFetchingApps] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef(null);
 
@@ -159,17 +161,20 @@ export default function Profile() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [statsRes, activitiesRes] = await Promise.all([
+        const [statsRes, activitiesRes, appsRes] = await Promise.all([
           axios.get('/api/users/profile/stats'),
-          axios.get('/api/users/profile/activities')
+          axios.get('/api/users/profile/activities'),
+          axios.get('/api/domains/my-applications')
         ]);
         if (statsRes.data.success) setStatsData(prev => ({ ...prev, ...statsRes.data.stats }));
         if (activitiesRes.data.success) setActivities(activitiesRes.data.activities);
+        if (appsRes.data.success) setApplications(appsRes.data.applications);
       } catch (err) {
         console.error('Error fetching profile data:', err);
       } finally {
         setFetchingStats(false);
         setFetchingActivities(false);
+        setFetchingApps(false);
       }
     };
 
@@ -479,13 +484,17 @@ export default function Profile() {
 
                     {/* Tab Navigation */}
                     <div className="flex p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-black/5 dark:border-white/5">
-                      {['overview', 'events', 'quiz'].map((tab) => (
+                      {[
+                        { id: 'overview', label: 'Timeline' },
+                        { id: 'applications', label: 'Applications' },
+                        { id: 'events', label: 'Events' }
+                      ].map((tab) => (
                         <button 
-                          key={tab}
-                          onClick={() => setActiveTab(tab)}
-                          className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-emerald-500 text-white shadow-xl' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-emerald-500 text-white shadow-xl' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
                         >
-                          {tab}
+                          {tab.label}
                         </button>
                       ))}
                     </div>
@@ -495,53 +504,94 @@ export default function Profile() {
                   <div className="flex-1 flex flex-col gap-4 relative">
                      <div className="absolute left-[31px] top-0 bottom-0 w-0.5 bg-slate-100 dark:bg-slate-800 rounded-full hidden md:block" />
                      
-                     <AnimatePresence mode="wait">
-                       {fetchingActivities ? (
-                         <div className="space-y-4">
-                           {[1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-50 dark:bg-white/5 animate-pulse rounded-2xl" />)}
-                         </div>
-                       ) : activities.length === 0 ? (
-                         <motion.div 
-                           initial={{ opacity: 0 }} 
-                           animate={{ opacity: 1 }} 
-                           className="flex-1 flex flex-col items-center justify-center gap-4 opacity-30 text-center py-20"
-                         >
-                           <Activity className="w-16 h-16 text-slate-400" />
-                           <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">No activities detected in this sector</span>
-                         </motion.div>
-                       ) : (
-                         <div className="space-y-4">
-                           {activities
-                             .filter(a => activeTab === 'overview' || a.type.toLowerCase() === activeTab)
-                             .map((act, i) => {
-                               const Icon = getTimelineIcon(act.icon);
-                               return (
-                                 <motion.div 
-                                   initial={{ opacity: 0, y: 20 }}
-                                   animate={{ opacity: 1, y: 0 }}
-                                   transition={{ delay: i * 0.05 }}
-                                   key={i} 
-                                   className="relative z-10 flex items-start gap-4 md:gap-6 p-5 md:p-6 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all group shadow-sm"
-                                 >
-                                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white dark:bg-slate-950 border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform group-hover:border-emerald-500/30">
-                                       <Icon className="w-7 h-7 md:w-8 md:h-8 text-emerald-500" />
+                    <AnimatePresence mode="wait">
+                      {activeTab === 'applications' ? (
+                        <div className="space-y-4">
+                          {fetchingApps ? (
+                            Array(3).fill(0).map((_, i) => <div key={i} className="h-24 bg-slate-50 dark:bg-white/5 animate-pulse rounded-3xl" />)
+                          ) : applications.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center gap-4">
+                               <Rocket className="w-16 h-16" />
+                               <span className="text-[10px] font-black uppercase tracking-widest">No domain applications found</span>
+                            </div>
+                          ) : (
+                            applications.map((app, i) => (
+                              <motion.div 
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                key={app._id}
+                                className="flex items-center gap-5 p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all group"
+                              >
+                                <div className={`w-14 h-14 rounded-2xl bg-${app.domain?.color || 'emerald'}-500/10 flex items-center justify-center text-${app.domain?.color || 'emerald'}-500 shrink-0`}>
+                                  {getTimelineIcon(app.domain?.icon)}
+                                </div>
+                                <div className="flex-1 flex flex-col gap-1">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{app.domain?.title}</h4>
+                                    <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                                      app.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                      app.status === 'rejected' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                      'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                    }`}>
+                                      {app.status}
                                     </div>
-                                    <div className="flex-1 flex flex-col gap-1">
-                                       <div className="flex items-center justify-between">
-                                          <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">{act.type}</span>
-                                          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">{formatDate(act.date)}</span>
-                                       </div>
-                                       <h4 className="text-base md:text-lg font-black text-slate-900 dark:text-white uppercase leading-tight">{act.title}</h4>
-                                       <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed mt-1 line-clamp-2">
-                                          {act.desc}
-                                       </p>
-                                    </div>
-                                 </motion.div>
-                               );
-                           })}
-                         </div>
-                       )}
-                     </AnimatePresence>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Test Score: {app.testScore}/{app.totalQuestions}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatDate(app.createdAt)}</span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))
+                          )}
+                        </div>
+                      ) : fetchingActivities ? (
+                        <div className="space-y-4">
+                          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-50 dark:bg-white/5 animate-pulse rounded-2xl" />)}
+                        </div>
+                      ) : activities.length === 0 ? (
+                        <motion.div 
+                          initial={{ opacity: 0 }} 
+                          animate={{ opacity: 1 }} 
+                          className="flex-1 flex flex-col items-center justify-center gap-4 opacity-30 text-center py-20"
+                        >
+                          <Activity className="w-16 h-16 text-slate-400" />
+                          <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">No activities detected in this sector</span>
+                        </motion.div>
+                      ) : (
+                        <div className="space-y-4">
+                          {activities
+                            .filter(a => activeTab === 'overview' || a.type.toLowerCase() === activeTab)
+                            .map((act, i) => {
+                              const Icon = getTimelineIcon(act.icon);
+                              return (
+                                <motion.div 
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: i * 0.05 }}
+                                  key={i} 
+                                  className="relative z-10 flex items-start gap-4 md:gap-6 p-5 md:p-6 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all group shadow-sm"
+                                >
+                                   <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white dark:bg-slate-950 border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform group-hover:border-emerald-500/30">
+                                      <Icon className="w-7 h-7 md:w-8 md:h-8 text-emerald-500" />
+                                   </div>
+                                   <div className="flex-1 flex flex-col gap-1">
+                                      <div className="flex items-center justify-between">
+                                         <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">{act.type}</span>
+                                         <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">{formatDate(act.date)}</span>
+                                      </div>
+                                      <h4 className="text-base md:text-lg font-black text-slate-900 dark:text-white uppercase leading-tight">{act.title}</h4>
+                                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed mt-1 line-clamp-2">
+                                         {act.desc}
+                                      </p>
+                                   </div>
+                                </motion.div>
+                              );
+                          })}
+                        </div>
+                      )}
+                    </AnimatePresence>
                   </div>
                </div>
 
