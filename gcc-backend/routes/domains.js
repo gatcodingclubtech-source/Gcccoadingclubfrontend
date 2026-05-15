@@ -112,6 +112,8 @@ router.post('/:id/join', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Your application is already pending review' });
     }
 
+    const { testScore, totalQuestions } = req.body;
+
     // Create application
     const application = new DomainRegistration({
       domain: domain._id,
@@ -122,7 +124,9 @@ router.post('/:id/join', protect, async (req, res) => {
       usn: user.usn,
       department: user.department,
       year: user.year,
-      phone: user.phone
+      phone: user.phone,
+      testScore: testScore || 0,
+      totalQuestions: totalQuestions || 0
     });
 
     await application.save();
