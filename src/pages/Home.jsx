@@ -587,11 +587,13 @@ export default function Home({ theme }) {
         </div>
       </div>
 
-      <div className="pt-24 relative z-[60]">
-        <BannerSpotlight banners={banners} />
+      <div className="absolute top-24 left-0 right-0 z-[60] pointer-events-none">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pointer-events-auto">
+          <BannerSpotlight banners={banners} />
+        </div>
       </div>
 
-      <section id="hero" className="relative min-h-[100vh] flex flex-col items-center justify-center pt-32 md:pt-40 pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950">
+      <section id="hero" className={`relative min-h-[100vh] flex flex-col items-center justify-center pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950 ${banners.length > 0 ? 'pt-[450px] md:pt-[10px]' : 'pt-32 md:pt-0'}`}>
         <div id="hero-door-l" className="hero-door hero-door-left"></div>
         <div id="hero-door-r" className="hero-door hero-door-right"></div>
         
@@ -737,7 +739,7 @@ export default function Home({ theme }) {
       </section>
 
       {/* Domains Section */}
-      <section id="domains" className="relative py-24 md:py-32 overflow-hidden bg-slate-50 dark:bg-[#050811] z-20">
+      <section id="domains" className="relative py-24 md:py-0 overflow-hidden bg-slate-50 dark:bg-[#050811] z-20">
          <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.03] dark:opacity-[0.05]" />
         {/* Header Section */}
         <div className="max-w-7xl mx-auto mb-12 md:mb-3 flex flex-col md:flex-row md:items-end justify-between gap-8">
