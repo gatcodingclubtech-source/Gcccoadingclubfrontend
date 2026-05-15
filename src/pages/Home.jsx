@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useAuth } from '../context/AuthContext';
+import { useOnboarding } from '../hooks/useOnboarding';
 import AnimatedBackground from '../components/AnimatedBackground';
 import DrGirish from '../assets/Dr. Girish Rao Salanke N S.png';
 import ProfAshoka from '../assets/Prof. Ashoka S.png';
@@ -155,34 +156,39 @@ function QuizSection() {
         </div>
 
         <div className="flex-1 w-full max-w-lg">
-          <div className="glass-panel p-6 md:p-8 flex flex-col gap-5 select-none pointer-events-none relative">
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2">
-                <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Medium</span>
-                <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/5 dark:border-white/5">JavaScript</span>
-              </div>
-              <span className="text-xs font-black text-slate-400 tracking-widest">Q 1 / 5</span>
-            </div>
-
-            <p className="text-sm font-bold text-slate-900 dark:text-white">What does <code className="text-brand bg-brand/10 px-1.5 py-0.5 rounded-md font-mono text-xs">typeof null</code> return in JavaScript?</p>
-
-            <div className="bg-slate-950 rounded-xl overflow-hidden border border-white/10">
-              <div className="px-4 py-2 bg-slate-900 border-b border-white/5 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-xs font-bold text-slate-500">Q 1 / 5</span>
-              </div>
-              <pre className="px-5 py-4 text-xs font-mono text-cyan-300">console.log(typeof null);</pre>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {["'null'", "'undefined'", "'object'", "'boolean'"].map((opt, i) => (
-                <div key={i} className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-xs font-bold ${i === 2 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-black/10 dark:border-white/10 text-slate-600 dark:text-slate-400'}`}>
-                  <span className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[9px] font-black flex-shrink-0">
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  {opt}
+          <div id="hero-title" className="flex flex-col items-center mt-20 md:mt-24 lg:mt-32">
+             <div className="relative mb-6">
+                <div className="absolute inset-0 blur-2xl opacity-20 bg-emerald-500 rounded-full animate-pulse" />
+             </div>
+             <div className="glass-panel p-6 md:p-8 flex flex-col gap-5 select-none pointer-events-none relative">
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Medium</span>
+                  <span className="px-3 py-1 rounded-full text-[11px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/5 dark:border-white/5">JavaScript</span>
                 </div>
-              ))}
+                <span className="text-xs font-black text-slate-400 tracking-widest">Q 1 / 5</span>
+              </div>
+
+              <p className="text-sm font-bold text-slate-900 dark:text-white">What does <code className="text-brand bg-brand/10 px-1.5 py-0.5 rounded-md font-mono text-xs">typeof null</code> return in JavaScript?</p>
+
+              <div className="bg-slate-950 rounded-xl overflow-hidden border border-white/10">
+                <div className="px-4 py-2 bg-slate-900 border-b border-white/5 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  <span className="text-xs font-bold text-slate-500">Q 1 / 5</span>
+                </div>
+                <pre className="px-5 py-4 text-xs font-mono text-cyan-300">console.log(typeof null);</pre>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {["'null'", "'undefined'", "'object'", "'boolean'"].map((opt, i) => (
+                  <div key={i} className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-xs font-bold ${i === 2 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-black/10 dark:border-white/10 text-slate-600 dark:text-slate-400'}`}>
+                    <span className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[9px] font-black flex-shrink-0">
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                    {opt}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -213,6 +219,7 @@ export default function Home({ theme }) {
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const termRef = useRef(null);
   const domainScrollRef = useRef(null);
+  const { startHomeTour } = useOnboarding();
 
   useEffect(() => {
     fetchEvents();
@@ -220,6 +227,13 @@ export default function Home({ theme }) {
     fetchRooms();
     fetchLeaderboard();
   }, []);
+
+  useEffect(() => {
+    // Only start tour if not loading basic data to ensure elements exist
+    if (!domainsLoading && !eventsLoading) {
+      startHomeTour();
+    }
+  }, [domainsLoading, eventsLoading]);
 
   const fetchLeaderboard = async () => {
     try {
@@ -699,8 +713,9 @@ export default function Home({ theme }) {
         </div>
       </section>
 
-      {/* 5. Premium Redesigned Domains Section */}
-      <section id="domains" className="py-20 md:py-10 px-4 sm:px-6 relative z-10 bg-white dark:bg-slate-950 overflow-hidden">
+      {/* Domains Section */}
+      <section id="domains" className="relative py-24 md:py-32 overflow-hidden bg-slate-50 dark:bg-[#050811] z-20">
+         <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.03] dark:opacity-[0.05]" />
         {/* Header Section */}
         <div className="max-w-7xl mx-auto mb-12 md:mb-3 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="flex flex-col gap-4 max-w-2xl animate-on-scroll">
@@ -808,15 +823,9 @@ export default function Home({ theme }) {
         </div>
       </section>
 
-      {/* 6. Premium Redesigned Latest Activities Section */}
-      <section id="events" className="relative py-24 md:py-48 px-4 sm:px-6 z-10 overflow-hidden bg-white dark:bg-slate-950">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-          <div className="absolute top-[10%] right-[-5%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] rounded-full animate-pulse" />
-          <div className="absolute bottom-[10%] left-[-5%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-        </div>
-
-        <div className="max-w-7xl mx-auto flex flex-col gap-20 md:gap-32 relative z-10">
+      {/* Events Section */}
+      <section id="events" className="relative py-32 bg-white dark:bg-black overflow-hidden z-20">
+         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
           {/* Header with Admin Shortcut */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 animate-on-scroll">
             <div className="flex flex-col gap-6 max-w-2xl">
@@ -844,7 +853,7 @@ export default function Home({ theme }) {
           </div>
 
           {/* Dynamic Event Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 mt-20">
             {eventsLoading ? (
               Array(3).fill(0).map((_, i) => (
                 <div key={i} className="glass-panel h-[500px] animate-pulse bg-slate-100 dark:bg-slate-900/50 rounded-[3rem]" />
@@ -934,84 +943,82 @@ export default function Home({ theme }) {
           </div>
         </div>
       </section>
-      {/* 6.2 — Live Arena Overview (NEW - Quiz Style) */}
-      <section id="live-rooms-preview" className="panel py-24 md:py-32 px-6 relative z-10 border-t border-b border-black/5 dark:border-white/5 overflow-hidden bg-slate-50 dark:bg-slate-950 flex items-center">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-center animate-on-scroll">
-          <div className="flex-1 flex flex-col gap-6 order-2 lg:order-1">
-            <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
-              <Video className="w-3.5 h-3.5" /> Live Community Arena
-            </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
-              Join Active{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-cyan-500">
-                Live
-              </span>{' '}
-              Sessions
-            </h2>
-            <p className="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">
-              Engage with fellow developers in real-time. From technical workshops to coding marathons and intense debates, the Arena is where the club comes alive.
-            </p>
 
-            <div className="flex flex-wrap gap-3">
-              {[
-                { label: 'Real-time Interaction', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-                { label: 'Voice & Video', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
-                { label: 'Screen Share', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-              ].map(({ label, color }) => (
-                <span key={label} className={`px-4 py-1.5 rounded-full text-[10px] font-black border ${color} uppercase tracking-widest`}>
-                  {label}
-                </span>
-              ))}
+      {/* Coding Hub / Live Rooms Teaser */}
+      <section id="live-rooms-preview" className="relative py-32 overflow-hidden bg-slate-900 z-20">
+        <div className="absolute inset-0 bg-slate-900" />
+        <div className="max-w-6xl mx-auto px-6 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center animate-on-scroll relative z-10">
+          <div className="flex-1 flex flex-col gap-6 order-2 lg:order-1">
+              <span className="text-xs font-bold uppercase tracking-widest text-brand flex items-center gap-2">
+                <Video className="w-3.5 h-3.5" /> Live Community Arena
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
+                Join Active{' '}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-cyan-500">
+                  Live
+                </span>{' '}
+                Sessions
+              </h2>
+              <p className="text-sm md:text-base font-medium text-slate-400 leading-relaxed max-w-md">
+                Engage with fellow developers in real-time. From technical workshops to coding marathons and intense debates, the Arena is where the club comes alive.
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { label: 'Real-time Interaction', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+                  { label: 'Voice & Video', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' },
+                  { label: 'Screen Share', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+                ].map(({ label, color }) => (
+                  <span key={label} className={`px-4 py-1.5 rounded-full text-[10px] font-black border ${color} uppercase tracking-widest`}>
+                    {label}
+                  </span>
+                ))}
+              </div>
+
+              <Link to="/live-rooms" className="w-max px-8 py-4 rounded-full bg-white text-slate-900 text-sm font-black flex items-center gap-2 hover:scale-105 transition-all shadow-xl hover:shadow-emerald-500/20 uppercase tracking-widest">
+                Enter Arena <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
 
-            <Link to="/live-rooms" className="w-max px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-black flex items-center gap-2 hover:scale-105 transition-all shadow-xl hover:shadow-emerald-500/20 uppercase tracking-widest">
-              Enter Arena <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+            <div className="flex-1 w-full max-w-lg order-1 lg:order-2">
+              <div className="glass-panel p-6 md:p-8 flex flex-col gap-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-brand/20 transition-colors" />
+                
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex gap-2">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-emerald-500/10 text-emerald-600 border-emerald-500/20 uppercase tracking-widest animate-pulse">Live</span>
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-slate-800 text-slate-300 border-white/5 uppercase tracking-widest">Coding Room</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Users className="w-4 h-4" />
+                    <span className="text-xs font-black">12 Active</span>
+                  </div>
+                </div>
 
-          <div className="flex-1 w-full max-w-lg order-1 lg:order-2">
-            <div className="glass-panel p-6 md:p-8 flex flex-col gap-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-brand/20 transition-colors" />
-              
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-emerald-500/10 text-emerald-600 border-emerald-500/20 uppercase tracking-widest animate-pulse">Live</span>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/5 dark:border-white/5 uppercase tracking-widest">Coding Room</span>
+                <div className="space-y-4 relative z-10">
+                  <h4 className="text-xl font-black text-white uppercase tracking-tight">System Architecture Deep Dive</h4>
+                  <div className="flex -space-x-3">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className="w-10 h-10 rounded-full border-4 border-slate-900 bg-slate-800 overflow-hidden">
+                        <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                    <div className="w-10 h-10 rounded-full border-4 border-slate-900 bg-brand text-white flex items-center justify-center text-[10px] font-black">+8</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Users className="w-4 h-4" />
-                  <span className="text-xs font-black">12 Active</span>
-                </div>
+
+                <div className="bg-slate-950 rounded-2xl p-4 border border-white/5 relative z-10 group-hover:border-brand/30 transition-colors">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Streaming Terminal</span>
+                  </div>
+                  <div className="font-mono text-xs text-emerald-400/80 space-y-1">
+                    <div className="flex gap-2"><span className="text-slate-600">01</span> <span className="text-pink-400">async function</span> <span className="text-blue-400">optimizePipeline</span>() {"{"}</div>
+                    <div className="flex gap-2"><span className="text-slate-600">02</span> &nbsp;&nbsp;<span className="text-pink-400">const</span> nodes = <span className="text-pink-400">await</span> fetchNodes();</div>
+                    <div className="flex gap-2"><span className="text-slate-600">03</span> &nbsp;&nbsp;<span className="text-pink-400">return</span> nodes.<span className="text-blue-400">map</span>(n ={'>'} n.<span className="text-yellow-400">id</span>);</div>
+                    <div className="flex gap-2"><span className="text-slate-600">04</span> {"}"}</div>
+                  </div>
               </div>
-
-              <div className="space-y-4 relative z-10">
-                <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">System Architecture Deep Dive</h4>
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                      <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" className="w-full h-full object-cover" />
-                    </div>
-                  ))}
-                  <div className="w-10 h-10 rounded-full border-4 border-white dark:border-slate-900 bg-brand text-white flex items-center justify-center text-[10px] font-black">+8</div>
-                </div>
-              </div>
-
-              <div className="bg-slate-950 rounded-2xl p-4 border border-white/5 relative z-10 group-hover:border-brand/30 transition-colors">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Streaming Terminal</span>
-                </div>
-                <div className="font-mono text-xs text-emerald-400/80 space-y-1">
-                  <div className="flex gap-2"><span className="text-slate-600">01</span> <span className="text-pink-400">async function</span> <span className="text-blue-400">optimizePipeline</span>() {"{"}</div>
-                  <div className="flex gap-2"><span className="text-slate-600">02</span> &nbsp;&nbsp;<span className="text-pink-400">const</span> nodes = <span className="text-pink-400">await</span> fetchNodes();</div>
-                  <div className="flex gap-2"><span className="text-slate-600">03</span> &nbsp;&nbsp;<span className="text-pink-400">return</span> nodes.<span className="text-blue-400">map</span>(n ={'>'} n.<span className="text-yellow-400">id</span>);</div>
-                  <div className="flex gap-2"><span className="text-slate-600">04</span> {"}"}</div>
-                </div>
-              </div>
-
-              <button className="w-full py-4 rounded-xl bg-brand text-white text-[11px] font-black tracking-widest uppercase shadow-xl shadow-brand/20 hover:scale-[1.02] transition-all" onClick={() => navigate('/live-rooms')}>
-                Quick Join
-              </button>
             </div>
           </div>
         </div>

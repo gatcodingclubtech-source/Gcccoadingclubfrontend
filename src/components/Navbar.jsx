@@ -128,7 +128,7 @@ export default function Navbar() {
           </div>
 
           {user ? (
-            <div className="hidden md:flex items-center gap-3 ml-2 pl-4 border-l border-black/5 dark:border-white/5">
+            <div id="navbar-user-section" className="hidden md:flex items-center gap-3 ml-2 pl-4 border-l border-black/5 dark:border-white/5">
               <Link 
                 to="/profile" 
                 className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"
@@ -144,6 +144,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link 
+              id="navbar-auth-button"
               to="/auth" 
               className="hidden sm:flex px-6 py-2.5 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[10px] font-black tracking-widest uppercase hover:scale-105 transition-all shadow-xl"
             >
