@@ -32,17 +32,6 @@
             }
         }
     </script>
-    <script>
-      // Shim for simple-peer
-      if (typeof global === 'undefined') {
-        window.global = window;
-      }
-      if (typeof process === 'undefined') {
-        window.process = { env: {} };
-      }
-      // Buffer shim for simple-peer
-      window.Buffer = window.Buffer || [];
-    </script>
   </head>
   <body class="bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-100 min-h-screen">
     <div id="root"></div>
