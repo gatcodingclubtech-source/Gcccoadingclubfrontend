@@ -20,7 +20,7 @@ export const useOnboarding = () => {
           }
         },
         {
-          element: '#navbar-user-section, #navbar-auth-button',
+          element: '#navbar-user-section, #navbar-auth-button, #mobile-menu-toggle',
           popover: {
             title: 'Account & Membership',
             description: "This is where you can manage your profile, view your stats, or join the club if you haven't already!"
