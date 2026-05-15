@@ -154,6 +154,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Toggle */}
           <button 
+            id="mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-1.5 text-slate-900 dark:text-white"
           >
