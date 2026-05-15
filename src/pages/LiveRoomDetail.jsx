@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Users, Shield, Share2, Hand, Smile, Send, X } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Users, Shield, Share2, Hand, Smile, Send, X, Moon, Sun } from 'lucide-react';
 import socket from '../utils/socket';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +21,7 @@ const ReactionFloating = ({ emoji }) => (
   </motion.div>
 );
 
-const RemoteVideo = ({ stream, user, reaction }) => {
+const RemoteVideo = ({ stream, user, reaction, isFocused, onClick, layoutId }) => {
   const ref = useRef();
 
   useEffect(() => {
@@ -35,33 +35,36 @@ const RemoteVideo = ({ stream, user, reaction }) => {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      layout
-      className="relative aspect-[4/3] md:aspect-video rounded-3xl md:rounded-[2rem] overflow-hidden bg-slate-900/30 border border-white/5 hover:border-white/10 transition-all group"
+      layoutId={layoutId}
+      onClick={onClick}
+      className={`relative overflow-hidden bg-[#0A0F1D]/80 border border-white/5 hover:border-white/10 transition-all cursor-pointer group shadow-2xl shadow-black/50 ${
+        isFocused ? 'w-full h-full rounded-[2rem]' : 'aspect-[4/3] md:aspect-video w-full rounded-3xl'
+      }`}
     >
-      <video playsInline autoPlay ref={ref} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+      <video playsInline autoPlay ref={ref} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]" />
       
       <AnimatePresence>
         {reaction && <ReactionFloating key={Date.now()} emoji={reaction} />}
       </AnimatePresence>
 
-      <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-xl md:rounded-2xl bg-black/40 backdrop-blur-xl border border-white/5">
-        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors truncate max-w-[80px] md:max-w-none">
+      <div className={`absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-2xl backdrop-blur-xl border transition-colors duration-500 ${isFocused ? (isDarkTheme ? 'bg-black/60 border-white/10' : 'bg-white/80 border-white/50') : (isDarkTheme ? 'bg-black/60 border-white/10' : 'bg-white/80 border-white/50')}`}>
+        <span className={`text-[10px] font-black uppercase tracking-widest transition-colors truncate max-w-[120px] ${isDarkTheme ? 'text-slate-300 group-hover:text-white' : 'text-slate-800'}`}>
           {user?.username || 'Participant'}
         </span>
-        <div className="flex items-center gap-1.5 border-l border-white/10 pl-2">
-          {user?.isMuted && <MicOff className="w-2.5 md:w-3 h-2.5 md:h-3 text-red-500/70" />}
-          {user?.isHandRaised && <Hand className="w-2.5 md:w-3 h-2.5 md:h-3 text-brand animate-bounce" />}
+        <div className={`flex items-center gap-1.5 border-l pl-2 ${isDarkTheme ? 'border-white/10' : 'border-slate-300'}`}>
+          {user?.isMuted && <MicOff className="w-3 h-3 text-red-500/80" />}
+          {user?.isHandRaised && <Hand className="w-3 h-3 text-amber-400 animate-bounce" />}
         </div>
       </div>
 
       {user?.isHandRaised && (
-        <div className="absolute top-3 md:top-4 right-3 md:right-4 px-2 md:px-3 py-1 rounded-full bg-brand/20 border border-brand/30 text-brand text-[7px] md:text-[8px] font-black uppercase flex items-center gap-1">
-          <Hand className="w-2 md:w-2.5 h-2 md:h-2.5" /> Hand Raised
+        <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[8px] font-black uppercase flex items-center gap-1">
+          <Hand className="w-2.5 h-2.5" /> Hand Raised
         </div>
       )}
+      
+      {/* Focus Indicator Overlay */}
+      <div className={`absolute inset-0 border-2 rounded-3xl transition-colors pointer-events-none ${isFocused ? 'border-white/20' : 'border-transparent group-hover:border-white/10'}`} />
     </motion.div>
   );
 };
@@ -80,6 +83,8 @@ export default function LiveRoomDetail() {
   const [showChat, setShowChat] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [activeReactions, setActiveReactions] = useState({});
+  const [focusedVideo, setFocusedVideo] = useState(null); // 'local' | socketId
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
   
   // Lobby / Approval State
   const [isApproved, setIsApproved] = useState(false);
@@ -497,17 +502,18 @@ export default function LiveRoomDetail() {
   );
 
   return (
-    <div className="h-screen w-full bg-[#050811] text-white flex flex-col overflow-hidden font-outfit">
+    <div className={`h-screen w-full flex flex-col overflow-hidden font-outfit relative transition-colors duration-500 ${isDarkTheme ? 'bg-[#050811] text-white' : 'bg-slate-50 text-slate-900'}`}>
+      <div className={`absolute inset-0 z-0 pointer-events-none transition-colors duration-500 ${isDarkTheme ? 'bg-gradient-to-br from-[#0A0F1D] to-[#050811]' : 'bg-gradient-to-br from-blue-50/40 via-white/80 to-purple-50/40'}`} />
       
-      <header className="h-14 md:h-16 px-4 md:px-6 flex items-center justify-between border-b border-white/5 bg-[#0A0F1D]/80 backdrop-blur-2xl shrink-0 z-20">
+      <header className={`h-14 md:h-16 px-4 md:px-6 flex items-center justify-between border-b shrink-0 z-20 transition-colors duration-500 ${isDarkTheme ? 'border-white/5 bg-[#0A0F1D]/80 shadow-black/20' : 'border-slate-200/60 bg-white/60 shadow-sm shadow-slate-200/20'} backdrop-blur-2xl`}>
          <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0">
                <Shield className="w-4 h-4 md:w-5 md:h-5" />
             </div>
-            <div className="truncate">
-               <h2 className="text-xs md:text-sm font-black uppercase tracking-widest text-white/90 truncate">{room?.title || 'Loading...'}</h2>
+             <div className="truncate">
+               <h2 className="text-xs md:text-sm font-black uppercase tracking-widest text-slate-800 truncate">{room?.title || 'Loading...'}</h2>
                <div className="flex items-center gap-1.5 md:gap-2">
-                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50" />
                   <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-tighter truncate">
                     Live Session • {participants.length + 1} <span className="hidden xs:inline">Participants</span>
                   </span>
@@ -515,8 +521,8 @@ export default function LiveRoomDetail() {
             </div>
          </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
-            <button className="p-2 md:p-2.5 rounded-lg md:rounded-xl hover:bg-white/5 text-slate-400 transition-all hidden sm:block">
+           <div className="flex items-center gap-2 md:gap-4">
+            <button className={`p-2 md:p-2.5 rounded-lg md:rounded-xl transition-all hidden sm:block ${isDarkTheme ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
                <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
             </button>
             <button 
@@ -536,21 +542,21 @@ export default function LiveRoomDetail() {
             initial={{ x: 300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 300, opacity: 0 }}
             className="fixed top-24 right-6 w-80 z-50 space-y-4"
           >
-            <div className="p-4 bg-[#0A0F1D]/90 backdrop-blur-2xl border border-brand/30 rounded-2xl">
+            <div className="p-4 bg-white/90 backdrop-blur-2xl border border-brand/20 rounded-2xl shadow-2xl shadow-brand/10">
                <div className="flex items-center justify-between mb-4">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-brand">Entry Requests ({pendingRequests.length})</h4>
                   <Shield className="w-3 h-3 text-brand" />
                </div>
                <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
                   {pendingRequests.map((req) => (
-                    <div key={req.socketId} className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between gap-3">
+                    <div key={req.socketId} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3 shadow-sm">
                        <div className="flex items-center gap-2 min-w-0">
-                          <img src={req.user.profileImage || 'https://via.placeholder.com/40'} className="w-8 h-8 rounded-full border border-white/10" alt="avatar" />
-                          <span className="text-xs font-black text-white truncate">{req.user.username}</span>
+                          <img src={req.user.profileImage || 'https://via.placeholder.com/40'} className="w-8 h-8 rounded-full border border-slate-200" alt="avatar" />
+                          <span className="text-xs font-black text-slate-800 truncate">{req.user.username}</span>
                        </div>
                        <div className="flex gap-1 shrink-0">
-                          <button onClick={() => handleApproveEntry(req.socketId)} className="p-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500 transition-all hover:text-white"><Send className="w-3 h-3 rotate-[-45deg]" /></button>
-                          <button onClick={() => handleDenyEntry(req.socketId)} className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500 transition-all hover:text-white"><X className="w-3 h-3" /></button>
+                          <button onClick={() => handleApproveEntry(req.socketId)} className="p-2 rounded-lg bg-green-500/10 text-green-600 hover:bg-green-500 transition-all hover:text-white"><Send className="w-3 h-3 rotate-[-45deg]" /></button>
+                          <button onClick={() => handleDenyEntry(req.socketId)} className="p-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500 transition-all hover:text-white"><X className="w-3 h-3" /></button>
                        </div>
                     </div>
                   ))}
@@ -562,66 +568,117 @@ export default function LiveRoomDetail() {
 
       <div className="flex-1 flex overflow-hidden relative">
         
-        <main className="flex-1 p-3 md:p-6 overflow-y-auto custom-scrollbar">
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
-              
-              {/* Local User Card */}
-              <motion.div 
-                layout
-                className="relative aspect-[4/3] md:aspect-video rounded-3xl md:rounded-[2rem] overflow-hidden bg-slate-900/50 border-2 border-brand/30 group"
-              >
-                 <video 
-                   ref={localVideoRef} 
-                   autoPlay muted playsInline
-                   className={`w-full h-full object-cover transition-transform duration-700 ${isVideoOff ? 'opacity-0' : 'opacity-100'}`} 
-                 />
-                 
-                 <AnimatePresence>
-                   {activeReactions[socket.id] && <ReactionFloating key={Date.now()} emoji={activeReactions[socket.id]} />}
-                 </AnimatePresence>
+        <main className="flex-1 overflow-hidden flex flex-col relative z-10">
+           
+           {focusedVideo ? (
+             <div className="w-full h-full flex flex-col lg:flex-row gap-4 overflow-hidden p-3 md:p-6">
+                 {/* Main Focused Video */}
+                <div className={`flex-1 h-full min-h-[40vh] lg:min-h-0 relative rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-2xl transition-colors duration-500 ${isDarkTheme ? 'bg-[#0A0F1D] border-white/5 shadow-black/50' : 'bg-slate-200 border-white/10'}`}>
+                   {focusedVideo === 'local' ? (
+                     <motion.div 
+                       layoutId="local-video"
+                       onClick={() => setFocusedVideo(null)}
+                       className="w-full h-full relative group cursor-pointer"
+                     >
+                        <video ref={localVideoRef} autoPlay muted playsInline className={`w-full h-full object-cover transition-all duration-700 ${isVideoOff ? 'opacity-0' : 'opacity-100'}`} />
+                        <AnimatePresence>{activeReactions[socket.id] && <ReactionFloating key={Date.now()} emoji={activeReactions[socket.id]} />}</AnimatePresence>
+                        {isVideoOff && (
+                           <div className="absolute inset-0 flex items-center justify-center bg-slate-300">
+                              <div className="w-24 h-24 rounded-full bg-white/50 border border-white/20 flex items-center justify-center text-4xl font-black text-slate-600">{user?.username?.[0]?.toUpperCase() || '?'}</div>
+                           </div>
+                        )}
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/50">
+                           <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">You</span>
+                           <div className="flex items-center gap-1.5 border-l border-slate-300 pl-2">
+                             {isMuted && <MicOff className="w-3 h-3 text-red-500" />}
+                             {isHandRaised && <Hand className="w-3 h-3 text-amber-500 animate-bounce" />}
+                           </div>
+                        </div>
+                     </motion.div>
+                   ) : (
+                     Object.entries(remoteStreams).filter(([id]) => id === focusedVideo).map(([socketId, stream]) => (
+                        <RemoteVideo key={socketId} layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={true} onClick={() => setFocusedVideo(null)} />
+                     ))
+                   )}
+                </div>
 
-                 {isVideoOff && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 to-[#0A0F1D]">
-                       <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center text-3xl md:text-4xl font-black text-brand">
-                          {user?.username?.[0]?.toUpperCase() || '?'}
-                       </div>
-                    </div>
-                 )}
-                 
-                 <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-xl md:rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10">
-                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/90">You</span>
-                    <div className="flex items-center gap-1.5 border-l border-white/10 pl-2">
-                      {isMuted && <MicOff className="w-2.5 md:w-3 h-2.5 md:h-3 text-red-500" />}
-                      {isHandRaised && <Hand className="w-2.5 md:w-3 h-2.5 md:h-3 text-brand animate-bounce" />}
-                    </div>
-                 </div>
+                {/* Sidebar / Bottom Row for others */}
+                <div className="w-full lg:w-72 shrink-0 flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto custom-scrollbar pb-2 lg:pb-0">
+                   {focusedVideo !== 'local' && (
+                     <motion.div 
+                       layoutId="local-video"
+                       onClick={() => setFocusedVideo('local')}
+                       className="relative aspect-video w-[200px] lg:w-full shrink-0 rounded-2xl overflow-hidden bg-slate-200 border border-white/5 hover:border-white/20 transition-all cursor-pointer group shadow-xl"
+                     >
+                        <video ref={localVideoRef} autoPlay muted playsInline className={`w-full h-full object-cover ${isVideoOff ? 'opacity-0' : 'opacity-100'}`} />
+                        {isVideoOff && (
+                           <div className="absolute inset-0 flex items-center justify-center bg-slate-300">
+                              <div className="w-12 h-12 rounded-full bg-white/50 border border-white/20 flex items-center justify-center text-xl font-black text-slate-600">{user?.username?.[0]?.toUpperCase() || '?'}</div>
+                           </div>
+                        )}
+                        <div className="absolute bottom-2 left-2 flex items-center gap-2 px-2 py-1 rounded-xl bg-white/80 backdrop-blur-xl border border-white/50">
+                           <span className="text-[8px] font-black uppercase tracking-widest text-slate-700">You</span>
+                        </div>
+                     </motion.div>
+                   )}
+                   {Object.entries(remoteStreams).filter(([id]) => id !== focusedVideo).map(([socketId, stream]) => (
+                     <div key={socketId} className="w-[200px] lg:w-full shrink-0">
+                       <RemoteVideo layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={false} onClick={() => setFocusedVideo(socketId)} />
+                     </div>
+                   ))}
+                </div>
+             </div>
+           ) : (
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-max overflow-y-auto custom-scrollbar h-full p-4">
+                
+                 {/* Local User Card */}
+                <motion.div 
+                  layoutId="local-video"
+                  onClick={() => setFocusedVideo('local')}
+                  className={`relative aspect-[4/3] md:aspect-video rounded-3xl md:rounded-[2rem] overflow-hidden transition-all cursor-pointer group shadow-xl ${isDarkTheme ? 'bg-slate-900/50 border-white/5 hover:border-white/20 shadow-black/50' : 'bg-slate-200 border-white/20 hover:border-slate-300 shadow-slate-200/50'}`}
+                >
+                   <video ref={localVideoRef} autoPlay muted playsInline className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02] ${isVideoOff ? 'opacity-0' : 'opacity-100'}`} />
+                   
+                   <AnimatePresence>
+                     {activeReactions[socket.id] && <ReactionFloating key={Date.now()} emoji={activeReactions[socket.id]} />}
+                   </AnimatePresence>
 
-                 <div className="absolute top-3 md:top-4 right-3 md:right-4 flex gap-2">
-                    <AnimatePresence>
-                      {isHandRaised && (
-                        <motion.div 
-                          initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
-                          className="px-2 md:px-3 py-1 rounded-full bg-brand text-white text-[7px] md:text-[8px] font-black uppercase flex items-center gap-1 shadow-lg shadow-brand/40"
-                        >
-                          <Hand className="w-2 md:w-2.5 h-2 md:h-2.5" /> Hand Raised
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                 </div>
-              </motion.div>
+                   {isVideoOff && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-300">
+                         <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/50 border border-white flex items-center justify-center text-3xl md:text-4xl font-black text-slate-500 shadow-inner">
+                            {user?.username?.[0]?.toUpperCase() || '?'}
+                         </div>
+                      </div>
+                   )}
+                   
+                   <div className={`absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-2xl backdrop-blur-xl border transition-colors duration-500 ${isDarkTheme ? 'bg-black/60 border-white/10' : 'bg-white/80 border-white/50'}`}>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${isDarkTheme ? 'text-slate-300 group-hover:text-white' : 'text-slate-800'}`}>You</span>
+                      <div className={`flex items-center gap-1.5 border-l pl-2 ${isDarkTheme ? 'border-white/10' : 'border-slate-300'}`}>
+                        {isMuted && <MicOff className="w-3 h-3 text-red-500/80" />}
+                        {isHandRaised && <Hand className="w-3 h-3 text-amber-500 animate-bounce" />}
+                      </div>
+                   </div>
 
-              {/* Remote Participants */}
-              <AnimatePresence>
-                {Object.entries(remoteStreams).map(([socketId, stream]) => (
-                   <RemoteVideo 
-                     key={socketId} 
-                     stream={stream} 
-                     reaction={activeReactions[socketId]}
-                     user={participantsRef.current.find(p => p.socketId === socketId)} 
-                   />
-                ))}
-              </AnimatePresence>
-           </div>
+                   <div className="absolute top-3 right-3 flex gap-2">
+                      <AnimatePresence>
+                        {isHandRaised && (
+                          <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} className="px-3 py-1 rounded-full bg-amber-500 text-white text-[8px] font-black uppercase flex items-center gap-1 shadow-lg shadow-amber-500/20">
+                            <Hand className="w-2.5 h-2.5" /> Hand Raised
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                   </div>
+                </motion.div>
+
+                {/* Remote Participants */}
+                <AnimatePresence>
+                  {Object.entries(remoteStreams).map(([socketId, stream]) => (
+                     <RemoteVideo key={socketId} layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={false} onClick={() => setFocusedVideo(socketId)} />
+                  ))}
+                </AnimatePresence>
+             </div>
+           )}
+
         </main>
 
         {/* Chat Sidebar */}
@@ -630,34 +687,34 @@ export default function LiveRoomDetail() {
             <motion.div 
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-full md:w-80 lg:w-96 border-l border-white/5 bg-[#0A0F1D]/60 backdrop-blur-3xl flex flex-col z-30 absolute right-0 inset-y-0"
+              className={`w-full md:w-80 lg:w-96 backdrop-blur-3xl flex flex-col z-50 absolute right-0 inset-y-0 shadow-2xl transition-colors duration-500 border-l ${isDarkTheme ? 'border-white/5 bg-[#0A0F1D]/80 shadow-black/50' : 'border-slate-200 bg-white/90 shadow-slate-300/50'}`}
             >
-              <div className="p-4 md:p-6 border-b border-white/5 flex items-center justify-between">
+              <div className={`p-4 md:p-6 border-b flex items-center justify-between transition-colors duration-500 ${isDarkTheme ? 'border-white/5 bg-[#0A0F1D]/40' : 'border-slate-100 bg-white/40'}`}>
                 <div className="flex items-center gap-3">
-                   <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand">
+                   <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-brand/10 flex items-center justify-center text-brand shadow-sm shadow-brand/10">
                       <MessageSquare className="w-3.5 h-3.5 md:w-4 md:h-4" />
                    </div>
-                   <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Live Chat</span>
+                   <span className={`text-[10px] md:text-xs font-black uppercase tracking-widest ${isDarkTheme ? 'text-white' : 'text-slate-800'}`}>Live Chat</span>
                 </div>
-                <button onClick={() => setShowChat(false)} className="p-1.5 md:p-2 rounded-lg hover:bg-white/5 text-slate-500">
+                <button onClick={() => setShowChat(false)} className={`p-1.5 md:p-2 rounded-lg transition-colors ${isDarkTheme ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 custom-scrollbar">
                 {messages.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-600 text-center space-y-4">
-                    <MessageSquare className="w-8 h-8 md:w-12 md:h-12 opacity-10" />
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center space-y-4">
+                    <MessageSquare className="w-8 h-8 md:w-12 md:h-12 opacity-20" />
                     <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest">No messages yet.</p>
                   </div>
                 )}
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex flex-col ${msg.sender === user.username ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[7px] md:text-[8px] font-black uppercase tracking-tighter text-slate-500 mb-1 ml-1">{msg.sender}</span>
-                    <div className={`max-w-[90%] md:max-w-[85%] px-3 md:px-4 py-2 md:py-2.5 rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-medium ${
+                    <span className="text-[7px] md:text-[8px] font-black uppercase tracking-tighter text-slate-400 mb-1 ml-1">{msg.sender}</span>
+                    <div className={`max-w-[90%] md:max-w-[85%] px-3 md:px-4 py-2 md:py-2.5 rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-medium shadow-sm transition-colors duration-500 ${
                       msg.sender === user.username 
-                      ? 'bg-brand text-white rounded-tr-none' 
-                      : 'bg-white/5 text-slate-300 rounded-tl-none border border-white/5'
+                      ? 'bg-brand text-white rounded-tr-none shadow-brand/20' 
+                      : isDarkTheme ? 'bg-white/10 border border-white/5 text-slate-200 rounded-tl-none' : 'bg-slate-100 border border-slate-200 text-slate-700 rounded-tl-none'
                     }`}>
                       {msg.text}
                     </div>
@@ -666,14 +723,14 @@ export default function LiveRoomDetail() {
                 <div ref={chatEndRef} />
               </div>
 
-              <form onSubmit={handleSendMessage} className="p-4 md:p-6 border-t border-white/5">
-                <div className="relative">
+              <form onSubmit={handleSendMessage} className={`p-4 md:p-6 border-t transition-colors duration-500 ${isDarkTheme ? 'border-white/5 bg-[#0A0F1D]/40' : 'border-slate-100 bg-white/40'}`}>
+                <div className={`relative shadow-sm rounded-xl md:rounded-2xl transition-colors duration-500 ${isDarkTheme ? 'shadow-black/50' : 'shadow-slate-200/50'}`}>
                   <input 
                     type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Message..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-5 py-2.5 md:py-3.5 pr-10 md:pr-12 text-[10px] md:text-xs focus:outline-none focus:border-brand/50 placeholder:text-slate-600"
+                    className={`w-full border rounded-xl md:rounded-2xl px-4 md:px-5 py-2.5 md:py-3.5 pr-10 md:pr-12 text-[10px] md:text-xs focus:outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/10 transition-all ${isDarkTheme ? 'bg-[#050811] border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'}`}
                   />
-                  <button type="submit" className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-lg md:rounded-xl bg-brand text-white">
+                  <button type="submit" className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-lg md:rounded-xl bg-brand text-white shadow-md hover:bg-brand/90 transition-colors">
                     <Send className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   </button>
                 </div>
@@ -683,48 +740,58 @@ export default function LiveRoomDetail() {
         </AnimatePresence>
       </div>
 
-      {/* Bottom Control Bar */}
-      <footer className="h-20 md:h-24 border-t border-white/5 bg-[#0A0F1D]/90 backdrop-blur-3xl flex items-center justify-center gap-3 md:gap-6 shrink-0 z-20">
+      {/* Floating Control Pill */}
+      <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 rounded-[2rem] border backdrop-blur-xl shadow-2xl flex items-center justify-center gap-2 md:gap-3 z-40 transition-colors duration-500 ${isDarkTheme ? 'border-white/10 bg-[#0A0F1D]/80 shadow-black/50' : 'border-white/60 bg-white/70 shadow-slate-300/50'}`}>
+         
+         <button 
+           onClick={() => setIsDarkTheme(!isDarkTheme)}
+           className={`p-3 md:p-3.5 rounded-full transition-all shadow-sm ${isDarkTheme ? 'bg-white/5 text-slate-300 hover:bg-white/10 hover:shadow-md' : 'bg-slate-100/80 text-slate-600 hover:bg-white hover:shadow-md'}`}
+         >
+            {isDarkTheme ? <Sun className="w-5 h-5 md:w-5 md:h-5 text-amber-400" /> : <Moon className="w-5 h-5 md:w-5 md:h-5 text-slate-600" />}
+         </button>
+         
+         <div className={`w-[1px] h-6 mx-1 md:mx-2 transition-colors duration-500 ${isDarkTheme ? 'bg-white/10' : 'bg-slate-300/50'}`} />
+
          <button 
            onClick={() => setIsMuted(!isMuted)}
-           className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-white/5 text-slate-300'}`}
+           className={`p-3 md:p-3.5 rounded-full transition-all shadow-sm ${isMuted ? 'bg-red-500 text-white shadow-red-500/30' : isDarkTheme ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-slate-100/80 text-slate-600 hover:bg-white'}`}
          >
-            {isMuted ? <MicOff className="w-5 h-5 md:w-6 md:h-6" /> : <Mic className="w-5 h-5 md:w-6 md:h-6" />}
+            {isMuted ? <MicOff className="w-5 h-5 md:w-5 md:h-5" /> : <Mic className="w-5 h-5 md:w-5 md:h-5" />}
          </button>
 
          <button 
            onClick={() => setIsVideoOff(!isVideoOff)}
-           className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all ${isVideoOff ? 'bg-red-500 text-white' : 'bg-white/5 text-slate-300'}`}
+           className={`p-3 md:p-3.5 rounded-full transition-all shadow-sm ${isVideoOff ? 'bg-red-500 text-white shadow-red-500/30' : isDarkTheme ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-slate-100/80 text-slate-600 hover:bg-white'}`}
          >
-            {isVideoOff ? <VideoOff className="w-5 h-5 md:w-6 md:h-6" /> : <Video className="w-5 h-5 md:w-6 md:h-6" />}
+            {isVideoOff ? <VideoOff className="w-5 h-5 md:w-5 md:h-5" /> : <Video className="w-5 h-5 md:w-5 md:h-5" />}
          </button>
 
-         <div className="w-[1px] h-8 md:h-10 bg-white/10 mx-1 md:mx-2" />
+         <div className={`w-[1px] h-6 mx-1 md:mx-2 transition-colors duration-500 ${isDarkTheme ? 'bg-white/10' : 'bg-slate-300/50'}`} />
 
          <button 
            onClick={toggleHand}
-           className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all ${isHandRaised ? 'bg-brand text-white' : 'bg-white/5 text-slate-300'}`}
+           className={`p-3 md:p-3.5 rounded-full transition-all shadow-sm ${isHandRaised ? 'bg-amber-500 text-white shadow-amber-500/30' : isDarkTheme ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-slate-100/80 text-slate-600 hover:bg-white'}`}
          >
-            <Hand className={`w-5 h-5 md:w-6 md:h-6 ${isHandRaised ? 'animate-bounce' : ''}`} />
+            <Hand className={`w-5 h-5 md:w-5 md:h-5 ${isHandRaised ? 'animate-bounce' : ''}`} />
          </button>
 
          <div className="relative">
             <button 
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all ${showEmojiPicker ? 'bg-brand text-white' : 'bg-white/5 text-slate-300'}`}
+              className={`p-3 md:p-3.5 rounded-full transition-all shadow-sm ${showEmojiPicker ? 'bg-brand text-white shadow-brand/30' : isDarkTheme ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-slate-100/80 text-slate-600 hover:bg-white'}`}
             >
-               <Smile className="w-5 h-5 md:w-6 md:h-6" />
+               <Smile className="w-5 h-5 md:w-5 md:h-5" />
             </button>
             <AnimatePresence>
               {showEmojiPicker && (
                 <motion.div 
                   initial={{ y: 20, opacity: 0, scale: 0.8 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 20, opacity: 0, scale: 0.8 }}
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 p-2 md:p-3 rounded-2xl md:rounded-3xl bg-[#0A0F1D]/90 backdrop-blur-2xl border border-white/10 grid grid-cols-4 gap-1 md:gap-2 shadow-2xl z-50"
+                  className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 p-2 md:p-3 rounded-2xl md:rounded-3xl backdrop-blur-2xl grid grid-cols-4 gap-1 md:gap-2 shadow-2xl z-50 transition-colors duration-500 ${isDarkTheme ? 'bg-[#0A0F1D]/90 border border-white/10 shadow-black/50' : 'bg-white/90 border border-slate-200/60 shadow-slate-200/50'}`}
                 >
                    {EMOJIS.map(emoji => (
                      <button 
                        key={emoji} onClick={() => handleSendReaction(emoji)}
-                       className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-white/5 rounded-lg md:rounded-xl transition-all text-base md:text-xl"
+                       className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg md:rounded-xl transition-all text-base md:text-xl ${isDarkTheme ? 'hover:bg-white/5' : 'hover:bg-slate-100'}`}
                      >
                         {emoji}
                      </button>
@@ -736,17 +803,16 @@ export default function LiveRoomDetail() {
 
          <button 
            onClick={() => setShowChat(!showChat)}
-           className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all relative ${showChat ? 'bg-brand text-white' : 'bg-white/5 text-slate-300'}`}
+           className={`p-3 md:p-3.5 rounded-full transition-all relative shadow-sm ${showChat ? 'bg-brand text-white shadow-brand/30' : isDarkTheme ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-slate-100/80 text-slate-600 hover:bg-white'}`}
          >
-            <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
-            {!showChat && messages.length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-[#0A0F1D]" />}
+            <MessageSquare className="w-5 h-5 md:w-5 md:h-5" />
+            {!showChat && messages.length > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white shadow-sm" />}
          </button>
-      </footer>
+      </div>
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.1); }
         @media (max-width: 768px) {
           .custom-scrollbar::-webkit-scrollbar { width: 2px; }
