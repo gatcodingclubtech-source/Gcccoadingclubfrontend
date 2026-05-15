@@ -213,6 +213,7 @@ export default function Home({ theme }) {
   const [activeTab, setActiveTab] = useState('events');
   const [banners, setBanners] = useState([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
+  const [events, setEvents] = useState([]);
   const [domains, setDomains] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [domainsLoading, setDomainsLoading] = useState(true);
@@ -254,8 +255,10 @@ export default function Home({ theme }) {
   const fetchEvents = async () => {
     try {
       const res = await axios.get('/api/events');
-      if (res.data.success) {
+      if (res.data.success && Array.isArray(res.data.events)) {
         setEvents(res.data.events);
+      } else {
+        setEvents([]);
       }
     } catch (err) {
       console.error('Error fetching events', err);
