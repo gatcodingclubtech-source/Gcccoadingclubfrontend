@@ -20,22 +20,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @desc    Get single domain
-// @route   GET /api/domains/:id
-// @access  Public
-router.get('/:id', async (req, res) => {
-  try {
-    const domain = await Domain.findOne({ slug: req.params.id }) || await Domain.findById(req.params.id);
-    if (domain) {
-      res.json({ success: true, domain });
-    } else {
-      res.status(404).json({ success: false, message: 'Domain not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
 // @desc    Get current user's domain applications
 // @route   GET /api/domains/my-applications
 // @access  Private
@@ -62,6 +46,25 @@ router.post('/', protect, adminOnly, async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+
+
+// @desc    Get single domain
+// @route   GET /api/domains/:id
+// @access  Public
+router.get('/:id', async (req, res) => {
+  try {
+    const domain = await Domain.findOne({ slug: req.params.id }) || await Domain.findById(req.params.id);
+    if (domain) {
+      res.json({ success: true, domain });
+    } else {
+      res.status(404).json({ success: false, message: 'Domain not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 
 // @desc    Update domain
 // @route   PUT /api/domains/:id
