@@ -26,7 +26,13 @@ const RemoteVideo = ({ peer, user, reaction }) => {
 
   useEffect(() => {
     peer.on("stream", (stream) => {
-      if (ref.current) ref.current.srcObject = stream;
+      if (ref.current) {
+        ref.current.srcObject = stream;
+        // Ensure video plays
+        ref.current.onloadedmetadata = () => {
+          ref.current.play().catch(e => console.error("Video play failed", e));
+        };
+      }
     });
   }, [peer]);
 
@@ -80,9 +86,19 @@ export default function LiveRoomDetail() {
   
   const [peers, setPeers] = useState([]);
   const peersRef = useRef([]);
+  const participantsRef = useRef([]);
   const localVideoRef = useRef();
   const chatEndRef = useRef();
   const localStreamRef = useRef();
+
+  // STUN Servers for WebRTC
+  const iceServers = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+    ]
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -95,7 +111,9 @@ export default function LiveRoomDetail() {
         socket.emit('join-live-room', { roomId: id, user });
 
         socket.on('room-participants', (users) => {
-          setParticipants(users.filter(u => u.socketId !== socket.id));
+          const others = users.filter(u => u.socketId !== socket.id);
+          participantsRef.current = others;
+          setParticipants(others);
         });
 
         socket.on('user-joined', ({ socketId, user: joinedUser }) => {
@@ -106,7 +124,7 @@ export default function LiveRoomDetail() {
 
         socket.on('call-made', ({ signal, from }) => {
           const peer = addPeer(signal, from, stream);
-          const callingUser = participants.find(p => p.socketId === from) || { username: 'Participant' };
+          const callingUser = participantsRef.current.find(p => p.socketId === from) || { username: 'Participant' };
           peersRef.current.push({ peerID: from, peer, user: callingUser });
           setPeers(prev => [...prev, { peerID: from, peer, user: callingUser }]);
         });
@@ -169,7 +187,12 @@ export default function LiveRoomDetail() {
   }, [id, user]);
 
   function createPeer(userToCall, callerID, stream) {
-    const peer = new Peer({ initiator: true, trickle: false, stream });
+    const peer = new Peer({ 
+      initiator: true, 
+      trickle: false, 
+      stream,
+      config: iceServers
+    });
     peer.on("signal", signal => {
       socket.emit("call-user", { to: userToCall, from: callerID, signal });
     });
@@ -177,7 +200,12 @@ export default function LiveRoomDetail() {
   }
 
   function addPeer(incomingSignal, callerID, stream) {
-    const peer = new Peer({ initiator: false, trickle: false, stream });
+    const peer = new Peer({ 
+      initiator: false, 
+      trickle: false, 
+      stream,
+      config: iceServers
+    });
     peer.on("signal", signal => {
       socket.emit("answer-call", { signal, to: callerID });
     });
@@ -322,7 +350,7 @@ export default function LiveRoomDetail() {
                      key={peerObj.peerID} 
                      peer={peerObj.peer} 
                      reaction={activeReactions[peerObj.peerID]}
-                     user={participants.find(p => p.socketId === peerObj.peerID) || peerObj.user} 
+                     user={participantsRef.current.find(p => p.socketId === peerObj.peerID) || peerObj.user} 
                    />
                 ))}
               </AnimatePresence>
