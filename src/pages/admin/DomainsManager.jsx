@@ -27,7 +27,8 @@ export default function DomainsManager() {
     desc: '',
     color: 'emerald',
     slug: '',
-    icon: 'Layers'
+    icon: 'Layers',
+    questions: []
   });
 
   useEffect(() => {
@@ -59,7 +60,8 @@ export default function DomainsManager() {
         desc: '',
         color: 'emerald',
         slug: '',
-        icon: 'Layers'
+        icon: 'Layers',
+        questions: []
       });
     }
     setIsModalOpen(true);
@@ -110,6 +112,33 @@ export default function DomainsManager() {
         alert(message);
       }
     }
+  };
+
+  const addQuestion = () => {
+    setFormData({
+      ...formData,
+      questions: [
+        ...formData.questions,
+        { question: '', options: ['', '', '', ''], correctAnswer: 0 }
+      ]
+    });
+  };
+
+  const removeQuestion = (index) => {
+    const newQuestions = [...formData.questions];
+    newQuestions.splice(index, 1);
+    setFormData({ ...formData, questions: newQuestions });
+  };
+
+  const updateQuestion = (index, field, value) => {
+    const newQuestions = [...formData.questions];
+    if (field === 'option') {
+      const { optIndex, optValue } = value;
+      newQuestions[index].options[optIndex] = optValue;
+    } else {
+      newQuestions[index][field] = value;
+    }
+    setFormData({ ...formData, questions: newQuestions });
   };
 
   const colors = [
@@ -250,6 +279,77 @@ export default function DomainsManager() {
                       }`}
                     />
                   ))}
+                </div>
+              </div>
+
+              {/* Questions Section */}
+              <div className="flex flex-col gap-6 pt-6 border-t border-black/5 dark:border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Test Questions</label>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Add questions for the mandatory entry test.</p>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={addQuestion}
+                    className="px-4 py-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all flex items-center gap-2"
+                  >
+                    <Plus className="w-3 h-3" /> Add Question
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-8">
+                  {formData.questions.map((q, qIndex) => (
+                    <div key={qIndex} className="p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/10 flex flex-col gap-6 relative group/q">
+                      <button 
+                        type="button"
+                        onClick={() => removeQuestion(qIndex)}
+                        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-500 opacity-0 group-hover/q:opacity-100 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
+                      <div className="flex flex-col gap-2">
+                        <span className="text-[8px] font-black text-brand uppercase tracking-widest">Question {qIndex + 1}</span>
+                        <input 
+                          placeholder="Type your question here..."
+                          value={q.question}
+                          onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
+                          className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold outline-none focus:border-brand/50 transition-all"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {q.options.map((opt, optIndex) => (
+                          <div key={optIndex} className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[8px] font-black text-slate-400 uppercase">Option {optIndex + 1}</span>
+                              <button 
+                                type="button"
+                                onClick={() => updateQuestion(qIndex, 'correctAnswer', optIndex)}
+                                className={`text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded-md border transition-all ${q.correctAnswer === optIndex ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-black/5 text-slate-400 border-transparent hover:border-slate-300'}`}
+                              >
+                                {q.correctAnswer === optIndex ? 'Correct Answer' : 'Set Correct'}
+                              </button>
+                            </div>
+                            <input 
+                              placeholder={`Option ${optIndex + 1}`}
+                              value={opt}
+                              onChange={(e) => updateQuestion(qIndex, 'option', { optIndex, optValue: e.target.value })}
+                              className="bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/10 rounded-xl px-4 py-2 text-[10px] font-bold outline-none focus:border-brand/50 transition-all"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {formData.questions.length === 0 && (
+                    <div className="py-12 border-2 border-dashed border-black/5 dark:border-white/5 rounded-2xl flex flex-col items-center gap-3 opacity-30">
+                      <Code className="w-8 h-8" />
+                      <span className="text-[8px] font-black uppercase tracking-widest text-center px-8">No questions added yet.<br/>The test phase will be skipped if empty.</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
