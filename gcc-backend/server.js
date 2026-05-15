@@ -206,17 +206,13 @@ io.on('connection', (socket) => {
     }
   });
 
-  // WebRTC Signaling Logic
-  socket.on('offer', (data) => {
-    socket.to(data.target).emit('offer', { offer: data.offer, sender: socket.id });
+  // WebRTC Signaling Logic for simple-peer
+  socket.on('call-user', ({ to, from, signal }) => {
+    io.to(to).emit('call-made', { signal, from });
   });
 
-  socket.on('answer', (data) => {
-    socket.to(data.target).emit('answer', { answer: data.answer, sender: socket.id });
-  });
-
-  socket.on('ice-candidate', (data) => {
-    socket.to(data.target).emit('ice-candidate', { candidate: data.candidate, sender: socket.id });
+  socket.on('answer-call', ({ to, signal }) => {
+    io.to(to).emit('call-answered', { signal, from: socket.id });
   });
 
   socket.on('disconnect', () => {
