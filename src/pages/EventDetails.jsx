@@ -205,6 +205,26 @@ export default function EventDetails() {
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">Open to all students with basic coding knowledge. Please bring your laptop and high enthusiasm!</p>
                </div>
             </div>
+
+            {event.rules && (
+              <div>
+                 <h2 className="text-2xl font-black uppercase tracking-tighter mb-6 flex items-center gap-3 text-slate-900 dark:text-white">
+                    <div className="w-1 h-8 bg-red-500 rounded-full" />
+                    Rules & Regulations
+                 </h2>
+                 <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 shadow-sm flex flex-col gap-4">
+                    {event.rules.split('\n').map((rule, idx) => {
+                      if (!rule.trim()) return null;
+                      return (
+                        <div key={idx} className="flex gap-4 items-start">
+                          <div className="mt-1 min-w-[6px] w-1.5 h-1.5 rounded-full bg-red-500" />
+                          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{rule}</p>
+                        </div>
+                      );
+                    })}
+                 </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-1 flex flex-col gap-10">
