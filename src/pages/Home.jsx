@@ -593,7 +593,7 @@ export default function Home({ theme }) {
         </div>
       </div>
 
-      <section id="hero" className={`relative min-h-[100vh] flex flex-col items-center justify-center pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950 ${banners.length > 0 ? 'pt-[450px] md:pt-[10px]' : 'pt-32 md:pt-0'}`}>
+      <section id="hero" className={`relative min-h-[100vh] flex flex-col items-center justify-center pb-6 px-6 overflow-hidden bg-white dark:bg-slate-950 ${banners.length > 0 ? 'pt-[380px] md:pt-[45px]' : 'pt-32 md:pt-40'}`}>
         <div id="hero-door-l" className="hero-door hero-door-left"></div>
         <div id="hero-door-r" className="hero-door hero-door-right"></div>
         
