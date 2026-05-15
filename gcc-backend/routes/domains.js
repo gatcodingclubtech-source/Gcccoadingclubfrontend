@@ -6,6 +6,7 @@ const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
 
 const DomainRegistration = require('../models/DomainRegistration');
+const Notification = require('../models/Notification');
 
 // @desc    Get all domains
 // @route   GET /api/domains
@@ -137,7 +138,7 @@ router.post('/:id/join', protect, async (req, res) => {
 // @access  Public
 router.post('/:id/join-guest', async (req, res) => {
   try {
-    const { name, email, usn, department, year, phone } = req.body;
+    const { name, email, usn, department, year, phone, testScore, totalQuestions } = req.body;
     const domain = await Domain.findById(req.params.id);
     
     if (!domain) {
@@ -187,7 +188,9 @@ router.post('/:id/join-guest', async (req, res) => {
       usn: usn || user.usn,
       department: department || user.department,
       year: year || user.year,
-      phone: phone || user.phone
+      phone: phone || user.phone,
+      testScore: testScore || 0,
+      totalQuestions: totalQuestions || 0
     });
 
     await application.save();
@@ -243,6 +246,25 @@ router.put('/registrations/:id/decide', protect, adminOnly, async (req, res) => 
         user.joinedDomains.push(registration.domain);
         await user.save();
       }
+
+      // Create Notification
+      const domain = await Domain.findById(registration.domain);
+      await Notification.create({
+        user: registration.user,
+        title: 'Application Approved! 🎉',
+        message: `Welcome to the ${domain.title} domain! You now have full access to its resources.`,
+        type: 'DOMAIN',
+        icon: 'Layers'
+      });
+    } else if (status === 'rejected') {
+      const domain = await Domain.findById(registration.domain);
+      await Notification.create({
+        user: registration.user,
+        title: 'Application Update',
+        message: `Your application for ${domain.title} was not accepted this time. Keep building your skills and try again!`,
+        type: 'DOMAIN',
+        icon: 'XCircle'
+      });
     }
 
     res.json({ success: true, message: `Application ${status} successfully!` });

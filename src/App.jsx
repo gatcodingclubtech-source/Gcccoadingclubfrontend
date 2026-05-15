@@ -23,12 +23,11 @@ import AdminLogin from './pages/admin/AdminLogin';
 import UsersManager from './pages/admin/UsersManager';
 import EventsManager from './pages/admin/EventsManager';
 import QuizManager from './pages/admin/QuizManager';
-import DomainsManager from './pages/admin/DomainsManager';
+import DomainCentral from './pages/admin/DomainCentral';
 import TestSessionManager from './pages/admin/TestSessionManager';
 import LiveRoomsManager from './pages/admin/LiveRoomsManager';
 import RegistrationsManager from './pages/admin/RegistrationsManager';
 import ManageDiscussions from './pages/admin/ManageDiscussions';
-import DomainRegistrationsManager from './pages/admin/DomainRegistrationsManager';
 import LiveRooms from './pages/LiveRooms';
 import LiveRoomDetail from './pages/LiveRoomDetail';
 import CodingHub from './pages/CodingHub';
@@ -179,12 +178,12 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               <Route path="events" element={<EventsManager />} />
               <Route path="quiz" element={<QuizManager />} />
               <Route path="discussions" element={<ManageDiscussions />} />
-              <Route path="domains" element={<DomainsManager />} />
+              <Route path="domains" element={<DomainCentral />} />
               <Route path="live-rooms" element={<LiveRoomsManager />} />
               <Route path="test-sessions" element={<TestSessionManager />} />
               <Route path="events/:id/registrations" element={<RegistrationsManager />} />
-              <Route path="domain-apps" element={<DomainRegistrationsManager />} />
-              <Route path="domains/registrations" element={<Navigate to="/admin/domain-apps" replace />} />
+              <Route path="domain-apps" element={<Navigate to="/admin/domains" replace />} />
+              <Route path="domains/registrations" element={<Navigate to="/admin/domains" replace />} />
             </Route>
 
             <Route path="/admin-login" element={<AdminLogin />} />

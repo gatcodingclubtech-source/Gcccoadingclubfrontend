@@ -23,7 +23,6 @@ export default function AdminLayout() {
     { name: 'Live Rooms', path: '/admin/live-rooms', icon: <Video className="w-5 h-5" /> },
     { name: 'Quiz', path: '/admin/quiz', icon: <HelpCircle className="w-5 h-5" /> },
     { name: 'Domains', path: '/admin/domains', icon: <Layers className="w-5 h-5" /> },
-    { name: 'Domain Apps', path: '/admin/domain-apps', icon: <CheckCircle2 className="w-5 h-5" /> },
     { name: 'Live Tests', path: '/admin/test-sessions', icon: <ExternalLink className="w-5 h-5" /> },
   ];
 

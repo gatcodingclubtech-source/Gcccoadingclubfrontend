@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Search, Mail, Phone, User, 
   CheckCircle2, XCircle, Clock, Filter,
-  Layers, Download, ChevronRight, Briefcase, GraduationCap
+  Users, Search, Plus, Edit2, Trash2, 
+  Download, Layout, Settings, Activity,
+  MoreVertical, Check, X, User, GraduationCap, Layers, Phone,
+  ChevronDown, ChevronUp, Mail, Calendar, Trophy
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -13,6 +15,7 @@ export default function DomainRegistrationsManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('pending');
   const [processingId, setProcessingId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     fetchRegistrations();
@@ -139,107 +142,151 @@ export default function DomainRegistrationsManager() {
         </div>
       </div>
 
-      {/* Applications Table */}
-      <div className="glass-panel overflow-hidden border border-black/5 dark:border-white/5 shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px] text-left">
-            <thead>
-              <tr className="border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Applicant</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Domain</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Education/Contact</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/5 dark:divide-white/5">
-              {loading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan="5" className="px-8 py-6">
-                      <div className="h-10 bg-black/5 dark:bg-white/5 rounded-xl w-full" />
-                    </td>
-                  </tr>
-                ))
-              ) : filteredRegistrations.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="px-8 py-24 text-center">
-                    <div className="flex flex-col items-center gap-4 opacity-30">
-                      <Users className="w-12 h-12" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em]">No applications found</span>
+      {/* Applications List (Expandable Cards) */}
+      <div className="flex flex-col gap-6">
+        {loading ? (
+          Array(3).fill(0).map((_, i) => (
+            <div key={i} className="glass-panel h-24 animate-pulse bg-black/5 dark:bg-white/5 rounded-2xl" />
+          ))
+        ) : filteredRegistrations.length === 0 ? (
+          <div className="glass-panel py-24 text-center border border-black/5 dark:border-white/5 shadow-2xl">
+            <div className="flex flex-col items-center gap-4 opacity-30">
+              <Users className="w-12 h-12" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">No applications found</span>
+            </div>
+          </div>
+        ) : (
+          filteredRegistrations.map((reg) => (
+            <div 
+              key={reg._id} 
+              className={`glass-panel border transition-all duration-500 overflow-hidden ${
+                expandedId === reg._id 
+                  ? 'border-brand/40 shadow-2xl shadow-brand/10 ring-1 ring-brand/20 scale-[1.01]' 
+                  : 'border-black/5 dark:border-white/5 hover:border-black/20 dark:hover:border-white/20'
+              }`}
+            >
+              {/* Summary Header (Clickable) */}
+              <div 
+                onClick={() => setExpandedId(expandedId === reg._id ? null : reg._id)}
+                className="p-6 md:p-8 flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 border border-black/5 dark:border-white/5 overflow-hidden shadow-inner group-hover:scale-110 transition-transform duration-500">
+                     {reg.user?.avatar ? <img src={reg.user.avatar} className="w-full h-full object-cover" /> : <User className="w-7 h-7" />}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[13px] font-black uppercase text-slate-900 dark:text-white tracking-tight">{reg.name}</span>
+                      {getStatusBadge(reg.status)}
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredRegistrations.map((reg) => (
-                  <tr key={reg._id} className="group hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-all">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 border border-black/5 dark:border-white/5">
-                           {reg.user?.avatar ? <img src={reg.user.avatar} className="w-full h-full object-cover rounded-2xl" /> : <User className="w-6 h-6" />}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[11px] font-black uppercase text-slate-900 dark:text-white">{reg.name}</span>
-                          <span className="text-[9px] text-slate-500 lowercase">{reg.email}</span>
-                        </div>
+                    <div className="flex items-center gap-2">
+                       <div className={`w-2 h-2 rounded-full bg-${reg.domain?.color || 'emerald'}-500 shadow-[0_0_8px_rgba(var(--color-brand),0.5)]`} />
+                       <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">{reg.domain?.title}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-8">
+                  <div className="hidden md:flex flex-col items-end">
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Applied On</span>
+                    <span className="text-[11px] font-black uppercase text-slate-900 dark:text-white tracking-tighter">{new Date(reg.appliedAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className={`p-3 rounded-xl bg-black/5 dark:bg-white/5 text-slate-400 group-hover:text-brand transition-all ${expandedId === reg._id ? 'rotate-180 bg-brand/10 text-brand' : ''}`}>
+                    <ChevronDown className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Expanded Content (Drawer) */}
+              {expandedId === reg._id && (
+                <div className="px-5 md:px-8 pb-8 animate-in slide-in-from-top-4 duration-500">
+                  <div className="pt-8 border-t border-black/5 dark:border-white/5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                    {/* Education */}
+                    <div className="flex flex-col gap-3">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Education Details</span>
+                      <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
+                        <GraduationCap className="w-4 h-4 text-brand" />
+                        <span className="text-[11px] font-black uppercase tracking-tight">{reg.usn}</span>
                       </div>
-                    </td>
-                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-3 text-slate-500">
+                        <Layout className="w-4 h-4" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">{reg.department} • {reg.year}</span>
+                      </div>
+                    </div>
+
+                    {/* Test Results */}
+                    <div className="flex flex-col gap-3">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Test Results</span>
                       <div className="flex items-center gap-3">
-                         <div className={`w-8 h-8 rounded-lg bg-${reg.domain?.color}-500/10 flex items-center justify-center text-${reg.domain?.color}-500 border border-${reg.domain?.color}-500/20`}>
-                            <Layers className="w-4 h-4" />
-                         </div>
-                         <div className="flex flex-col">
-                            <span className="text-[11px] font-black uppercase text-slate-900 dark:text-white">{reg.domain?.title}</span>
-                            <span className="text-[9px] text-slate-400 uppercase tracking-tighter">Applied: {new Date(reg.appliedAt).toLocaleDateString()}</span>
-                         </div>
+                        <Trophy className="w-5 h-5 text-amber-500" />
+                        <div className="flex flex-col">
+                          <span className="text-[14px] font-black text-slate-900 dark:text-white leading-none">
+                            {reg.testScore} / {reg.totalQuestions}
+                          </span>
+                          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                            Accuracy: {reg.totalQuestions > 0 ? Math.round((reg.testScore / reg.totalQuestions) * 100) : 0}%
+                          </span>
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-8 py-6">
-                       <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                             <GraduationCap className="w-3 h-3 text-slate-400" />
-                             <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase">{reg.usn} • {reg.department}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                             <Phone className="w-3 h-3 text-slate-400" />
-                             <span className="text-[9px] font-medium text-slate-500">{reg.phone}</span>
-                          </div>
-                       </div>
-                    </td>
-                    <td className="px-8 py-6">
-                       {getStatusBadge(reg.status)}
-                    </td>
-                    <td className="px-8 py-6 text-right">
+                      <div className="h-1.5 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden mt-1">
+                         <div 
+                           className={`h-full transition-all duration-1000 ${reg.testScore / reg.totalQuestions > 0.7 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                           style={{ width: `${reg.totalQuestions > 0 ? (reg.testScore / reg.totalQuestions) * 100 : 0}%` }}
+                         />
+                      </div>
+                    </div>
+
+                    {/* Contact */}
+                    <div className="flex flex-col gap-3">
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Contact Info</span>
+                      <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
+                        <Mail className="w-4 h-4 text-brand" />
+                        <span className="text-[11px] font-bold tracking-tight lowercase">{reg.email}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-slate-500">
+                        <Phone className="w-4 h-4" />
+                        <span className="text-[11px] font-bold tracking-widest">{reg.phone}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col justify-end sm:col-span-1 lg:col-span-1">
                       {reg.status === 'pending' ? (
-                        <div className="flex items-center justify-end gap-2">
-                           <button 
-                             onClick={() => handleDecision(reg._id, 'approved')}
-                             disabled={processingId === reg._id}
-                             className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 transition-all active:scale-95 shadow-sm"
-                             title="Approve Application"
-                           >
-                             <CheckCircle2 className="w-4 h-4" />
-                           </button>
-                           <button 
-                             onClick={() => handleDecision(reg._id, 'rejected')}
-                             disabled={processingId === reg._id}
-                             className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 transition-all active:scale-95 shadow-sm"
-                             title="Reject Application"
-                           >
-                             <XCircle className="w-4 h-4" />
-                           </button>
+                        <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+                          <button 
+                            onClick={() => handleDecision(reg._id, 'approved')}
+                            disabled={processingId === reg._id}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                          >
+                            <CheckCircle2 className="w-4 h-4" /> Approve
+                          </button>
+                          <button 
+                            onClick={() => handleDecision(reg._id, 'rejected')}
+                            disabled={processingId === reg._id}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-red-500 text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                          >
+                            <XCircle className="w-4 h-4" /> Reject
+                          </button>
                         </div>
                       ) : (
-                        <span className="text-[9px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.2em]">PROCESSED</span>
+                        <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-[7px] font-black uppercase text-slate-400 tracking-widest">Final Status</span>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${reg.status === 'approved' ? 'text-emerald-500' : 'text-red-500'}`}>{reg.status}</span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-[7px] font-black uppercase text-slate-400 tracking-widest">Processed On</span>
+                            <span className="text-[9px] font-black uppercase text-slate-900 dark:text-white">{new Date(reg.decidedAt || reg.updatedAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
                       )}
-                    </td>
-                  </tr>
-                ))
+                    </div>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

@@ -25,6 +25,11 @@ const domainSchema = new mongoose.Schema(
       type: String,
       default: 'emerald',
     },
+    questions: [{
+      question: String,
+      options: [String],
+      correctAnswer: Number // Index of the correct option
+    }],
     isActive: {
       type: Boolean,
       default: true,

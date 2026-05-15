@@ -24,6 +24,14 @@ const domainRegistrationSchema = new mongoose.Schema(
     department: String,
     year: String,
     phone: String,
+    testScore: {
+      type: Number,
+      default: 0
+    },
+    totalQuestions: {
+      type: Number,
+      default: 0
+    },
     appliedAt: {
       type: Date,
       default: Date.now,
