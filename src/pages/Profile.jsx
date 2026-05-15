@@ -5,14 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import { 
   User, Mail, Hash, BookOpen, Calendar, 
   ShieldCheck, Award, Settings, LogOut, 
-  ChevronRight, Terminal, ExternalLink,
+  ChevronRight, Terminal, ExternalLink, ArrowRight,
   Code2, Zap, Trophy, Heart, Activity,
   Globe, Cpu, Star, Briefcase, GraduationCap,
   Layout, Fingerprint, Rocket, Swords, Code, Camera
 } from 'lucide-react';
 import ImageUpload from '../components/ImageUpload';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 
 const getTimelineIcon = (iconName) => {
@@ -443,131 +443,107 @@ export default function Profile() {
 
             {/* Right Column: Activity & Navigation */}
             <div className="lg:col-span-8 flex flex-col gap-8">
-               
-               {/* Activity Node */}
-               <div className="profile-reveal glass-panel p-6 md:p-12 rounded-[2.5rem] border-black/5 dark:border-white/10 min-h-[600px] flex flex-col gap-8 md:gap-10 bg-white dark:bg-slate-900">
-                  <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex flex-col gap-1">
-                      <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3 leading-none">
-                        <Layout className="w-6 h-6 text-emerald-500" /> Activity Node
-                      </h2>
-                      <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Real-time engagement timeline</span>
+                             {/* Active Nodes: Data-Driven Redesign */}
+               <div className="profile-reveal flex flex-col gap-10">
+                  
+                  {/* Events Sector */}
+                  <div className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between px-2">
+                       <div className="flex flex-col gap-1">
+                          <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+                            Joined <span className="text-emerald-500">Events</span>
+                          </h2>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Active Transmissions</span>
+                       </div>
+                       <Link to="/events" className="text-[9px] font-black text-emerald-500 uppercase tracking-widest hover:translate-x-1 transition-transform flex items-center gap-2">
+                          Join More <ArrowRight className="w-3.5 h-3.5" />
+                       </Link>
                     </div>
 
-                    {/* Tab Navigation */}
-                    <div className="flex p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-black/5 dark:border-white/5">
-                      {[
-                        { id: 'overview', label: 'Timeline' },
-                        { id: 'applications', label: 'Applications' },
-                        { id: 'events', label: 'Events' }
-                      ].map((tab) => (
-                        <button 
-                          key={tab.id}
-                          onClick={() => setActiveTab(tab.id)}
-                          className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-emerald-500 text-white shadow-xl' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                       {fetchingActivities ? (
+                         Array(2).fill(0).map((_, i) => <div key={i} className="h-32 bg-slate-50 dark:bg-white/5 animate-pulse rounded-3xl" />)
+                       ) : activities.filter(a => a.type === 'Event').length === 0 ? (
+                         <div className="col-span-full p-12 glass-panel border-dashed border-slate-300 dark:border-slate-800 flex flex-col items-center justify-center gap-4 opacity-40">
+                            <Zap className="w-10 h-10 text-slate-400" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-center">No event registrations detected</span>
+                         </div>
+                       ) : (
+                         activities.filter(a => a.type === 'Event').slice(0, 4).map((event, idx) => (
+                           <Link 
+                             key={idx} 
+                             to={`/event/${event.referenceId || event._id}`}
+                             className="glass-panel p-6 flex items-center gap-5 group hover:border-emerald-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                           >
+                              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+                                 <Calendar className="w-7 h-7" />
+                              </div>
+                              <div className="flex-1 flex flex-col gap-1">
+                                 <div className="flex items-center justify-between">
+                                    <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Confirmed</span>
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase">{formatDate(event.date)}</span>
+                                 </div>
+                                 <h4 className="text-base font-black text-slate-900 dark:text-white uppercase leading-tight line-clamp-1">{event.title}</h4>
+                                 <p className="text-[10px] text-slate-500 font-medium truncate">{event.desc || 'Registered for GCC elite event'}</p>
+                              </div>
+                           </Link>
+                         ))
+                       )}
                     </div>
                   </div>
 
-                  {/* Activity Timeline */}
-                  <div className="flex-1 flex flex-col gap-4 relative">
-                     <div className="absolute left-[31px] top-0 bottom-0 w-0.5 bg-slate-100 dark:bg-slate-800 rounded-full hidden md:block" />
-                     
-                    <AnimatePresence mode="wait">
-                      {activeTab === 'applications' ? (
-                        <div className="space-y-4">
-                          {fetchingApps ? (
-                            Array(3).fill(0).map((_, i) => <div key={i} className="h-24 bg-slate-50 dark:bg-white/5 animate-pulse rounded-3xl" />)
-                          ) : applications.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center gap-4">
-                               <Rocket className="w-16 h-16" />
-                               <span className="text-[10px] font-black uppercase tracking-widest">No domain applications found</span>
-                            </div>
-                          ) : (
-                            applications.map((app, i) => {
-                              const AppIcon = getTimelineIcon(app.domain?.icon);
-                              return (
-                                <motion.div 
-                                  initial={{ opacity: 0, x: -20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: i * 0.1 }}
-                                  key={app._id}
-                                  className="flex items-center gap-5 p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all group"
-                                >
-                                  <div className={`w-14 h-14 rounded-2xl bg-${app.domain?.color || 'emerald'}-500/10 flex items-center justify-center text-${app.domain?.color || 'emerald'}-500 shrink-0`}>
-                                    <AppIcon className="w-7 h-7 md:w-8 md:h-8" />
-                                  </div>
-                                <div className="flex-1 flex flex-col gap-1">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">{app.domain?.title}</h4>
-                                    <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                  {/* Domains Sector */}
+                  <div className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between px-2">
+                       <div className="flex flex-col gap-1">
+                          <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+                            Domain <span className="text-cyan-500">Status</span>
+                          </h2>
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Neural Link Applications</span>
+                       </div>
+                       <Link to="/domains" className="text-[9px] font-black text-cyan-500 uppercase tracking-widest hover:translate-x-1 transition-transform flex items-center gap-2">
+                          Apply Domain <ArrowRight className="w-3.5 h-3.5" />
+                       </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                       {fetchingApps ? (
+                         Array(2).fill(0).map((_, i) => <div key={i} className="h-32 bg-slate-50 dark:bg-white/5 animate-pulse rounded-3xl" />)
+                       ) : applications.length === 0 ? (
+                         <div className="col-span-full p-12 glass-panel border-dashed border-slate-300 dark:border-slate-800 flex flex-col items-center justify-center gap-4 opacity-40">
+                            <Rocket className="w-10 h-10 text-slate-400" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-center">No active domain applications</span>
+                         </div>
+                       ) : (
+                         applications.map((app, idx) => (
+                           <Link 
+                             key={idx} 
+                             to={`/domain/${app.domain?._id}`}
+                             className="glass-panel p-6 flex items-center gap-5 group hover:border-cyan-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                           >
+                              <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 shrink-0">
+                                 <Rocket className="w-7 h-7" />
+                              </div>
+                              <div className="flex-1 flex flex-col gap-1">
+                                 <div className="flex items-center justify-between">
+                                    <div className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest border ${
                                       app.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                                       app.status === 'rejected' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                                       'bg-amber-500/10 text-amber-500 border-amber-500/20'
                                     }`}>
                                       {app.status}
                                     </div>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Test Score: {app.testScore}/{app.totalQuestions}</span>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatDate(app.createdAt)}</span>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            );
-                            })
-                          )}
-                        </div>
-                      ) : fetchingActivities ? (
-                        <div className="space-y-4">
-                          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-50 dark:bg-white/5 animate-pulse rounded-2xl" />)}
-                        </div>
-                      ) : activities.length === 0 ? (
-                        <motion.div 
-                          initial={{ opacity: 0 }} 
-                          animate={{ opacity: 1 }} 
-                          className="flex-1 flex flex-col items-center justify-center gap-4 opacity-30 text-center py-20"
-                        >
-                          <Activity className="w-16 h-16 text-slate-400" />
-                          <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">No activities detected in this sector</span>
-                        </motion.div>
-                      ) : (
-                        <div className="space-y-4">
-                          {activities
-                            .filter(a => activeTab === 'overview' || a.type.toLowerCase() === activeTab)
-                            .map((act, i) => {
-                              const Icon = getTimelineIcon(act.icon);
-                              return (
-                                <motion.div 
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: i * 0.05 }}
-                                  key={i} 
-                                  className="relative z-10 flex items-start gap-4 md:gap-6 p-5 md:p-6 rounded-3xl bg-slate-50/50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all group shadow-sm"
-                                >
-                                   <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white dark:bg-slate-950 border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform group-hover:border-emerald-500/30">
-                                      <Icon className="w-7 h-7 md:w-8 md:h-8 text-emerald-500" />
-                                   </div>
-                                   <div className="flex-1 flex flex-col gap-1">
-                                      <div className="flex items-center justify-between">
-                                         <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">{act.type}</span>
-                                         <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">{formatDate(act.date)}</span>
-                                      </div>
-                                      <h4 className="text-base md:text-lg font-black text-slate-900 dark:text-white uppercase leading-tight">{act.title}</h4>
-                                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed mt-1 line-clamp-2">
-                                         {act.desc}
-                                      </p>
-                                   </div>
-                                </motion.div>
-                              );
-                          })}
-                        </div>
-                      )}
-                    </AnimatePresence>
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase">Score: {app.testScore}/{app.totalQuestions}</span>
+                                 </div>
+                                 <h4 className="text-base font-black text-slate-900 dark:text-white uppercase leading-tight line-clamp-1">{app.domain?.title}</h4>
+                                 <p className="text-[10px] text-slate-500 font-medium uppercase tracking-tighter">Applied on {formatDate(app.createdAt)}</p>
+                              </div>
+                           </Link>
+                         ))
+                       )}
+                    </div>
                   </div>
+
                </div>
 
                {/* Growth Tracker */}

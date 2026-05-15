@@ -8,8 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import GccLogo from '../assets/logo/gcc logo.png';
 import NotificationCenter from './NotificationCenter';
 
-export default function Navbar() {
-  const { user, logout, theme, toggleTheme } = useAuth();
+export default function Navbar({ theme, toggleTheme }) {
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
@@ -83,7 +83,7 @@ export default function Navbar() {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-500 
-      ${scrolled ? 'py-2' : 'py-4'} 
+      ${scrolled ? 'py-1.5' : 'py-3'} 
       ${mobileMenuOpen ? 'bg-white' : 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5'}
       ${visible ? 'translate-y-0' : '-translate-y-full'}
       flex flex-col`}

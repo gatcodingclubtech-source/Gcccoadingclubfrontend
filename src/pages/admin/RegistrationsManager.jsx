@@ -10,7 +10,7 @@ import axios from 'axios';
 export default function RegistrationsManager() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [attendees, setAttendees] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,13 +22,13 @@ export default function RegistrationsManager() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [eventRes, attendeesRes] = await Promise.all([
+      const [eventRes, regsRes] = await Promise.all([
         axios.get(`/api/events/${id}`),
-        axios.get(`/api/events/${id}/attendees`)
+        axios.get(`/api/events/${id}/registrations`)
       ]);
 
       if (eventRes.data.success) setEvent(eventRes.data.event);
-      if (attendeesRes.data.success) setAttendees(attendeesRes.data.attendees);
+      if (regsRes.data.success) setRegistrations(regsRes.data.registrations);
     } catch (err) {
       console.error('Error fetching registration data', err);
     } finally {
@@ -36,16 +36,24 @@ export default function RegistrationsManager() {
     }
   };
 
-  const filteredAttendees = attendees.filter(user => 
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.usn?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredRegistrations = registrations.filter(reg => 
+    reg.teamName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    reg.teamLeader?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    reg.members?.some(m => m.name?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleExport = () => {
+    const headers = ["Team Name", "Leader Name", "Leader Email", "Leader USN", "Leader Phone", "Members Count"];
     const csvContent = "data:text/csv;charset=utf-8," 
-      + ["Name,Email,USN,Department,Year,Phone"].join(",") + "\n"
-      + filteredAttendees.map(u => [u.name, u.email, u.usn, u.department, u.year, u.phone].join(",")).join("\n");
+      + headers.join(",") + "\n"
+      + filteredRegistrations.map(r => [
+          r.teamName || 'Solo', 
+          r.teamLeader?.name, 
+          r.teamLeader?.email, 
+          r.teamLeader?.usn, 
+          r.teamLeader?.phone, 
+          r.members?.length
+        ].join(",")).join("\n");
     
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -98,7 +106,7 @@ export default function RegistrationsManager() {
         </div>
         
         <div className="sm:ml-auto flex items-center gap-3">
-          <span className="text-[10px] font-black uppercase text-slate-400">Total Registered: {filteredAttendees.length}</span>
+          <span className="text-[10px] font-black uppercase text-slate-400">Total Teams: {filteredRegistrations.length}</span>
         </div>
       </div>
 
@@ -108,10 +116,10 @@ export default function RegistrationsManager() {
           <table className="w-full min-w-[800px] text-left">
             <thead>
               <tr className="border-b border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">USN / ID</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Education</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Team Identity</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Team Leader</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Members</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -123,7 +131,7 @@ export default function RegistrationsManager() {
                     </td>
                   </tr>
                 ))
-              ) : filteredAttendees.length === 0 ? (
+              ) : filteredRegistrations.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="px-8 py-24 text-center">
                     <div className="flex flex-col items-center gap-4 opacity-30">
@@ -133,38 +141,43 @@ export default function RegistrationsManager() {
                   </td>
                 </tr>
               ) : (
-                filteredAttendees.map((user) => (
-                  <tr key={user._id} className="group hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-all">
+                filteredRegistrations.map((reg) => (
+                  <tr key={reg._id} className="group hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-all">
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[11px] font-black uppercase text-slate-900 dark:text-white">
+                          {reg.teamName || 'Solo Participation'}
+                        </span>
+                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                          ID: {reg._id.slice(-6).toUpperCase()}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
                            <User className="w-5 h-5" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-black uppercase text-slate-900 dark:text-white">{user.name}</span>
-                          <span className="text-[9px] text-slate-500 lowercase">{user.email}</span>
+                          <span className="text-[11px] font-black uppercase text-slate-900 dark:text-white">{reg.teamLeader?.name}</span>
+                          <span className="text-[9px] text-slate-500 lowercase">{reg.teamLeader?.email}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{user.usn || 'N/A'}</span>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{user.department || 'PENDING'}</span>
-                        <span className="text-[9px] text-slate-500 uppercase font-bold">{user.year || 'N/A'}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
+                          {reg.members?.length || 1} Members
+                        </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <div className="flex items-center gap-3">
-                        <a href={`tel:${user.phone}`} className="p-2 rounded-lg bg-black/5 dark:bg-white/5 text-slate-400 hover:text-emerald-500 transition-all">
-                          <Phone className="w-3.5 h-3.5" />
-                        </a>
-                        <a href={`mailto:${user.email}`} className="p-2 rounded-lg bg-black/5 dark:bg-white/5 text-slate-400 hover:text-emerald-500 transition-all">
-                          <Mail className="w-3.5 h-3.5" />
-                        </a>
-                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400 ml-2">{user.phone || 'No Phone'}</span>
-                      </div>
+                      <button 
+                        onClick={() => alert(`Members: \n${reg.members.map(m => `- ${m.name} (${m.usn})`).join('\n')}`)}
+                        className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest hover:underline"
+                      >
+                         View Squad
+                      </button>
                     </td>
                   </tr>
                 ))
