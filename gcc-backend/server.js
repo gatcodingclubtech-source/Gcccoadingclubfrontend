@@ -206,13 +206,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  // WebRTC Signaling Logic for simple-peer
-  socket.on('call-user', ({ to, from, signal }) => {
-    io.to(to).emit('call-made', { signal, from });
-  });
-
-  socket.on('answer-call', ({ to, signal }) => {
-    io.to(to).emit('call-answered', { signal, from: socket.id });
+  // Native WebRTC Signaling Logic
+  socket.on('webrtc-signal', ({ to, from, signal }) => {
+    io.to(to).emit('webrtc-signal', { signal, from });
   });
 
   socket.on('disconnect', () => {
