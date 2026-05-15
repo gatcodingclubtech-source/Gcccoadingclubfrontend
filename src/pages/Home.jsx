@@ -209,6 +209,8 @@ export default function Home({ theme }) {
   const [domainsLoading, setDomainsLoading] = useState(true);
   const [rooms, setRooms] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(true);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const termRef = useRef(null);
   const domainScrollRef = useRef(null);
 
@@ -216,7 +218,21 @@ export default function Home({ theme }) {
     fetchEvents();
     fetchDomains();
     fetchRooms();
+    fetchLeaderboard();
   }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await axios.get('/api/users/leaderboard');
+      if (res.data.success) {
+        setLeaderboard(res.data.leaderboard);
+      }
+    } catch (err) {
+      console.error('Error fetching leaderboard', err);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -1032,41 +1048,59 @@ export default function Home({ theme }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                  {[
-                    { rank: '01', name: 'Mohammed Naseer', role: 'Next.js Wizard', xp: '9481', color: 'text-brand' },
-                    { rank: '02', name: 'Ananya Sharma', role: 'Python Architect', xp: '8122', color: 'text-emerald-500' },
-                    { rank: '03', name: 'Rahul Murthy', role: 'System Optimizer', xp: '7450', color: 'text-blue-500' },
-                    { rank: '04', name: 'Pooja Reddy', role: 'Full Stack Dev', xp: '6814', color: 'text-slate-400' },
-                  ].map((row, idx) => (
-                    <tr key={idx} className="group hover:bg-brand/5 transition-all duration-300">
-                      <td className="px-8 py-8">
-                        <span className={`text-2xl font-black tracking-tighter ${idx < 3 ? row.color : 'text-slate-300 dark:text-slate-700'}`}>
-                          {row.rank}
-                        </span>
-                      </td>
-                      <td className="px-8 py-8">
-                        <div className="flex items-center gap-5">
-                          <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-slate-400 border border-black/5 dark:border-white/10 group-hover:border-brand/30 transition-all">
-                             {row.name.charAt(0)}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-brand transition-colors">{row.name}</span>
-                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.1em]">{row.role}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-8 text-right">
-                        <div className="flex flex-col items-end">
-                           <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter group-hover:text-brand transition-all">
-                             {row.xp}
-                           </span>
-                           <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
-                              <div className="h-full bg-brand rounded-full" style={{ width: `${100 - (idx * 15)}%` }} />
-                           </div>
-                        </div>
-                      </td>
+                  {leaderboardLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td className="px-8 py-8"><div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg" /></td>
+                        <td className="px-8 py-8"><div className="w-48 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg" /></td>
+                        <td className="px-8 py-8"><div className="w-20 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg" /></td>
+                      </tr>
+                    ))
+                  ) : leaderboard.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="px-8 py-20 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No Rankings Recorded Yet</td>
                     </tr>
-                  ))}
+                  ) : (
+                    leaderboard.slice(0, 10).map((row, idx) => {
+                      const rankNum = (idx + 1).toString().padStart(2, '0');
+                      const rankColor = idx === 0 ? 'text-brand' : idx === 1 ? 'text-emerald-500' : idx === 2 ? 'text-blue-500' : 'text-slate-300 dark:text-slate-700';
+                      
+                      return (
+                        <tr key={row._id} className="group hover:bg-brand/5 transition-all duration-300">
+                          <td className="px-8 py-8">
+                            <span className={`text-2xl font-black tracking-tighter ${rankColor}`}>
+                              {rankNum}
+                            </span>
+                          </td>
+                          <td className="px-8 py-8">
+                            <div className="flex items-center gap-5">
+                              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-slate-400 border border-black/5 dark:border-white/10 group-hover:border-brand/30 transition-all overflow-hidden shadow-sm">
+                                 {row.avatar ? (
+                                   <img src={row.avatar} className="w-full h-full object-cover" alt="" />
+                                 ) : (
+                                   row.name.charAt(0)
+                                 )}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-brand transition-colors">{row.name}</span>
+                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.1em]">{row.department} • {row.year}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-8 text-right">
+                            <div className="flex flex-col items-end">
+                               <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter group-hover:text-brand transition-all">
+                                 {row.totalPoints || 0}
+                               </span>
+                               <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
+                                  <div className="h-full bg-brand rounded-full" style={{ width: `${Math.min(100, (row.totalPoints / 1000) * 100)}%` }} />
+                               </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

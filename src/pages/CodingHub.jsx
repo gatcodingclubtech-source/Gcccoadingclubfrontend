@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Save, Share2, Users, MessageCircle, Settings, LogOut, Code, Terminal as TerminalIcon, File as FileIcon, Plus, X, Folder, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
+import { Play, Save, Share2, Users, MessageCircle, Settings, LogOut, Code, Terminal as TerminalIcon, File as FileIcon, Plus, X, Folder, ChevronRight, ChevronDown, Trash2, Camera } from 'lucide-react';
 import socket from '../utils/socket';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -80,6 +80,8 @@ export default function CodingHub() {
   const newFileInputRef = useRef(null);
   const terminalEndRef = useRef(null);
   const chatEndRef = useRef(null);
+  const profileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
 
@@ -126,6 +128,35 @@ export default function CodingHub() {
     };
   }, [roomId, user]);
 
+  const handleProfileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setIsUploading(true);
+    const uploadToast = toast.loading('Uploading profile picture...');
+
+    try {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile-picture`, formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
+        }
+      });
+
+      if (data.success) {
+        toast.success('Looking sharp! Profile updated.', { id: uploadToast });
+        window.location.reload(); // Re-sync auth state
+      }
+    } catch (error) {
+      toast.error('Upload failed. Try again.', { id: uploadToast });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleEditorChange = (value) => {
     const updatedFiles = files.map(f => f.id === activeFileId ? { ...f, content: value } : f);
     setFiles(updatedFiles);
@@ -171,6 +202,7 @@ export default function CodingHub() {
     if (!newMessage.trim() || !user) return;
     const msg = {
       user: user.username,
+      avatar: user.avatar,
       text: newMessage,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
@@ -256,7 +288,32 @@ export default function CodingHub() {
          >
             <MessageCircle className="w-5 h-5" />
          </button>
-         <div className="mt-auto flex flex-col gap-4">
+         <div className="mt-auto flex flex-col items-center gap-4 mb-2">
+            <input 
+              type="file" 
+              ref={profileInputRef} 
+              className="hidden" 
+              accept="image/*"
+              onChange={handleProfileUpload}
+            />
+            <div className="relative group">
+              <div 
+                onClick={() => profileInputRef.current.click()}
+                className="w-8 h-8 rounded-full border-2 border-brand/50 overflow-hidden cursor-pointer hover:border-brand transition-all shadow-lg"
+              >
+                {user?.avatar ? (
+                  <img src={user.avatar} className="w-full h-full object-cover" alt="Profile" />
+                ) : (
+                  <div className="w-full h-full bg-[#3c3c3c] flex items-center justify-center text-[10px] font-bold text-brand">
+                    {user?.username?.[0]?.toUpperCase() || '?'}
+                  </div>
+                )}
+              </div>
+              <div className="absolute -top-1 -right-1 p-0.5 bg-brand rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <Camera className="w-2.5 h-2.5" />
+              </div>
+            </div>
+
             <button className="p-2 rounded-lg text-[#858585] hover:text-white transition-colors">
                <Settings className="w-6 h-6" />
             </button>
@@ -335,11 +392,15 @@ export default function CodingHub() {
                     <span className="text-[11px] font-semibold tracking-wide text-[#cccccc] uppercase">MEMBERS ({activeUsers.length})</span>
                  </div>
                  <div className="flex-1 overflow-y-auto py-2 custom-scrollbar">
-                    {activeUsers.map((u, i) => (
+                     {activeUsers.map((u, i) => (
                       <div key={i} className="flex items-center gap-3 px-4 py-2 hover:bg-[#2a2d2e] transition-colors group">
                         <div className="relative">
-                          <div className="w-8 h-8 rounded-full bg-[#3c3c3c] flex items-center justify-center text-xs font-bold text-brand shadow-md">
-                            {u?.username?.[0]?.toUpperCase() || '?'}
+                          <div className="w-8 h-8 rounded-full bg-[#3c3c3c] flex items-center justify-center text-xs font-bold text-brand shadow-md overflow-hidden">
+                            {u?.avatar ? (
+                              <img src={u.avatar} className="w-full h-full object-cover" alt="" />
+                            ) : (
+                              u?.username?.[0]?.toUpperCase() || '?'
+                            )}
                           </div>
                           <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#181818]"></div>
                         </div>
@@ -365,8 +426,11 @@ export default function CodingHub() {
                           <span className="text-[10px] font-bold text-brand">{m.user}</span>
                           <span className="text-[9px] text-[#858585]">{m.time}</span>
                         </div>
-                        <div className={`max-w-[90%] px-3 py-2 rounded-xl text-xs shadow-sm ${m.user === user?.username ? 'bg-brand text-white rounded-tr-none' : 'bg-[#2a2d2e] text-[#cccccc] rounded-tl-none'}`}>
-                          {m.text}
+                         <div className={`max-w-[90%] px-3 py-2 rounded-xl text-xs shadow-sm flex items-start gap-2 ${m.user === user?.username ? 'bg-brand text-white rounded-tr-none' : 'bg-[#2a2d2e] text-[#cccccc] rounded-tl-none'}`}>
+                           {m.user !== user?.username && m.avatar && (
+                             <img src={m.avatar} className="w-4 h-4 rounded-full mt-0.5 object-cover" alt="" />
+                           )}
+                           <span>{m.text}</span>
                         </div>
                       </div>
                     ))}
