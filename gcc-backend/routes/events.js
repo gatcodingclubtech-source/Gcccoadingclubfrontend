@@ -3,7 +3,7 @@ const router = express.Router();
 const Event = require('../models/Event');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
-const { triggerAutomation } = require('../utils/automation');
+const { triggerAutomation, notifyAllUsers } = require('../utils/automation');
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -43,6 +43,15 @@ router.post('/', protect, adminOnly, async (req, res) => {
       createdBy: req.user._id,
     });
     const savedEvent = await event.save();
+
+    // Notify all users about the new event
+    await notifyAllUsers({
+      title: 'Upcoming Event Alert! 📢',
+      message: `New event: ${savedEvent.title} has been scheduled. Check the events page and register now!`,
+      type: 'EVENT',
+      icon: 'Calendar'
+    });
+
     res.status(201).json({ success: true, event: savedEvent });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
