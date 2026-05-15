@@ -148,7 +148,6 @@ export default function LiveRoomDetail() {
         if (isHost || !res.data.requiresApproval) {
           setIsApproved(true);
           setEntryStatus('approved');
-          joinTheRoom();
         } else {
           // If not approved, we still join the room socket but as a "spectator/waiting" 
           // so we can receive signaling if needed, or at least so host can see us?
@@ -174,7 +173,6 @@ export default function LiveRoomDetail() {
     socket.on('entry-approved', () => {
       setIsApproved(true);
       setEntryStatus('approved');
-      joinTheRoom();
       toast.success('Host approved your entry!');
     });
 
@@ -254,77 +252,99 @@ export default function LiveRoomDetail() {
     return peer;
   };
 
+  const hasInitMedia = useRef(false);
+  const hasJoinedRoom = useRef(false);
+
+  // 1. Media Initialization (Runs once when not joining)
   useEffect(() => {
-    if (entryStatus === 'joining') return;
-    
-    let stream;
-    
-    const initMedia = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    if (entryStatus === 'joining' || hasInitMedia.current) return;
+    hasInitMedia.current = true;
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
         localStreamRef.current = stream;
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        
+        // Sync initial media state
+        stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+        stream.getVideoTracks().forEach(track => track.enabled = !isVideoOff);
 
-        if (entryStatus === 'approved') {
-          socket.on('room-participants', (users) => {
-            const others = users.filter(u => u.socketId !== socket.id);
-            participantsRef.current = others;
-            setParticipants(others);
-          });
-
-          socket.on('user-joined', ({ socketId }) => {
-            createPeerConnection(socketId, stream, true);
-          });
-
-          socket.on('webrtc-signal', async ({ signal, from }) => {
-            try {
-              let peer = peersRef.current[from];
-              if (signal.type === 'offer') {
-                if (!peer) peer = createPeerConnection(from, localStreamRef.current, false);
-                await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-                const answer = await peer.createAnswer();
-                await peer.setLocalDescription(answer);
-                socket.emit('webrtc-signal', { to: from, from: socket.id, signal: { type: 'answer', sdp: peer.localDescription } });
-              } else if (signal.type === 'answer' && peer) {
-                await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-              } else if (signal.type === 'candidate' && peer) {
-                await peer.addIceCandidate(new RTCIceCandidate(signal.candidate));
-              }
-            } catch (err) { console.error("WebRTC Signaling Error:", err); }
-          });
-
-          socket.on('new-message', (msg) => {
-            setMessages(prev => [...prev, msg]);
-          });
-
-          socket.on('chat-history', (history) => {
-            setMessages(history);
-          });
-
-          socket.on('user-left', (id) => {
-            if (peersRef.current[id]) {
-              peersRef.current[id].close();
-              delete peersRef.current[id];
-            }
-            setRemoteStreams(prev => {
-              const newState = { ...prev };
-              delete newState[id];
-              return newState;
-            });
-          });
+        // If already approved (like host), join immediately now that media is ready
+        if (entryStatus === 'approved' && !hasJoinedRoom.current) {
+          hasJoinedRoom.current = true;
+          socket.emit('join-live-room', { roomId: id, user });
         }
-      } catch (err) {
-        console.error(err);
-        toast.error("Media access denied");
-      }
-    };
-
-    initMedia();
+      })
+      .catch(err => {
+        console.error("Media access denied:", err);
+        toast.error("Camera/Mic access denied");
+      });
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => track.stop());
       }
+    };
+  }, [entryStatus, id, user]);
+
+  // 2. WebRTC & Socket Listeners (Runs when approved)
+  useEffect(() => {
+    if (entryStatus !== 'approved') return;
+
+    // If media was already ready when we got approved, join now
+    if (localStreamRef.current && !hasJoinedRoom.current) {
+      hasJoinedRoom.current = true;
+      socket.emit('join-live-room', { roomId: id, user });
+    }
+
+    socket.on('room-participants', (users) => {
+      const others = users.filter(u => u.socketId !== socket.id);
+      participantsRef.current = others;
+      setParticipants(others);
+    });
+
+    socket.on('user-joined', ({ socketId }) => {
+      createPeerConnection(socketId, localStreamRef.current, true);
+    });
+
+    socket.on('webrtc-signal', async ({ signal, from }) => {
+      try {
+        let peer = peersRef.current[from];
+        if (signal.type === 'offer') {
+          if (!peer) peer = createPeerConnection(from, localStreamRef.current, false);
+          await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+          const answer = await peer.createAnswer();
+          await peer.setLocalDescription(answer);
+          socket.emit('webrtc-signal', { to: from, from: socket.id, signal: { type: 'answer', sdp: peer.localDescription } });
+        } else if (signal.type === 'answer' && peer) {
+          await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+        } else if (signal.type === 'candidate' && peer) {
+          await peer.addIceCandidate(new RTCIceCandidate(signal.candidate));
+        }
+      } catch (err) { console.error("WebRTC Signaling Error:", err); }
+    });
+
+    socket.on('new-message', (msg) => {
+      setMessages(prev => [...prev, msg]);
+    });
+
+    socket.on('chat-history', (history) => {
+      setMessages(history);
+    });
+
+    socket.on('user-left', (id) => {
+      if (peersRef.current[id]) {
+        peersRef.current[id].close();
+        delete peersRef.current[id];
+      }
+      setRemoteStreams(prev => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
+      });
+    });
+
+    return () => {
       socket.off('room-participants');
       socket.off('user-joined');
       socket.off('webrtc-signal');
@@ -332,7 +352,7 @@ export default function LiveRoomDetail() {
       socket.off('chat-history');
       socket.off('user-left');
     };
-  }, [entryStatus, id]);
+  }, [entryStatus, id, user]);
 
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
