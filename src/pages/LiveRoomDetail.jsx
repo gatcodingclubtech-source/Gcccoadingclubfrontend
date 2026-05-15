@@ -5,7 +5,6 @@ import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Users, Shield, S
 import socket from '../utils/socket';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
-import Peer from 'simple-peer';
 
 const EMOJIS = ['❤️', '🔥', '👏', '😂', '😮', '🙌', '💯', '✨'];
 
@@ -21,20 +20,17 @@ const ReactionFloating = ({ emoji }) => (
   </motion.div>
 );
 
-const RemoteVideo = ({ peer, user, reaction }) => {
+const RemoteVideo = ({ stream, user, reaction }) => {
   const ref = useRef();
 
   useEffect(() => {
-    peer.on("stream", (stream) => {
-      if (ref.current) {
-        ref.current.srcObject = stream;
-        // Ensure video plays
-        ref.current.onloadedmetadata = () => {
-          ref.current.play().catch(e => console.error("Video play failed", e));
-        };
-      }
-    });
-  }, [peer]);
+    if (ref.current && stream) {
+      ref.current.srcObject = stream;
+      ref.current.onloadedmetadata = () => {
+        ref.current.play().catch(e => console.error("Video play failed", e));
+      };
+    }
+  }, [stream]);
 
   return (
     <motion.div 
@@ -52,15 +48,15 @@ const RemoteVideo = ({ peer, user, reaction }) => {
 
       <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-xl md:rounded-2xl bg-black/40 backdrop-blur-xl border border-white/5">
         <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors truncate max-w-[80px] md:max-w-none">
-          {user.username}
+          {user?.username || 'Participant'}
         </span>
         <div className="flex items-center gap-1.5 border-l border-white/10 pl-2">
-          {user.isMuted && <MicOff className="w-2.5 md:w-3 h-2.5 md:h-3 text-red-500/70" />}
-          {user.isHandRaised && <Hand className="w-2.5 md:w-3 h-2.5 md:h-3 text-brand animate-bounce" />}
+          {user?.isMuted && <MicOff className="w-2.5 md:w-3 h-2.5 md:h-3 text-red-500/70" />}
+          {user?.isHandRaised && <Hand className="w-2.5 md:w-3 h-2.5 md:h-3 text-brand animate-bounce" />}
         </div>
       </div>
 
-      {user.isHandRaised && (
+      {user?.isHandRaised && (
         <div className="absolute top-3 md:top-4 right-3 md:right-4 px-2 md:px-3 py-1 rounded-full bg-brand/20 border border-brand/30 text-brand text-[7px] md:text-[8px] font-black uppercase flex items-center gap-1">
           <Hand className="w-2 md:w-2.5 h-2 md:h-2.5" /> Hand Raised
         </div>
@@ -82,26 +78,69 @@ export default function LiveRoomDetail() {
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [activeReactions, setActiveReactions] = useState({}); // { socketId: emoji }
+  const [activeReactions, setActiveReactions] = useState({});
   
-  const [peers, setPeers] = useState([]);
-  const peersRef = useRef([]);
+  const [remoteStreams, setRemoteStreams] = useState({}); // { socketId: MediaStream }
+  const peersRef = useRef({}); // { socketId: RTCPeerConnection }
   const participantsRef = useRef([]);
   const localVideoRef = useRef();
   const chatEndRef = useRef();
   const localStreamRef = useRef();
 
-  // STUN Servers for WebRTC
   const iceServers = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
     ]
   };
 
   useEffect(() => {
     if (!user) return;
+
+    const createPeerConnection = (targetSocketId, stream, initiator) => {
+      if (peersRef.current[targetSocketId]) {
+        return peersRef.current[targetSocketId];
+      }
+
+      const peer = new RTCPeerConnection(iceServers);
+
+      if (stream) {
+        stream.getTracks().forEach(track => peer.addTrack(track, stream));
+      }
+
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('webrtc-signal', { 
+            to: targetSocketId, 
+            from: socket.id, 
+            signal: { type: 'candidate', candidate: event.candidate } 
+          });
+        }
+      };
+
+      peer.ontrack = (event) => {
+        setRemoteStreams(prev => ({
+          ...prev,
+          [targetSocketId]: event.streams[0]
+        }));
+      };
+
+      if (initiator) {
+        peer.createOffer()
+          .then(offer => peer.setLocalDescription(offer))
+          .then(() => {
+            socket.emit('webrtc-signal', {
+              to: targetSocketId,
+              from: socket.id,
+              signal: { type: 'offer', sdp: peer.localDescription }
+            });
+          })
+          .catch(err => console.error("Offer creation failed:", err));
+      }
+
+      peersRef.current[targetSocketId] = peer;
+      return peer;
+    };
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
@@ -116,27 +155,38 @@ export default function LiveRoomDetail() {
           setParticipants(others);
         });
 
-        socket.on('user-joined', ({ socketId, user: joinedUser }) => {
-          const peer = createPeer(socketId, socket.id, stream);
-          peersRef.current.push({ peerID: socketId, peer, user: joinedUser });
-          setPeers(prev => [...prev, { peerID: socketId, peer, user: joinedUser }]);
+        socket.on('user-joined', ({ socketId }) => {
+          createPeerConnection(socketId, stream, true);
         });
 
-        socket.on('call-made', ({ signal, from }) => {
-          const existingPeer = peersRef.current.find(p => p.peerID === from);
-          if (existingPeer) {
-            existingPeer.peer.signal(signal);
-            return;
+        socket.on('webrtc-signal', async ({ signal, from }) => {
+          try {
+            let peer = peersRef.current[from];
+
+            if (signal.type === 'offer') {
+              if (!peer) {
+                peer = createPeerConnection(from, localStreamRef.current, false);
+              }
+              await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+              const answer = await peer.createAnswer();
+              await peer.setLocalDescription(answer);
+              socket.emit('webrtc-signal', {
+                to: from,
+                from: socket.id,
+                signal: { type: 'answer', sdp: peer.localDescription }
+              });
+            } else if (signal.type === 'answer') {
+              if (peer) {
+                await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+              }
+            } else if (signal.type === 'candidate') {
+              if (peer) {
+                await peer.addIceCandidate(new RTCIceCandidate(signal.candidate));
+              }
+            }
+          } catch (err) {
+            console.error("WebRTC Signaling Error:", err);
           }
-          const peer = addPeer(signal, from, stream);
-          const callingUser = participantsRef.current.find(p => p.socketId === from) || { username: 'Participant' };
-          peersRef.current.push({ peerID: from, peer, user: callingUser });
-          setPeers(prev => [...prev, { peerID: from, peer, user: callingUser }]);
-        });
-
-        socket.on('call-answered', ({ signal, from }) => {
-          const item = peersRef.current.find(p => p.peerID === from);
-          if (item) item.peer.signal(signal);
         });
 
         socket.on('new-message', (msg) => {
@@ -159,11 +209,15 @@ export default function LiveRoomDetail() {
         });
 
         socket.on('user-left', (id) => {
-          const item = peersRef.current.find(p => p.peerID === id);
-          if (item) item.peer.destroy();
-          const newPeers = peersRef.current.filter(p => p.peerID !== id);
-          peersRef.current = newPeers;
-          setPeers(newPeers);
+          if (peersRef.current[id]) {
+            peersRef.current[id].close();
+            delete peersRef.current[id];
+          }
+          setRemoteStreams(prev => {
+            const newState = { ...prev };
+            delete newState[id];
+            return newState;
+          });
         });
 
         setRoom({ title: 'Elite AI Debate', type: 'Debate', isLocked: false });
@@ -177,49 +231,21 @@ export default function LiveRoomDetail() {
       socket.emit('leave-live-room', id);
       socket.off('room-participants');
       socket.off('user-joined');
-      socket.off('call-made');
-      socket.off('call-answered');
+      socket.off('webrtc-signal');
       socket.off('new-message');
       socket.off('chat-history');
       socket.off('new-reaction');
       socket.off('user-left');
       
-      peersRef.current.forEach(p => p.peer.destroy());
-      peersRef.current = [];
-      setPeers([]);
+      Object.values(peersRef.current).forEach(peer => peer.close());
+      peersRef.current = {};
+      setRemoteStreams({});
       
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach(track => track.stop());
       }
     };
   }, [id, user]);
-
-  function createPeer(userToCall, callerID, stream) {
-    const peer = new Peer({ 
-      initiator: true, 
-      trickle: true, 
-      stream,
-      config: iceServers
-    });
-    peer.on("signal", signal => {
-      socket.emit("call-user", { to: userToCall, from: callerID, signal });
-    });
-    return peer;
-  }
-
-  function addPeer(incomingSignal, callerID, stream) {
-    const peer = new Peer({ 
-      initiator: false, 
-      trickle: true, 
-      stream,
-      config: iceServers
-    });
-    peer.on("signal", signal => {
-      socket.emit("answer-call", { signal, to: callerID });
-    });
-    peer.signal(incomingSignal);
-    return peer;
-  }
 
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -253,7 +279,6 @@ export default function LiveRoomDetail() {
   const handleSendReaction = (emoji) => {
     socket.emit('send-reaction', { roomId: id, emoji });
     setShowEmojiPicker(false);
-    // Local feedback
     setActiveReactions(prev => ({ ...prev, [socket.id]: emoji }));
     setTimeout(() => {
       setActiveReactions(prev => {
@@ -353,12 +378,12 @@ export default function LiveRoomDetail() {
 
               {/* Remote Participants */}
               <AnimatePresence>
-                {peers.map((peerObj) => (
+                {Object.entries(remoteStreams).map(([socketId, stream]) => (
                    <RemoteVideo 
-                     key={peerObj.peerID} 
-                     peer={peerObj.peer} 
-                     reaction={activeReactions[peerObj.peerID]}
-                     user={participantsRef.current.find(p => p.socketId === peerObj.peerID) || peerObj.user} 
+                     key={socketId} 
+                     stream={stream} 
+                     reaction={activeReactions[socketId]}
+                     user={participantsRef.current.find(p => p.socketId === socketId)} 
                    />
                 ))}
               </AnimatePresence>

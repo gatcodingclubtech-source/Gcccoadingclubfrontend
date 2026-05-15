@@ -23,6 +23,15 @@ export default function ProfileComplete() {
   const [domainsLoading, setDomainsLoading] = useState(true);
   const { completeProfile, user, loading } = useAuth();
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    usn: '',
+    phone: '',
+    department: '',
+    year: '',
+    domainInterest: '',
+    githubUrl: ''
+  });
 
   useEffect(() => {
     const fetchDomains = async () => {
