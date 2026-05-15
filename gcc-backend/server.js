@@ -131,6 +131,10 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('send-coding-message', ({ roomId, msg }) => {
+    socket.to(roomId).emit('receive-coding-message', msg);
+  });
+
   // Live Room Interaction Logic
   socket.on('join-live-room', ({ roomId, user, isWaiting }) => {
     socket.join(roomId);
