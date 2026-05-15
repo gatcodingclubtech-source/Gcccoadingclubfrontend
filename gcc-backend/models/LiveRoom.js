@@ -13,6 +13,8 @@ const liveRoomSchema = new mongoose.Schema({
     maxParticipants: { type: Number, default: 20 },
     isLocked: { type: Boolean, default: false },
     password: { type: String },
+    requiresApproval: { type: Boolean, default: false },
+    approvedParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     status: { type: String, enum: ['Live', 'Ended'], default: 'Live' },
     tags: [String]
 }, { timestamps: true });

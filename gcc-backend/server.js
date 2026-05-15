@@ -153,6 +153,23 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('request-room-entry', ({ roomId, user }) => {
+    // Notify the room (especially the host) that someone wants to join
+    socket.to(roomId).emit('entry-request', { 
+      socketId: socket.id, 
+      user 
+    });
+  });
+
+  socket.on('approve-room-entry', ({ roomId, targetSocketId }) => {
+    // Notify the specific user that they are approved
+    io.to(targetSocketId).emit('entry-approved', { roomId });
+  });
+
+  socket.on('deny-room-entry', ({ roomId, targetSocketId }) => {
+    io.to(targetSocketId).emit('entry-denied', { roomId });
+  });
+
   socket.on('call-user', ({ to, signal, from }) => {
     io.to(to).emit('call-made', { signal, from });
   });

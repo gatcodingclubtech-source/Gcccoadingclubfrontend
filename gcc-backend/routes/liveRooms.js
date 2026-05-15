@@ -12,6 +12,17 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get single room details
+router.get('/:id', async (req, res) => {
+    try {
+        const room = await LiveRoom.findById(req.params.id).populate('host', 'username profileImage');
+        if (!room) return res.status(404).json({ message: 'Room not found' });
+        res.json(room);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 // Create a new room
 router.post('/', async (req, res) => {
     const room = new LiveRoom(req.body);
@@ -44,6 +55,22 @@ router.delete('/:id', async (req, res) => {
         res.json({ message: 'Room terminated' });
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+});
+
+// Verify room password
+router.post('/:id/verify-password', async (req, res) => {
+    try {
+        const room = await LiveRoom.findById(req.params.id);
+        if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+        
+        if (room.isLocked && room.password !== req.body.password) {
+            return res.status(401).json({ success: false, message: 'Incorrect password' });
+        }
+        
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
