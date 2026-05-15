@@ -127,7 +127,7 @@ io.on('connection', (socket) => {
   });
 
   // Live Room Interaction Logic
-  socket.on('join-live-room', ({ roomId, user }) => {
+  socket.on('join-live-room', ({ roomId, user, isWaiting }) => {
     socket.join(roomId);
     
     if (!liveRooms.has(roomId)) {
@@ -135,6 +135,10 @@ io.on('connection', (socket) => {
     }
     
     const room = liveRooms.get(roomId);
+
+    // If the user is just waiting in the lobby, we don't add them to the active users list
+    if (isWaiting) return;
+
     room.users.set(socket.id, { 
       ...user, 
       socketId: socket.id,
