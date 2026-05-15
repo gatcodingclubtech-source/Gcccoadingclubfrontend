@@ -24,7 +24,11 @@ export default function BannersManager() {
   const fetchBanners = async () => {
     try {
       const res = await axios.get('/api/banners');
-      if (res.data.success) setBanners(res.data.banners);
+      if (res.data.success && Array.isArray(res.data.banners)) {
+        setBanners(res.data.banners);
+      } else {
+        setBanners([]);
+      }
     } catch (err) {
       toast.error('Failed to fetch banners');
     } finally {

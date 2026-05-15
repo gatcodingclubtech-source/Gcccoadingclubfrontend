@@ -36,8 +36,10 @@ export default function EventsManager() {
     setLoading(true);
     try {
       const res = await axios.get('/api/events');
-      if (res.data.success) {
+      if (res.data.success && Array.isArray(res.data.events)) {
         setEvents(res.data.events);
+      } else {
+        setEvents([]);
       }
     } catch (err) {
       console.error('Error fetching events', err);
