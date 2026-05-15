@@ -322,7 +322,7 @@ export default function LiveRoomDetail() {
                  )}
                  
                  <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-xl md:rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10">
-                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/90">You (Host)</span>
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/90">You</span>
                     <div className="flex items-center gap-1.5 border-l border-white/10 pl-2">
                       {isMuted && <MicOff className="w-2.5 md:w-3 h-2.5 md:h-3 text-red-500" />}
                       {isHandRaised && <Hand className="w-2.5 md:w-3 h-2.5 md:h-3 text-brand animate-bounce" />}
