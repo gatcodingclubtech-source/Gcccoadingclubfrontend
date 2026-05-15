@@ -123,6 +123,11 @@ export default function LiveRoomDetail() {
         });
 
         socket.on('call-made', ({ signal, from }) => {
+          const existingPeer = peersRef.current.find(p => p.peerID === from);
+          if (existingPeer) {
+            existingPeer.peer.signal(signal);
+            return;
+          }
           const peer = addPeer(signal, from, stream);
           const callingUser = participantsRef.current.find(p => p.socketId === from) || { username: 'Participant' };
           peersRef.current.push({ peerID: from, peer, user: callingUser });
@@ -180,6 +185,9 @@ export default function LiveRoomDetail() {
       socket.off('user-left');
       
       peersRef.current.forEach(p => p.peer.destroy());
+      peersRef.current = [];
+      setPeers([]);
+      
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach(track => track.stop());
       }
@@ -189,7 +197,7 @@ export default function LiveRoomDetail() {
   function createPeer(userToCall, callerID, stream) {
     const peer = new Peer({ 
       initiator: true, 
-      trickle: false, 
+      trickle: true, 
       stream,
       config: iceServers
     });
@@ -202,7 +210,7 @@ export default function LiveRoomDetail() {
   function addPeer(incomingSignal, callerID, stream) {
     const peer = new Peer({ 
       initiator: false, 
-      trickle: false, 
+      trickle: true, 
       stream,
       config: iceServers
     });
