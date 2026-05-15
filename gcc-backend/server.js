@@ -94,11 +94,12 @@ const io = new Server(server, {
 const socketService = require('./utils/socketService');
 socketService.init(io);
 
-// In-memory room state for real-time features (in a real startup, use Redis)
+// In-memory room state for real-time features
 const codingRooms = new Map();
+const liveRooms = new Map();
 
 io.on('connection', (socket) => {
-  // Room joining and other listeners that don't need service abstraction yet
+  // Common Room joining
   socket.on('join-room', (roomId) => {
     socket.join(roomId);
   });
@@ -110,16 +111,98 @@ io.on('connection', (socket) => {
       codingRooms.set(roomId, { users: new Set(), code: '// Start building...' });
     }
     const room = codingRooms.get(roomId);
-    room.users.add({ ...user, socketId: socket.id });
-    socket.emit('code-update', room.code);
-    io.to(roomId).emit('room-users', Array.from(room.users));
+    if (room.users instanceof Set) {
+        room.users.add({ ...user, socketId: socket.id });
+        socket.emit('code-update', room.code);
+        io.to(roomId).emit('room-users', Array.from(room.users));
+    }
   });
 
   socket.on('code-change', ({ roomId, code }) => {
     const room = codingRooms.get(roomId);
-    if (room) {
+    if (room && room.code !== undefined) {
       room.code = code;
       socket.to(roomId).emit('code-update', code);
+    }
+  });
+
+  // Live Room Interaction Logic
+  socket.on('join-live-room', ({ roomId, user }) => {
+    socket.join(roomId);
+    
+    if (!liveRooms.has(roomId)) {
+      liveRooms.set(roomId, { users: new Map(), messages: [] });
+    }
+    
+    const room = liveRooms.get(roomId);
+    room.users.set(socket.id, { 
+      ...user, 
+      socketId: socket.id,
+      isMuted: false,
+      isVideoOff: false,
+      isHandRaised: false
+    });
+    
+    io.to(roomId).emit('room-participants', Array.from(room.users.values()));
+    socket.emit('chat-history', room.messages);
+
+    // Notify others to initiate WebRTC connection
+    socket.to(roomId).emit('user-joined', { 
+      socketId: socket.id, 
+      user: room.users.get(socket.id) 
+    });
+  });
+
+  socket.on('call-user', ({ to, signal, from }) => {
+    io.to(to).emit('call-made', { signal, from });
+  });
+
+  socket.on('answer-call', ({ to, signal }) => {
+    io.to(to).emit('call-answered', { signal, from: socket.id });
+  });
+
+  socket.on('send-message', ({ roomId, message }) => {
+    const room = liveRooms.get(roomId);
+    if (room) {
+      const chatMsg = {
+        ...message,
+        id: Date.now(),
+        timestamp: new Date()
+      };
+      room.messages.push(chatMsg);
+      io.to(roomId).emit('new-message', chatMsg);
+    }
+  });
+
+  socket.on('toggle-media', ({ roomId, type, value }) => {
+    const room = liveRooms.get(roomId);
+    if (room && room.users.has(socket.id)) {
+      const user = room.users.get(socket.id);
+      if (type === 'audio') user.isMuted = value;
+      if (type === 'video') user.isVideoOff = value;
+      io.to(roomId).emit('room-participants', Array.from(room.users.values()));
+    }
+  });
+
+  socket.on('raise-hand', ({ roomId, isRaised }) => {
+    const room = liveRooms.get(roomId);
+    if (room && room.users.has(socket.id)) {
+      room.users.get(socket.id).isHandRaised = isRaised;
+      io.to(roomId).emit('room-participants', Array.from(room.users.values()));
+    }
+  });
+
+  socket.on('send-reaction', ({ roomId, emoji }) => {
+    io.to(roomId).emit('new-reaction', { socketId: socket.id, emoji });
+  });
+
+  socket.on('leave-live-room', (roomId) => {
+    socket.leave(roomId);
+    const room = liveRooms.get(roomId);
+    if (room) {
+      room.users.delete(socket.id);
+      io.to(roomId).emit('room-participants', Array.from(room.users.values()));
+      io.to(roomId).emit('user-left', socket.id);
     }
   });
 
@@ -137,11 +220,21 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    // Cleanup Coding Rooms
     codingRooms.forEach((room, roomId) => {
       const updatedUsers = Array.from(room.users).filter(u => u.socketId !== socket.id);
       if (updatedUsers.length !== Array.from(room.users).length) {
         room.users = new Set(updatedUsers);
         io.to(roomId).emit('room-users', updatedUsers);
+      }
+    });
+
+    // Cleanup Live Rooms
+    liveRooms.forEach((room, roomId) => {
+      if (room.users.has(socket.id)) {
+        room.users.delete(socket.id);
+        io.to(roomId).emit('room-participants', Array.from(room.users.values()));
+        io.to(roomId).emit('user-left', socket.id);
       }
     });
   });
