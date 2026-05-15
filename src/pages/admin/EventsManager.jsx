@@ -23,7 +23,8 @@ export default function EventsManager() {
     maxParticipants: 0,
     minTeamSize: 1,
     maxTeamSize: 1,
-    isActive: true
+    isActive: true,
+    rules: ''
   });
 
   useEffect(() => {
@@ -106,7 +107,8 @@ export default function EventsManager() {
         maxParticipants: 0,
         minTeamSize: 1,
         maxTeamSize: 1,
-        isActive: true
+        isActive: true,
+        rules: ''
       });
     }
     setIsModalOpen(true);
@@ -357,6 +359,18 @@ export default function EventsManager() {
                   required
                   rows="4"
                   value={formData.description}
+                  onChange={handleChange}
+                  className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all resize-none font-medium leading-relaxed"
+                />
+              </div>
+
+              <div className="flex flex-col gap-3 md:col-span-2">
+                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Rules & Regulations (Optional)</label>
+                <textarea 
+                  name="rules"
+                  rows="3"
+                  placeholder="Enter rules separated by newlines..."
+                  value={formData.rules}
                   onChange={handleChange}
                   className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all resize-none font-medium leading-relaxed"
                 />

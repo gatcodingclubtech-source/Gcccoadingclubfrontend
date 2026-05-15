@@ -11,6 +11,10 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Event description is required'],
     },
+    rules: {
+      type: String,
+      default: '',
+    },
     shortDesc: {
       type: String,
       default: '',
