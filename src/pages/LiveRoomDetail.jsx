@@ -137,15 +137,25 @@ export default function LiveRoomDetail() {
         const res = await axios.get(`/api/live-rooms/${id}`);
         setRoom(res.data);
         
-        const isHost = res.data.host._id === user._id || res.data.host === user._id;
+        const hostId = res.data.host?._id || res.data.host;
+        const currentUserId = user?._id || user?.id;
+        const isAdmin = user?.role === 'Admin' || user?.isAdmin === true;
+        const isHost = hostId === currentUserId || isAdmin;
+
+        console.log('Room entry check:', { hostId, currentUserId, isHost, isAdmin });
         
         if (isHost || !res.data.requiresApproval) {
           setIsApproved(true);
           setEntryStatus('approved');
           joinTheRoom();
         } else {
+          // If not approved, we still join the room socket but as a "spectator/waiting" 
+          // so we can receive signaling if needed, or at least so host can see us?
+          // Actually, we stay out of the room participants list for now.
           setEntryStatus('waiting');
           socket.emit('request-room-entry', { roomId: id, user });
+          // We join the room socket specifically to receive the approval event
+          socket.emit('join-live-room', { roomId: id, user, isWaiting: true });
         }
       } catch (err) {
         toast.error('Failed to load room details');
@@ -244,82 +254,82 @@ export default function LiveRoomDetail() {
   };
 
   useEffect(() => {
-    if (entryStatus !== 'approved') return;
+    if (entryStatus === 'joining') return;
     
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
+    let stream;
+    
+    const initMedia = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localStreamRef.current = stream;
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-        socket.on('room-participants', (users) => {
-          const others = users.filter(u => u.socketId !== socket.id);
-          participantsRef.current = others;
-          setParticipants(others);
-        });
+        if (entryStatus === 'approved') {
+          socket.on('room-participants', (users) => {
+            const others = users.filter(u => u.socketId !== socket.id);
+            participantsRef.current = others;
+            setParticipants(others);
+          });
 
-        socket.on('user-joined', ({ socketId }) => {
-          createPeerConnection(socketId, stream, true);
-        });
+          socket.on('user-joined', ({ socketId }) => {
+            createPeerConnection(socketId, stream, true);
+          });
 
-        socket.on('webrtc-signal', async ({ signal, from }) => {
-          try {
-            let peer = peersRef.current[from];
-
-            if (signal.type === 'offer') {
-              if (!peer) {
-                peer = createPeerConnection(from, localStreamRef.current, false);
-              }
-              await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-              const answer = await peer.createAnswer();
-              await peer.setLocalDescription(answer);
-              socket.emit('webrtc-signal', {
-                to: from,
-                from: socket.id,
-                signal: { type: 'answer', sdp: peer.localDescription }
-              });
-            } else if (signal.type === 'answer') {
-              if (peer) {
+          socket.on('webrtc-signal', async ({ signal, from }) => {
+            try {
+              let peer = peersRef.current[from];
+              if (signal.type === 'offer') {
+                if (!peer) peer = createPeerConnection(from, localStreamRef.current, false);
                 await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-              }
-            } else if (signal.type === 'candidate') {
-              if (peer) {
+                const answer = await peer.createAnswer();
+                await peer.setLocalDescription(answer);
+                socket.emit('webrtc-signal', { to: from, from: socket.id, signal: { type: 'answer', sdp: peer.localDescription } });
+              } else if (signal.type === 'answer' && peer) {
+                await peer.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+              } else if (signal.type === 'candidate' && peer) {
                 await peer.addIceCandidate(new RTCIceCandidate(signal.candidate));
               }
-            }
-          } catch (err) {
-            console.error("WebRTC Signaling Error:", err);
-          }
-        });
-
-        socket.on('new-message', (msg) => {
-          setMessages(prev => [...prev, msg]);
-        });
-
-        socket.on('chat-history', (history) => {
-          setMessages(history);
-        });
-
-        socket.on('user-left', (id) => {
-          if (peersRef.current[id]) {
-            peersRef.current[id].close();
-            delete peersRef.current[id];
-          }
-          setRemoteStreams(prev => {
-            const newState = { ...prev };
-            delete newState[id];
-            return newState;
+            } catch (err) { console.error("WebRTC Signaling Error:", err); }
           });
-        });
-      })
-      .catch(err => {
+
+          socket.on('new-message', (msg) => {
+            setMessages(prev => [...prev, msg]);
+          });
+
+          socket.on('chat-history', (history) => {
+            setMessages(history);
+          });
+
+          socket.on('user-left', (id) => {
+            if (peersRef.current[id]) {
+              peersRef.current[id].close();
+              delete peersRef.current[id];
+            }
+            setRemoteStreams(prev => {
+              const newState = { ...prev };
+              delete newState[id];
+              return newState;
+            });
+          });
+        }
+      } catch (err) {
         console.error(err);
         toast.error("Media access denied");
-      });
+      }
+    };
+
+    initMedia();
 
     return () => {
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(track => track.stop());
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
+      socket.off('room-participants');
+      socket.off('user-joined');
+      socket.off('webrtc-signal');
+      socket.off('new-message');
+      socket.off('chat-history');
+      socket.off('user-left');
     };
   }, [entryStatus, id]);
 
@@ -375,32 +385,63 @@ export default function LiveRoomDetail() {
   );
 
   if (entryStatus === 'waiting') return (
-    <div className="min-h-screen bg-[#0A0F1D] flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-[#0A0F1D] flex flex-col items-center justify-center p-6">
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className="glass-panel p-12 max-w-md w-full space-y-8 border-brand/20 shadow-2xl shadow-brand/10 bg-white/5"
+        className="glass-panel p-8 md:p-12 max-w-2xl w-full flex flex-col md:flex-row gap-8 md:gap-12 border-brand/20 shadow-2xl shadow-brand/10 bg-white/5"
       >
-        <div className="relative mx-auto w-24 h-24">
-          <div className="absolute inset-0 bg-brand/20 rounded-full animate-ping" />
-          <div className="relative bg-brand/10 rounded-full w-full h-full flex items-center justify-center border border-brand/30">
-            <Shield className="w-10 h-10 text-brand" />
-          </div>
+        {/* Preview Section */}
+        <div className="flex-1 space-y-4">
+           <div className="relative aspect-video rounded-3xl overflow-hidden bg-slate-900 border border-white/5">
+              <video ref={localVideoRef} autoPlay playsInline muted className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : ''}`} />
+              {isVideoOff && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                  <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
+                    <VideoOff className="w-8 h-8 text-slate-500" />
+                  </div>
+                </div>
+              )}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
+                 <button 
+                   onClick={() => setIsMuted(!isMuted)}
+                   className={`p-4 rounded-2xl transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-white/10 text-white backdrop-blur-xl hover:bg-white/20'}`}
+                 >
+                   {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                 </button>
+                 <button 
+                   onClick={() => setIsVideoOff(!isVideoOff)}
+                   className={`p-4 rounded-2xl transition-all ${isVideoOff ? 'bg-red-500 text-white' : 'bg-white/10 text-white backdrop-blur-xl hover:bg-white/20'}`}
+                 >
+                   {isVideoOff ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                 </button>
+              </div>
+           </div>
+           <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">Check your equipment before joining</p>
         </div>
-        <div className="space-y-2">
-          <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Lobby</h2>
-          <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Waiting for Host Approval</p>
+
+        {/* Info Section */}
+        <div className="flex-1 flex flex-col justify-center space-y-8 text-center md:text-left">
+           <div className="space-y-2">
+             <div className="flex items-center gap-3 justify-center md:justify-start">
+               <Shield className="w-5 h-5 text-brand" />
+               <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Lobby</h2>
+             </div>
+             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Waiting for Host Approval</p>
+           </div>
+           
+           <div className="p-6 bg-brand/5 rounded-2xl border border-brand/10">
+             <p className="text-sm font-medium text-slate-300 leading-relaxed">
+               The host has been notified. You'll be admitted as soon as they approve your request to join <span className="text-brand font-black">"{room.title}"</span>.
+             </p>
+           </div>
+
+           <button 
+             onClick={() => navigate('/live-rooms')}
+             className="w-full py-4 rounded-xl border border-white/10 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+           >
+             Cancel Request
+           </button>
         </div>
-        <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-          <p className="text-sm font-medium text-slate-300">
-            The host has been notified of your request to join <span className="text-brand font-black">"{room.title}"</span>. Please stay on this screen.
-          </p>
-        </div>
-        <button 
-          onClick={() => navigate('/live-rooms')}
-          className="w-full py-4 rounded-xl border border-white/10 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-        >
-          Cancel Request
-        </button>
       </motion.div>
     </div>
   );
