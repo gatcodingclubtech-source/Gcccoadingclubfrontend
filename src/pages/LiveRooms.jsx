@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Mic, MessageSquare, Users, Plus, Shield, Code, BookOpen, Sword, Search, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -10,6 +10,7 @@ const API_BASE_URL = '/api';
 
 export default function LiveRooms() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [discussions, setDiscussions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,13 +18,19 @@ export default function LiveRooms() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
 
+  // Password Auth State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [selectedRoomForAuth, setSelectedRoomForAuth] = useState(null);
+  const [roomPasswordInput, setRoomPasswordInput] = useState('');
+
   const [newRoom, setNewRoom] = useState({
     title: '',
     description: '',
     type: 'Debate',
     maxParticipants: 10,
     isLocked: false,
-    password: ''
+    password: '',
+    requiresApproval: false
   });
 
   const roomTypes = [
@@ -74,6 +81,33 @@ export default function LiveRooms() {
       fetchRooms();
     } catch (err) {
       toast.error('Failed to create room');
+    }
+  };
+
+  const handleRoomClick = (e, room) => {
+    e.preventDefault();
+    if (!user) return toast.error('Login required to join rooms');
+    if (room.isLocked) {
+      setSelectedRoomForAuth(room);
+      setRoomPasswordInput('');
+      setIsAuthModalOpen(true);
+    } else {
+      navigate(room.type === 'Coding' ? `/coding-hub/${room._id}` : `/live-rooms/${room._id}`);
+    }
+  };
+
+  const handleVerifyPassword = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${API_BASE_URL}/live-rooms/${selectedRoomForAuth._id}/verify-password`, {
+        password: roomPasswordInput
+      });
+      if (res.data.success) {
+        setIsAuthModalOpen(false);
+        navigate(selectedRoomForAuth.type === 'Coding' ? `/coding-hub/${selectedRoomForAuth._id}` : `/live-rooms/${selectedRoomForAuth._id}`);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Incorrect password');
     }
   };
 
@@ -189,7 +223,7 @@ export default function LiveRooms() {
                 transition={{ delay: idx * 0.05 }}
                 className="group relative"
               >
-                <Link to={room.type === 'Coding' ? `/coding-hub/${room._id}` : `/live-rooms/${room._id}`}>
+                <div onClick={(e) => handleRoomClick(e, room)} className="cursor-pointer">
                   <div className="glass-panel p-8 h-full flex flex-col gap-6 hover:border-brand/40 transition-all duration-500 hover:shadow-2xl hover:shadow-brand/5 group-hover:translate-y-[-8px]">
                     <div className="flex justify-between items-start">
                        <div className={`p-3 rounded-2xl ${roomTypes.find(t => t.name === room.type)?.bg || 'bg-slate-100'} ${roomTypes.find(t => t.name === room.type)?.color || 'text-slate-400'}`}>
@@ -222,7 +256,7 @@ export default function LiveRooms() {
                        </div>
                     </div>
                   </div>
-                </Link>
+                </div>
                 {room.isLocked && (
                   <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md p-1.5 rounded-lg">
                     <Shield className="w-3 h-3 text-white" />
@@ -378,11 +412,67 @@ export default function LiveRooms() {
                        />
                     </div>
                  )}
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Entry Mode</label>
+                    <div className="flex items-center gap-4 bg-slate-100 dark:bg-slate-800 p-4 rounded-xl">
+                      <input 
+                        type="checkbox"
+                        checked={newRoom.requiresApproval}
+                        onChange={(e) => setNewRoom({...newRoom, requiresApproval: e.target.checked})}
+                        className="w-5 h-5 accent-brand"
+                      />
+                      <span className="text-sm font-bold text-slate-500 uppercase">Host Approval Required (Lobby)</span>
+                    </div>
+                 </div>
                  <button 
                    type="submit"
                    className="w-full py-4 bg-brand text-white rounded-xl font-black tracking-widest shadow-xl shadow-brand/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase"
                  >
                    LAUNCH ROOM
+                 </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Password Prompt Modal */}
+      <AnimatePresence>
+        {isAuthModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAuthModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm glass-panel p-8 md:p-10 space-y-6 bg-white dark:bg-slate-900 text-center"
+            >
+              <Shield className="w-12 h-12 text-brand mx-auto mb-2" />
+              <h3 className="text-2xl font-black tracking-tight uppercase">Private <span className="text-brand">Room</span></h3>
+              <p className="text-xs font-bold text-slate-500">Enter the password to join '{selectedRoomForAuth?.title}'.</p>
+              
+              <form onSubmit={handleVerifyPassword} className="space-y-6 pt-4">
+                 <div className="space-y-2 text-left">
+                    <input 
+                      required
+                      type="password"
+                      placeholder="Enter Password"
+                      value={roomPasswordInput}
+                      onChange={(e) => setRoomPasswordInput(e.target.value)}
+                      className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-4 font-bold text-sm outline-none focus:ring-2 ring-brand/50 transition-all text-center"
+                    />
+                 </div>
+                 <button 
+                   type="submit"
+                   className="w-full py-4 bg-brand text-white rounded-xl font-black tracking-widest shadow-xl shadow-brand/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase"
+                 >
+                   VERIFY & JOIN
                  </button>
               </form>
             </motion.div>
