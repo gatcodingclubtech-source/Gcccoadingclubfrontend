@@ -357,6 +357,13 @@ export default function LiveRoomDetail() {
     };
   }, [entryStatus, id, user]);
 
+  // Sync video source when UI unmounts/remounts (Lobby -> Main Room)
+  useEffect(() => {
+    if (localVideoRef.current && localStreamRef.current && localVideoRef.current.srcObject !== localStreamRef.current) {
+      localVideoRef.current.srcObject = localStreamRef.current;
+    }
+  });
+
   useEffect(() => {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
   }, [messages, showChat]);
