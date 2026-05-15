@@ -138,10 +138,10 @@ export default function Profile() {
     const uploadToast = toast.loading('Uploading profile picture...');
 
     try {
-      const { data } = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/profile-picture`, formData, {
+      const { data } = await axios.post('/api/users/profile-picture', formData, {
         headers: { 
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}` 
+          Authorization: `Bearer ${localStorage.getItem('gcc_token')}` 
         }
       });
 

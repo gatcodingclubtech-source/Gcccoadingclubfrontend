@@ -131,9 +131,13 @@ export default function Navbar() {
             <div id="navbar-user-section" className="hidden md:flex items-center gap-3 ml-2 pl-4 border-l border-black/5 dark:border-white/5">
               <Link 
                 to="/profile" 
-                className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"
+                className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center overflow-hidden border border-black/5 dark:border-white/10 hover:scale-105 transition-all shadow-lg"
               >
-                <Users className="w-5 h-5" />
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Users className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                )}
               </Link>
               <button 
                 onClick={handleLogout}
