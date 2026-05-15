@@ -21,7 +21,7 @@ const ReactionFloating = ({ emoji }) => (
   </motion.div>
 );
 
-const RemoteVideo = ({ stream, user, reaction, isFocused, onClick, layoutId }) => {
+const RemoteVideo = ({ stream, user, reaction, isFocused, onClick, layoutId, isDarkTheme }) => {
   const ref = useRef();
 
   useEffect(() => {
@@ -597,7 +597,7 @@ export default function LiveRoomDetail() {
                      </motion.div>
                    ) : (
                      Object.entries(remoteStreams).filter(([id]) => id === focusedVideo).map(([socketId, stream]) => (
-                        <RemoteVideo key={socketId} layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={true} onClick={() => setFocusedVideo(null)} />
+                        <RemoteVideo key={socketId} layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={true} onClick={() => setFocusedVideo(null)} isDarkTheme={isDarkTheme} />
                      ))
                    )}
                 </div>
@@ -623,7 +623,7 @@ export default function LiveRoomDetail() {
                    )}
                    {Object.entries(remoteStreams).filter(([id]) => id !== focusedVideo).map(([socketId, stream]) => (
                      <div key={socketId} className="w-[200px] lg:w-full shrink-0">
-                       <RemoteVideo layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={false} onClick={() => setFocusedVideo(socketId)} />
+                       <RemoteVideo layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={false} onClick={() => setFocusedVideo(socketId)} isDarkTheme={isDarkTheme} />
                      </div>
                    ))}
                 </div>
@@ -673,7 +673,7 @@ export default function LiveRoomDetail() {
                 {/* Remote Participants */}
                 <AnimatePresence>
                   {Object.entries(remoteStreams).map(([socketId, stream]) => (
-                     <RemoteVideo key={socketId} layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={false} onClick={() => setFocusedVideo(socketId)} />
+                     <RemoteVideo key={socketId} layoutId={`remote-${socketId}`} stream={stream} reaction={activeReactions[socketId]} user={participantsRef.current.find(p => p.socketId === socketId)} isFocused={false} onClick={() => setFocusedVideo(socketId)} isDarkTheme={isDarkTheme} />
                   ))}
                 </AnimatePresence>
              </div>

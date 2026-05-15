@@ -6,6 +6,7 @@ const { adminOnly } = require('../middleware/adminMiddleware');
 const Event = require('../models/Event');
 const QuizSession = require('../models/QuizSession');
 const Notification = require('../models/Notification');
+const upload = require('../middleware/upload');
 
 // @desc    Get user stats for profile
 // @route   GET /api/users/profile/stats
@@ -178,6 +179,32 @@ router.put('/profile', protect, async (req, res) => {
       res.json({
         success: true,
         user: updatedUser
+      });
+    } else {
+      res.status(404).json({ success: false, message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Upload profile picture
+// @route   POST /api/users/profile-picture
+// @access  Private
+router.post('/profile-picture', protect, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload an image' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.avatar = req.file.path; // This is the Cloudinary URL
+      await user.save();
+      res.json({ 
+        success: true, 
+        message: 'Profile picture updated successfully',
+        avatar: user.avatar 
       });
     } else {
       res.status(404).json({ success: false, message: 'User not found' });
