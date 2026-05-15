@@ -279,13 +279,16 @@ export default function LiveRoomDetail() {
         console.error("Media access denied:", err);
         toast.error("Camera/Mic access denied");
       });
+  }, [entryStatus, id, user]);
 
+  // Clean up media strictly on unmount
+  useEffect(() => {
     return () => {
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [entryStatus, id, user]);
+  }, []);
 
   // 2. WebRTC & Socket Listeners (Runs when approved)
   useEffect(() => {
