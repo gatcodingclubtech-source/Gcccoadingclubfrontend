@@ -108,21 +108,26 @@ io.on('connection', (socket) => {
   socket.on('join-coding-room', ({ roomId, user }) => {
     socket.join(roomId);
     if (!codingRooms.has(roomId)) {
-      codingRooms.set(roomId, { users: new Set(), code: '// Start building...' });
+      codingRooms.set(roomId, { 
+        users: new Set(), 
+        files: [
+          { id: '1', name: 'main.js', content: '// Start building something elite...\n\nfunction initGCC() {\n  console.log("Welcome to the Hub");\n}\n\ninitGCC();' }
+        ] 
+      });
     }
     const room = codingRooms.get(roomId);
     if (room.users instanceof Set) {
         room.users.add({ ...user, socketId: socket.id });
-        socket.emit('code-update', room.code);
+        socket.emit('workspace-update', room.files);
         io.to(roomId).emit('room-users', Array.from(room.users));
     }
   });
 
-  socket.on('code-change', ({ roomId, code }) => {
+  socket.on('workspace-change', ({ roomId, files }) => {
     const room = codingRooms.get(roomId);
-    if (room && room.code !== undefined) {
-      room.code = code;
-      socket.to(roomId).emit('code-update', code);
+    if (room && files) {
+      room.files = files;
+      socket.to(roomId).emit('workspace-update', files);
     }
   });
 
