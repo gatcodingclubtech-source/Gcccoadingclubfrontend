@@ -4,6 +4,7 @@ const Event = require('../models/Event');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
 const { triggerAutomation, notifyAllUsers } = require('../utils/automation');
+const Banner = require('../models/Banner');
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -44,6 +45,19 @@ router.post('/', protect, adminOnly, async (req, res) => {
     });
     const savedEvent = await event.save();
 
+    // Create an automated banner for this event
+    await Banner.create({
+      title: savedEvent.title,
+      subtitle: savedEvent.shortDesc || 'Click to register and join the session!',
+      image: savedEvent.image,
+      link: `/event/${savedEvent._id}`,
+      type: 'EVENT',
+      targetDate: savedEvent.date,
+      color: 'emerald',
+      isActive: true,
+      priority: 5
+    });
+
     // Notify all users about the new event
     await notifyAllUsers({
       title: 'Upcoming Event Alert! 📢',
@@ -67,6 +81,18 @@ router.put('/:id', protect, adminOnly, async (req, res) => {
     if (event) {
       Object.assign(event, req.body);
       const updatedEvent = await event.save();
+
+      // Sync automated banner
+      await Banner.findOneAndUpdate(
+        { link: `/event/${updatedEvent._id}` },
+        {
+          title: updatedEvent.title,
+          subtitle: updatedEvent.shortDesc || 'Click to register and join the session!',
+          image: updatedEvent.image,
+          targetDate: updatedEvent.date
+        }
+      );
+
       res.json({ success: true, event: updatedEvent });
     } else {
       res.status(404).json({ success: false, message: 'Event not found' });
