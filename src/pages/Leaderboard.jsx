@@ -20,7 +20,7 @@ export default function Leaderboard() {
       setLoading(true);
       const res = await axios.get(`/api/users/leaderboard?type=${filter}`);
       if (res.data.success) {
-        setUsers(res.data.users);
+        setUsers(res.data.users || []);
       }
     } catch (err) {
       console.error('Failed to fetch leaderboard');
@@ -29,8 +29,8 @@ export default function Leaderboard() {
     }
   };
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredUsers = (users || []).filter(user => 
+    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (user.usn && user.usn.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 

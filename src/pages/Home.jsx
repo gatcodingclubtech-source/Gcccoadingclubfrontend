@@ -381,7 +381,7 @@ export default function Home({ theme }) {
     }
   };
 
-  // Drag-to-scroll functionality for Domains
+  // Drag-to-scroll functionality for Domains (Desktop & Touch)
   useEffect(() => {
     const slider = domainScrollRef.current;
     if (!slider) return;
@@ -390,35 +390,56 @@ export default function Home({ theme }) {
     let startX;
     let scrollLeft;
 
-    const onMouseDown = (e) => {
+    const startDragging = (x) => {
       isDown = true;
       slider.style.cursor = 'grabbing';
-      startX = e.pageX - slider.offsetLeft;
+      slider.style.scrollSnapType = 'none'; // Disable snap while dragging for smoothness
+      startX = x - slider.offsetLeft;
       scrollLeft = slider.scrollLeft;
     };
 
-    const onMouseLeave = () => {
+    const stopDragging = () => {
       isDown = false;
       slider.style.cursor = 'grab';
+      slider.style.scrollSnapType = 'x mandatory'; // Re-enable snap
     };
 
-    const onMouseUp = () => {
-      isDown = false;
-      slider.style.cursor = 'grab';
-    };
-
-    const onMouseMove = (e) => {
+    const moveDragging = (e, x) => {
       if (!isDown) return;
       e.preventDefault();
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 2; // scroll speed
+      const walk = (x - slider.offsetLeft - startX) * 2.5; 
       slider.scrollLeft = scrollLeft - walk;
     };
+
+    const handleScroll = () => {
+      const maxScroll = slider.scrollWidth - slider.clientWidth;
+      if (maxScroll <= 0) return;
+      const progress = (slider.scrollLeft / maxScroll) * 100;
+      setScrollProgress(progress);
+    };
+
+    // Mouse Events
+    const onMouseDown = (e) => startDragging(e.pageX);
+    const onMouseLeave = () => stopDragging();
+    const onMouseUp = () => stopDragging();
+    const onMouseMove = (e) => moveDragging(e, e.pageX);
+
+    // Touch Events
+    const onTouchStart = (e) => startDragging(e.touches[0].pageX);
+    const onTouchEnd = () => stopDragging();
+    const onTouchMove = (e) => moveDragging(e, e.touches[0].pageX);
 
     slider.addEventListener('mousedown', onMouseDown);
     slider.addEventListener('mouseleave', onMouseLeave);
     slider.addEventListener('mouseup', onMouseUp);
     slider.addEventListener('mousemove', onMouseMove);
+
+    slider.addEventListener('touchstart', onTouchStart, { passive: false });
+    slider.addEventListener('touchend', onTouchEnd);
+    slider.addEventListener('touchmove', onTouchMove, { passive: false });
+
+    slider.addEventListener('scroll', handleScroll);
+
     slider.style.cursor = 'grab';
 
     return () => {
@@ -426,6 +447,12 @@ export default function Home({ theme }) {
       slider.removeEventListener('mouseleave', onMouseLeave);
       slider.removeEventListener('mouseup', onMouseUp);
       slider.removeEventListener('mousemove', onMouseMove);
+
+      slider.removeEventListener('touchstart', onTouchStart);
+      slider.removeEventListener('touchend', onTouchEnd);
+      slider.removeEventListener('touchmove', onTouchMove);
+
+      slider.removeEventListener('scroll', handleScroll);
     };
   }, [domainsLoading]);
 
@@ -934,7 +961,11 @@ export default function Home({ theme }) {
         {/* Scroll Hint */}
         <div className="flex flex-col items-center gap-4">
           <div className="w-32 h-[1px] bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
-             <div className="absolute top-0 left-0 h-full bg-emerald-500 w-1/3 animate-[shimmer_2s_infinite]" />
+             <motion.div 
+               className="absolute top-0 left-0 h-full bg-emerald-500" 
+               animate={{ width: `${Math.max(10, scrollProgress)}%` }}
+               transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+             />
           </div>
           <span className="text-[8px] font-black uppercase tracking-[0.5em] text-slate-400 animate-pulse">Swipe Horizontal</span>
         </div>

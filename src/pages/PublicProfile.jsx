@@ -48,8 +48,8 @@ export default function PublicProfile() {
         setProfile(prev => ({
           ...prev,
           followers: isFollowing 
-            ? prev.followers.filter(fid => fid !== currentUser._id)
-            : [...prev.followers, currentUser._id]
+            ? (prev.followers || []).filter(fid => fid !== currentUser._id)
+            : [...(prev.followers || []), currentUser._id]
         }));
       }
     } catch (err) {
