@@ -214,12 +214,12 @@ export const useOnboarding = () => {
             side: "left"
           }
         },
-        // --- STEP 6: DISCUSSIONS ---
+        // --- STEP 6: RESOURCES ---
         {
-          element: '#sidebar-discussions',
+          element: '#sidebar-resources',
           popover: {
-            title: 'Community Discussions',
-            description: 'Moderate the forum posts. You can delete inappropriate content or sticky important announcements here.',
+            title: 'Knowledge Library',
+            description: 'Curate educational assets like video tutorials, technical documentation, and source code for the community.',
             side: "right"
           }
         },

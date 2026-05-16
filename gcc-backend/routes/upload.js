@@ -15,19 +15,23 @@ cloudinary.config({
 // Configure Storage
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'gcc-platform',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-    transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
+  params: async (req, file) => {
+    const isPdf = file.mimetype === 'application/pdf';
+    return {
+      folder: 'gcc-platform',
+      resource_type: isPdf ? 'raw' : 'image',
+      allowed_formats: isPdf ? ['pdf'] : ['jpg', 'png', 'jpeg', 'webp'],
+      transformation: isPdf ? undefined : [{ width: 1000, height: 1000, crop: 'limit' }]
+    };
   }
 });
 
 const upload = multer({ storage: storage });
 
-// @desc    Upload image
+// @desc    Upload image or document
 // @route   POST /api/upload
 // @access  Private
-router.post('/', protect, upload.single('image'), (req, res) => {
+router.post('/', protect, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });

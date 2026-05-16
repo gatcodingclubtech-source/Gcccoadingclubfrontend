@@ -71,7 +71,7 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/quiz-sessions', require('./routes/quizSessions'));
 app.use('/api/domains', require('./routes/domains'));
-app.use('/api/discussions', require('./routes/discussions'));
+app.use('/api/resources', require('./routes/resources'));
 app.use('/api/live-rooms', require('./routes/liveRooms'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/settings', require('./routes/settings'));

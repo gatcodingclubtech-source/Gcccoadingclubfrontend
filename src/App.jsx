@@ -13,8 +13,8 @@ import Profile from './pages/Profile';
 import ProfileComplete from './pages/ProfileComplete';
 import EventRegistration from './pages/EventRegistration';
 import DomainRegistration from './pages/DomainRegistration';
-import Discussions from './pages/Discussions';
-import DiscussionDetail from './pages/DiscussionDetail';
+import Resources from './pages/Resources';
+import MyResources from './pages/MyResources';
 import PublicProfile from './pages/PublicProfile';
 import Leaderboard from './pages/Leaderboard';
 import Domains from './pages/Domains';
@@ -31,7 +31,7 @@ import TestSessionManager from './pages/admin/TestSessionManager';
 import TestResults from './pages/admin/TestResults';
 import LiveRoomsManager from './pages/admin/LiveRoomsManager';
 import RegistrationsManager from './pages/admin/RegistrationsManager';
-import ManageDiscussions from './pages/admin/ManageDiscussions';
+import ManageResources from './pages/admin/ManageResources';
 import BannersManager from './pages/admin/BannersManager';
 import ClubSettings from './pages/admin/ClubSettings';
 import LiveRooms from './pages/LiveRooms';
@@ -155,8 +155,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/domains" element={<Domains />} />
             <Route path="/profile/:id" element={<PublicProfile />} />
-            <Route path="/discussions" element={<Discussions />} />
-            <Route path="/discussions/:id" element={<DiscussionDetail />} />
+            <Route path="/resources" element={<Resources />} />
             <Route path="/live-rooms" element={<LiveRooms />} />
             <Route path="/live-rooms/:id" element={<LiveRoomDetail />} />
             <Route path="/coding-hub/:roomId" element={<CodingHub />} />
@@ -164,6 +163,12 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/my-resources" element={
+              <ProtectedRoute>
+                <MyResources />
               </ProtectedRoute>
             } />
 
@@ -187,7 +192,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               <Route path="users" element={<UsersManager />} />
               <Route path="events" element={<EventsManager />} />
               <Route path="quiz" element={<QuizManager />} />
-              <Route path="discussions" element={<ManageDiscussions />} />
+              <Route path="resources" element={<ManageResources />} />
               <Route path="domains" element={<DomainCentral />} />
               <Route path="live-rooms" element={<LiveRoomsManager />} />
               <Route path="banners" element={<BannersManager />} />
