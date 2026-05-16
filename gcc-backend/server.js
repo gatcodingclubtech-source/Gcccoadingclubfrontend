@@ -97,8 +97,7 @@ const socketService = require('./utils/socketService');
 socketService.init(io);
 
 // In-memory room state for real-time features
-const codingRooms = new Map();
-const liveRooms = new Map();
+const { codingRooms, liveRooms } = require('./utils/roomStore');
 
 io.on('connection', (socket) => {
   // Common Room joining
