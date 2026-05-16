@@ -130,7 +130,7 @@ router.post('/:id/register', protect, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
 
-    const { teamName, members, teamLeader, additionalInfo } = req.body;
+    const { teamName, members, teamLeader, additionalInfo, transactionId, paymentScreenshot } = req.body;
 
     // Check if user already registered
     const existingReg = await Registration.findOne({ event: req.params.id, user: req.user._id });
@@ -155,7 +155,10 @@ router.post('/:id/register', protect, async (req, res) => {
       teamName,
       teamLeader,
       members,
-      additionalInfo
+      additionalInfo,
+      transactionId,
+      paymentScreenshot,
+      paymentStatus: event.price > 0 ? 'Pending' : 'N/A'
     });
 
     // Update event attendees and count
