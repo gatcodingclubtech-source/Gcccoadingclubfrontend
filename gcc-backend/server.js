@@ -73,6 +73,7 @@ app.use('/api/quiz-sessions', require('./routes/quizSessions'));
 app.use('/api/domains', require('./routes/domains'));
 app.use('/api/discussions', require('./routes/discussions'));
 app.use('/api/live-rooms', require('./routes/liveRooms'));
+app.use('/api/payments', require('./routes/payments'));
 app.use('/api/banners', require('./routes/banners'));
 app.use('/api/upload', require('./routes/upload'));
 

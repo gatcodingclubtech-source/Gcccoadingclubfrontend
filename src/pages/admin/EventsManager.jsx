@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Calendar, MapPin, Trash2, Edit2, 
   Search, ExternalLink, Image as ImageIcon, 
-  Save, X, Clock, ToggleLeft, ToggleRight, Users
+  Save, X, Clock, ToggleLeft, ToggleRight, Users,
+  CreditCard
 } from 'lucide-react';
 import axios from 'axios';
 import ImageUpload from '../../components/ImageUpload';
@@ -25,7 +26,10 @@ export default function EventsManager() {
     minTeamSize: 1,
     maxTeamSize: 1,
     isActive: true,
-    rules: ''
+    rules: '',
+    price: 0,
+    upiId: '',
+    qrCode: ''
   });
 
   useEffect(() => {
@@ -111,7 +115,10 @@ export default function EventsManager() {
         minTeamSize: 1,
         maxTeamSize: 1,
         isActive: true,
-        rules: ''
+        rules: '',
+        price: 0,
+        upiId: '',
+        qrCode: ''
       });
     }
     setIsModalOpen(true);
@@ -375,6 +382,46 @@ export default function EventsManager() {
                   onChange={handleChange}
                   className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all resize-none font-medium leading-relaxed"
                 />
+              </div>
+
+              {/* Payment Configuration */}
+              <div className="md:col-span-2 mt-6 p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-5 h-5 text-emerald-500" />
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Payment Setup</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Event Price (₹)</label>
+                    <input 
+                      name="price"
+                      type="number"
+                      min="0"
+                      placeholder="0 for free"
+                      value={formData.price}
+                      onChange={handleChange}
+                      className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">UPI ID for Payments</label>
+                    <input 
+                      name="upiId"
+                      placeholder="example@upi"
+                      value={formData.upiId}
+                      onChange={handleChange}
+                      className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <ImageUpload 
+                      value={formData.qrCode} 
+                      onChange={(url) => setFormData({...formData, qrCode: url})}
+                      label="Payment QR Code (Optional - Auto-generated if empty)"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="md:col-span-2 pt-10 flex flex-col sm:flex-row items-center justify-between gap-8 border-t border-black/5 dark:border-white/5">
