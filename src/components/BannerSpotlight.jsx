@@ -77,12 +77,19 @@ export default function BannerSpotlight({ banners }) {
           />
         )}
       </AnimatePresence>
-
-
+      <AnimatePresence mode="popLayout">
         {!isVisible ? null : (
-          <div 
+          <motion.div 
             key={currentIndex}
-            className="fixed md:relative inset-x-0 bottom-10 md:bottom-auto top-20 md:top-auto z-[999] md:z-50 px-4 md:px-6 flex items-center justify-center"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="fixed md:relative inset-x-0 bottom-10 md:bottom-auto top-20 md:top-auto z-[999] md:z-50 px-4 md:px-6 flex items-center justify-center cursor-grab active:cursor-grabbing"
           >
         <div className="w-full max-w-7xl mx-auto">
           <div className="relative group h-[70vh] md:h-[380px] rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
@@ -176,8 +183,9 @@ export default function BannerSpotlight({ banners }) {
 
           </div>
         </div>
-          </div>
+          </motion.div>
         )}
+      </AnimatePresence>
     </>
   );
 }
