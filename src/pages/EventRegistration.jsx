@@ -269,7 +269,7 @@ export default function EventRegistration() {
   const isTeamEvent = event.maxTeamSize > 1;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#050811] py-24 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#050811] py-20 md:py-24 px-4 md:px-6 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[150px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
@@ -421,49 +421,64 @@ export default function EventRegistration() {
             <button 
               onClick={handleAutomatedPay}
               disabled={submitting || isUploading}
-              className="w-full py-6 rounded-[2rem] bg-emerald-500 text-white text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-4"
+              className="w-full py-5 md:py-6 rounded-2xl md:rounded-[2rem] bg-emerald-500 text-white text-[10px] md:text-xs font-black uppercase tracking-[0.2em] md:tracking-[0.3em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-3 md:gap-4"
             >
               {submitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <>Automated Pay & Verify <CheckCircle className="w-6 h-6" /></>
+                <>Automated Pay & Verify <CheckCircle className="w-5 h-5 md:w-6 md:h-6" /></>
               )}
             </button>
 
-            <div className="flex items-center gap-4 py-4">
+            <div className="flex items-center gap-4 py-2 md:py-4">
               <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
               <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">OR MANUAL MODE</span>
               <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
             </div>
 
-            {/* Manual Payment Section (Hidden by default or shown as secondary) */}
-            <div className="glass-panel p-8 flex flex-col items-center gap-10 text-center opacity-60 hover:opacity-100 transition-opacity">
-               <div className="flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-500/10 flex items-center justify-center text-slate-500">
-                     <QrCode className="w-6 h-6" />
+            {/* Manual Payment Section */}
+            <div className="glass-panel p-6 md:p-8 flex flex-col items-center gap-8 md:gap-10 text-center opacity-70 hover:opacity-100 transition-opacity">
+               <div className="flex flex-col items-center gap-3 md:gap-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-500/10 flex items-center justify-center text-slate-500">
+                     <QrCode className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Manual UPI Scan</h3>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Pay ₹{event.price} and upload proof</p>
+                    <h3 className="text-base md:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Manual UPI Scan</h3>
+                    <p className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Pay ₹{event.price} and upload proof</p>
                   </div>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full text-left">
+               {/* Auto-Generated QR Code */}
+               <div className="flex flex-col items-center gap-4">
+                  <div className="relative p-3 md:p-4 bg-white rounded-xl md:rounded-2xl shadow-xl border border-slate-100">
+                    <img 
+                      src={event.qrCode || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${event.upiId || 'gcc@upi'}&pn=GATCodingClub&am=${event.price}&cu=INR`} 
+                      alt="Payment QR" 
+                      className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5 md:gap-1">
+                    <span className="text-[9px] md:text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter">Scan with Any UPI App</span>
+                    <span className="text-[7px] md:text-[8px] font-bold text-emerald-500 uppercase tracking-widest break-all px-4">{event.upiId}</span>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full text-left">
                   <div className="flex flex-col gap-3">
-                    <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Transaction ID / UTR</label>
+                    <label className="text-[9px] md:text-[10px] font-black tracking-widest text-slate-400 uppercase">Transaction ID / UTR</label>
                     <input 
                       placeholder="Enter 12-digit UTR..."
                       value={transactionId}
                       onChange={(e) => setTransactionId(e.target.value)}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl md:rounded-2xl px-5 md:px-6 py-3.5 md:py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
                     />
                   </div>
                   <div className="flex flex-col gap-3">
-                    <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Payment Screenshot</label>
+                    <label className="text-[9px] md:text-[10px] font-black tracking-widest text-slate-400 uppercase">Payment Screenshot</label>
                     <button 
                       type="button"
                       onClick={() => fileInputRef.current.click()}
-                      className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl border-2 border-dashed transition-all font-bold text-xs uppercase tracking-widest ${
+                      className={`w-full flex items-center justify-between px-5 md:px-6 py-3.5 md:py-4 rounded-xl md:rounded-2xl border-2 border-dashed transition-all font-bold text-[10px] md:text-xs uppercase tracking-widest ${
                         paymentScreenshot 
                         ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500' 
                         : 'bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/10 text-slate-400 hover:border-emerald-500/50'
@@ -481,7 +496,7 @@ export default function EventRegistration() {
                <button 
                 onClick={handleManualSubmit}
                 disabled={submitting || !transactionId || !paymentScreenshot || isUploading}
-                className="w-full py-4 rounded-2xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 md:py-5 rounded-xl md:rounded-2xl bg-slate-800 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
                >
                  Submit Manual Verification <CheckCircle className="w-4 h-4" />
                </button>
