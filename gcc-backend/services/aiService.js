@@ -48,7 +48,7 @@ class AIService {
             content: context ? `Context: ${context}\n\nMember Query: ${prompt}` : prompt
           }
         ],
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant",
         temperature: 0.7,
         max_tokens: 1024,
       });
@@ -80,7 +80,7 @@ class AIService {
             content: content
           }
         ],
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant",
         response_format: { type: "json_object" }
       });
 
