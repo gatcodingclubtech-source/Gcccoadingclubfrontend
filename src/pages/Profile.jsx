@@ -463,16 +463,16 @@ export default function Profile() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                        {fetchingActivities ? (
                          Array(2).fill(0).map((_, i) => <div key={i} className="h-32 bg-slate-50 dark:bg-white/5 animate-pulse rounded-3xl" />)
-                       ) : activities.filter(a => a.type === 'Event').length === 0 ? (
+                       ) : activities.filter(a => a.type === 'EVENT').length === 0 ? (
                          <div className="col-span-full p-12 glass-panel border-dashed border-slate-300 dark:border-slate-800 flex flex-col items-center justify-center gap-4 opacity-40">
                             <Zap className="w-10 h-10 text-slate-400" />
                             <span className="text-[10px] font-black uppercase tracking-widest text-center">No event registrations detected</span>
                          </div>
                        ) : (
-                         activities.filter(a => a.type === 'Event').slice(0, 4).map((event, idx) => (
+                         activities.filter(a => a.type === 'EVENT').slice(0, 4).map((event, idx) => (
                            <Link 
                              key={idx} 
-                             to={`/event/${event.referenceId || event._id}`}
+                             to={`/event/${event.referenceId}`}
                              className="glass-panel p-6 flex items-center gap-5 group hover:border-emerald-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
                            >
                               <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
