@@ -78,6 +78,31 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    // Developer Social System
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    projects: [{
+      title: { type: String, required: true },
+      description: { type: String },
+      link: { type: String },
+      githubLink: { type: String },
+      thumbnail: { type: String },
+      tags: [String],
+      upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      createdAt: { type: Date, default: Date.now }
+    }],
+    // Reputation & Advanced Gamification
+    trustScore: { type: Number, default: 0 },
+    streak: { type: Number, default: 0 },
+    lastActive: { type: Date, default: Date.now },
+    skillMatrix: {
+      web: { type: Number, default: 0 },
+      ai: { type: Number, default: 0 },
+      cyber: { type: Number, default: 0 },
+      app: { type: Number, default: 0 },
+      dsa: { type: Number, default: 0 },
+      cloud: { type: Number, default: 0 },
+    },
     // Role and status
     role: {
       type: String,

@@ -57,6 +57,16 @@ export default function Navbar({ theme, toggleTheme }) {
       return;
     }
 
+    if (targetId === 'discussions') {
+      navigate('/discussions');
+      return;
+    }
+
+    if (targetId === 'leaderboard') {
+      navigate('/leaderboard');
+      return;
+    }
+
     if (location.pathname !== '/') {
       navigate('/', { state: { scrollTo: targetId } });
     } else {
@@ -76,6 +86,8 @@ export default function Navbar({ theme, toggleTheme }) {
   const navItems = [
     { label: 'Home', id: 'home' },
     { label: 'Events', id: 'events' },
+    { label: 'Discussions', id: 'discussions' },
+    { label: 'Leaderboard', id: 'leaderboard' },
     { label: 'Arena', id: 'live-rooms' },
     { label: 'Quiz', id: 'quiz' },
     { label: 'Domains', id: 'domains' },

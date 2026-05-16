@@ -110,34 +110,65 @@ router.get('/profile/activities', protect, async (req, res) => {
 // @access  Public
 router.get('/leaderboard', async (req, res) => {
   try {
-    const users = await User.find({ role: 'user' }).select('name avatar department year');
-    const quizSessions = await QuizSession.find({});
+    const { type = 'xp' } = req.query; // 'xp', 'streak', 'contributions'
+    let sort = {};
     
-    const leaderboard = users.map(user => {
-      let score = 0;
-      quizSessions.forEach(session => {
-        const result = session.results.find(r => r.user.toString() === user._id.toString());
-        if (result) score += (result.score || 0);
-      });
-      
-      // Determine Rank
-      let rank = 'Rookie';
-      if (score >= 500) rank = 'Legend';
-      else if (score >= 200) rank = 'Elite';
-      else if (score >= 50) rank = 'Builder';
+    if (type === 'streak') sort = { streak: -1 };
+    else if (type === 'contributions') sort = { trustScore: -1 };
+    else sort = { xp: -1 };
 
-      return {
-        _id: user._id,
-        name: user.name,
-        avatar: user.avatar,
-        department: user.department,
-        year: user.year,
-        totalPoints: score,
-        rank
-      };
-    }).sort((a, b) => b.totalPoints - a.totalPoints);
+    const users = await User.find({ role: 'user' })
+      .select('name avatar usn department rank xp streak trustScore')
+      .sort(sort)
+      .limit(100);
 
-    res.json({ success: true, leaderboard: leaderboard.slice(0, 50) });
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Get public profile
+// @route   GET /api/users/profile/:id
+// @access  Public
+router.get('/profile/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-password')
+      .populate('joinedDomains', 'name icon color');
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// @desc    Follow/Unfollow user
+// @route   POST /api/users/follow/:id
+// @access  Private
+router.post('/follow/:id', protect, async (req, res) => {
+  try {
+    const userToFollow = await User.findById(req.params.id);
+    const currentUser = await User.findById(req.user._id);
+
+    if (!userToFollow || !currentUser) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const isFollowing = currentUser.following.includes(req.params.id);
+
+    if (isFollowing) {
+      currentUser.following = currentUser.following.filter(id => id.toString() !== req.params.id);
+      userToFollow.followers = userToFollow.followers.filter(id => id.toString() !== req.user._id.toString());
+    } else {
+      currentUser.following.push(req.params.id);
+      userToFollow.followers.push(req.user._id);
+    }
+
+    await currentUser.save();
+    await userToFollow.save();
+
+    res.json({ success: true, isFollowing: !isFollowing });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
