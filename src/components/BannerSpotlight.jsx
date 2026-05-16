@@ -67,17 +67,18 @@ export default function BannerSpotlight({ banners }) {
 
   const variants = {
     enter: (direction) => ({
-      x: direction > 0 ? "100%" : "-100%",
-      opacity: 0
+      x: direction > 0 ? 100 : -100,
+      opacity: 0,
+      zIndex: 1000
     }),
     center: {
-      zIndex: 1,
+      zIndex: 1000,
       x: 0,
       opacity: 1
     },
     exit: (direction) => ({
-      zIndex: 0,
-      x: direction < 0 ? "100%" : "-100%",
+      zIndex: 1000,
+      x: direction < 0 ? 100 : -100,
       opacity: 0
     })
   };
@@ -93,12 +94,12 @@ export default function BannerSpotlight({ banners }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 z-[998] md:hidden"
+            className="fixed inset-0 bg-black/60 z-[998] md:hidden"
             onClick={() => setIsVisible(false)}
           />
         )}
       </AnimatePresence>
-      <AnimatePresence mode="popLayout" custom={direction}>
+      <AnimatePresence mode="wait" custom={direction}>
         {!isVisible ? null : (
           <motion.div 
             key={currentIndex}
@@ -108,8 +109,9 @@ export default function BannerSpotlight({ banners }) {
             animate="center"
             exit="exit"
             transition={{ 
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 }
+              type: "tween",
+              duration: 0.3,
+              ease: "easeOut"
             }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
@@ -127,8 +129,8 @@ export default function BannerSpotlight({ banners }) {
                 alt={banner.title} 
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black via-black/80 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </div>
 
             {/* Animated Glow Elements */}

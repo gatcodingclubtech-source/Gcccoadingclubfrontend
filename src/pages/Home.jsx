@@ -682,7 +682,7 @@ export default function Home({ theme }) {
         )}
       </AnimatePresence>
 
-      <div className="absolute top-[8rem] left-0 right-0 z-[60] pointer-events-none">
+      <div className="absolute top-[8rem] left-0 right-0 z-[1001] pointer-events-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pointer-events-auto">
           <BannerSpotlight banners={banners} />
         </div>
