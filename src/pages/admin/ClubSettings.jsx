@@ -14,7 +14,11 @@ export default function ClubSettings() {
     razorpayKeySecret: '',
     upiId: '',
     contactEmail: '',
-    contactPhone: ''
+    contactPhone: '',
+    smtpEmail: '',
+    smtpPassword: '',
+    smtpHost: 'smtp.gmail.com',
+    smtpPort: 587
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -158,6 +162,64 @@ export default function ClubSettings() {
               onChange={handleChange}
               className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
             />
+          </div>
+        </div>
+
+        {/* Automated Notifications */}
+        <div className="glass-panel p-8 flex flex-col gap-8 bg-black/[0.02]">
+          <div className="flex items-center gap-3">
+            <Mail className="w-5 h-5 text-emerald-500" />
+            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Automated Notifications (Email)</h3>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex gap-4">
+             <AlertCircle className="w-5 h-5 text-blue-500 shrink-0" />
+             <p className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase leading-relaxed tracking-widest">
+               Configure SMTP to send automated confirmation emails. For Gmail, use an "App Password".
+             </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Sender Email (SMTP)</label>
+              <input 
+                name="smtpEmail"
+                placeholder="notifications@gmail.com"
+                value={settings.smtpEmail}
+                onChange={handleChange}
+                className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">App Password / Secret</label>
+              <input 
+                name="smtpPassword"
+                type="password"
+                placeholder="••••••••••••••••"
+                value={settings.smtpPassword}
+                onChange={handleChange}
+                className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">SMTP Host</label>
+              <input 
+                name="smtpHost"
+                value={settings.smtpHost}
+                onChange={handleChange}
+                className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">SMTP Port</label>
+              <input 
+                name="smtpPort"
+                type="number"
+                value={settings.smtpPort}
+                onChange={handleChange}
+                className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+              />
+            </div>
           </div>
         </div>
 
