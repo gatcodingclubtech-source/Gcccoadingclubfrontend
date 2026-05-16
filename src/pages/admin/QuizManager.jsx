@@ -128,6 +128,7 @@ export default function QuizManager() {
         </div>
         
         <button 
+          id="admin-add-quiz-btn"
           onClick={() => openModal()}
           className="flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >

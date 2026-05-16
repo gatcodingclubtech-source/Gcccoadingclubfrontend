@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Plus, Calendar, Shield, ExternalLink, 
   Search, Users, CheckCircle2, XCircle, 
@@ -17,8 +18,11 @@ export default function TestSessionManager() {
     title: '',
     testId: '',
     password: '',
-    domain: 'general'
+    domain: 'general',
+    timerSeconds: 30
   });
+
+  const [editingSessionId, setEditingSessionId] = useState(null);
 
   useEffect(() => {
     fetchSessions();
@@ -80,17 +84,52 @@ export default function TestSessionManager() {
     }
     
     try {
-      const res = await axios.post('/api/quiz-sessions', {
-        ...formData,
-        questions: selectedQuestions
-      });
-      
-      if (res.data.success) {
-        setSessions([res.data.session, ...sessions]);
-        closeModal();
+      if (editingSessionId) {
+        const res = await axios.put(`/api/quiz-sessions/${editingSessionId}`, {
+          ...formData,
+          questions: selectedQuestions
+        });
+        if (res.data.success) {
+          setSessions(sessions.map(s => s._id === editingSessionId ? res.data.session : s));
+          closeModal();
+        }
+      } else {
+        const res = await axios.post('/api/quiz-sessions', {
+          ...formData,
+          questions: selectedQuestions
+        });
+        if (res.data.success) {
+          setSessions([res.data.session, ...sessions]);
+          closeModal();
+        }
       }
     } catch (err) {
-      alert('Failed to start session');
+      alert('Failed to save session');
+    }
+  };
+
+  const handleEditSession = (session) => {
+    setFormData({
+      title: session.title,
+      testId: session.testId,
+      password: session.password,
+      domain: session.domain || 'general',
+      timerSeconds: session.timerSeconds || 30
+    });
+    setSelectedQuestions(session.questions.map(q => q._id || q));
+    setEditingSessionId(session._id);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteSession = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this session?')) return;
+    try {
+      const res = await axios.delete(`/api/quiz-sessions/${id}`);
+      if (res.data.success) {
+        setSessions(sessions.filter(s => s._id !== id));
+      }
+    } catch (err) {
+      alert('Failed to delete session');
     }
   };
 
@@ -99,15 +138,18 @@ export default function TestSessionManager() {
       title: '',
       testId: '',
       password: '',
-      domain: 'general'
+      domain: 'general',
+      timerSeconds: 30
     });
     setSelectedQuestions([]);
+    setEditingSessionId(null);
     generateCredentials();
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setEditingSessionId(null);
   };
 
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
@@ -184,6 +226,7 @@ export default function TestSessionManager() {
         </div>
         
         <button 
+          id="admin-add-test-btn"
           onClick={openModal}
           className="flex items-center justify-center gap-3 px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
@@ -212,10 +255,24 @@ export default function TestSessionManager() {
                   <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{session.title}</h3>
                   <span className="text-[9px] text-emerald-500 font-black uppercase tracking-[0.2em]">{session.domain} / {session.questions.length} Questions</span>
                 </div>
-                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${
-                  session.isActive ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border-red-500/30 text-red-500'
-                }`}>
-                  {session.isActive ? 'Live' : 'Closed'}
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleEditSession(session)}
+                    className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all"
+                  >
+                    <Save className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteSession(session._id)}
+                    className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-500 hover:text-red-500 hover:border-red-500/30 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${
+                    session.isActive ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border-red-500/30 text-red-500'
+                  }`}>
+                    {session.isActive ? 'Live' : 'Closed'}
+                  </div>
                 </div>
               </div>
 
@@ -253,9 +310,12 @@ export default function TestSessionManager() {
                   </div>
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{session.results.length} Participants</span>
                 </div>
-                <button className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest hover:underline">
+                <Link 
+                  to={`/admin/test-sessions/${session._id}/results`}
+                  className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest hover:underline"
+                >
                   View Results <ExternalLink className="w-3.5 h-3.5" />
-                </button>
+                </Link>
               </div>
             </div>
           ))
@@ -269,8 +329,12 @@ export default function TestSessionManager() {
           <div data-lenis-prevent className="glass-panel w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 animate-in zoom-in duration-500 shadow-2xl">
             <div className="px-6 md:px-10 py-6 md:py-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
               <div className="flex flex-col gap-1">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Start New Test</h2>
-                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Fill in the details below.</p>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
+                  {editingSessionId ? 'Edit Session' : 'Start New Test'}
+                </h2>
+                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">
+                  {editingSessionId ? 'Update session details and question pool.' : 'Fill in the details below.'}
+                </p>
               </div>
               <button onClick={closeModal} className="p-3 bg-black/5 dark:bg-white/5 rounded-2xl text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
                 <X className="w-6 h-6" />
@@ -302,6 +366,20 @@ export default function TestSessionManager() {
                   <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl px-6 py-4 text-xs text-emerald-500 font-black tracking-widest flex items-center justify-between">
                     {formData.password}
                     <Shield className="w-4 h-4 opacity-50" />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Seconds per Question</label>
+                  <div className="flex items-center gap-4">
+                    <input 
+                      type="number"
+                      min="5"
+                      max="300"
+                      value={formData.timerSeconds}
+                      onChange={(e) => setFormData({...formData, timerSeconds: parseInt(e.target.value)})}
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                    />
+                    <Clock className="w-6 h-6 text-slate-400" />
                   </div>
                 </div>
               </div>
@@ -364,7 +442,7 @@ export default function TestSessionManager() {
                   onClick={handleSubmit}
                   className="px-10 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                 >
-                  <Save className="w-5 h-5" /> Start Test
+                  <Save className="w-5 h-5" /> {editingSessionId ? 'Update Session' : 'Start Test'}
                 </button>
               </div>
             </div>

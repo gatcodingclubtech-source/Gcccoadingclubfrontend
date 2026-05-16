@@ -170,7 +170,7 @@ export default function UsersManager() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.map((user, idx) => (
                   <tr key={user._id} className="group hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-all">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-5">
@@ -229,6 +229,7 @@ export default function UsersManager() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                         <button 
+                          id={idx === 0 ? 'user-more-actions' : undefined}
                           onClick={() => {
                             setSelectedUser(user);
                             setShowModal(true);
@@ -348,7 +349,7 @@ export default function UsersManager() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4">
+                  <div id="admin-remark-section" className="flex flex-col gap-4">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Raise Question / Remark</span>
                     
                     <div className="flex flex-wrap gap-1.5 md:gap-2 mb-1">
@@ -405,7 +406,7 @@ export default function UsersManager() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                  <div id="admin-role-controls" className="mt-4 flex flex-col sm:flex-row gap-3">
                     <button 
                       onClick={() => handleRoleToggle(selectedUser._id, selectedUser.role)}
                       className="flex-1 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"

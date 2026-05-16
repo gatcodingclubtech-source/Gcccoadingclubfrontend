@@ -19,6 +19,10 @@ const quizSessionSchema = new mongoose.Schema(
       type: String,
       default: 'general',
     },
+    timerSeconds: {
+      type: Number,
+      default: 30,
+    },
     questions: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -37,6 +41,7 @@ const quizSessionSchema = new mongoose.Schema(
         },
         score: Number,
         totalQuestions: Number,
+        timeTaken: Number, // in seconds
         timestamp: {
           type: Date,
           default: Date.now,
