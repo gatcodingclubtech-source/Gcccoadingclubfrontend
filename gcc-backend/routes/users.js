@@ -64,6 +64,7 @@ router.get('/profile/activities', protect, async (req, res) => {
         title: e.title,
         desc: `Registered for ${e.category} at ${e.location}`,
         type: 'EVENT',
+        referenceId: e._id,
         date: e.date,
         icon: 'Calendar',
         color: 'emerald'
@@ -74,6 +75,7 @@ router.get('/profile/activities', protect, async (req, res) => {
           title: s.title,
           desc: `Completed quiz with score ${result.score}/${result.totalQuestions}`,
           type: 'QUIZ',
+          referenceId: s._id,
           date: result.timestamp,
           icon: 'Trophy',
           color: 'amber'
