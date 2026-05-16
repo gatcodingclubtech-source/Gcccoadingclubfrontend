@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
+const Settings = require('../models/Settings');
 const { protect } = require('../middleware/authMiddleware');
 const { adminOnly } = require('../middleware/adminMiddleware');
 const { triggerAutomation, notifyAllUsers } = require('../utils/automation');
@@ -26,11 +27,10 @@ router.get('/:id', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (event) {
-      const Settings = require('../models/Settings');
       const settings = await Settings.findOne();
       
       const eventData = {
-        ...event._doc,
+        ...event.toObject(),
         upiId: event.upiId || settings?.upiId || 'gcc@upi'
       };
       
