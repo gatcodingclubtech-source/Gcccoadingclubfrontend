@@ -94,6 +94,10 @@ const eventSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    officialGroupLink: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

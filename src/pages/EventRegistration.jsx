@@ -23,6 +23,8 @@ export default function EventRegistration() {
   
   // Registration Data
   const [step, setStep] = useState(0); // 0: Details, 1: Payment
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [registrationData, setRegistrationData] = useState(null);
   const [teamName, setTeamName] = useState('');
   const [members, setMembers] = useState([]);
   const [leaderIndex, setLeaderIndex] = useState(0);
@@ -190,7 +192,8 @@ export default function EventRegistration() {
 
           if (verifyData.success) {
             toast.success('Payment Automated & Verified!');
-            navigate('/profile');
+            setRegistrationData(verifyData.registration);
+            setShowSuccess(true);
           }
         },
         prefill: {
@@ -240,7 +243,12 @@ export default function EventRegistration() {
           await handleRazorpayPayment(res.data.registration._id);
         } else {
           toast.success(isEditing ? 'Registration updated!' : 'Successfully registered!');
-          navigate('/profile'); 
+          if (event.price === 0) {
+            setRegistrationData(res.data.registration);
+            setShowSuccess(true);
+          } else {
+            navigate('/profile'); 
+          }
         }
       }
     } catch (err) {
@@ -500,10 +508,82 @@ export default function EventRegistration() {
                >
                  Submit Manual Verification <CheckCircle className="w-4 h-4" />
                </button>
+             </div>
+           </div>
+         )}
+       </div>
+
+      {/* Success View */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-500" />
+          
+          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-950 rounded-[3rem] shadow-2xl border border-white/10 overflow-hidden flex flex-col animate-in slide-in-from-bottom-10 duration-500">
+            {/* Header */}
+            <div className="p-8 md:p-12 text-center flex flex-col items-center gap-6">
+              <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/50 animate-bounce">
+                <CheckCircle className="w-12 h-12" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Registration Success!</h2>
+                <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">You are officially part of {event.title}</p>
+              </div>
+            </div>
+
+            {/* Details Card */}
+            <div className="px-8 md:px-12 pb-8">
+              <div className="p-6 md:p-8 rounded-[2rem] bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 flex flex-col gap-6">
+                 <div className="grid grid-cols-2 gap-6 text-left">
+                    <div className="flex flex-col gap-1">
+                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Team Identity</span>
+                       <span className="text-xs font-black text-slate-900 dark:text-white uppercase">{registrationData?.teamName || 'Solo'}</span>
+                    </div>
+                    <div className="flex flex-col gap-1 text-right">
+                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reg ID</span>
+                       <span className="text-xs font-black text-emerald-500 uppercase">{registrationData?._id?.slice(-6).toUpperCase()}</span>
+                    </div>
+                 </div>
+
+                 <div className="h-px bg-black/5 dark:bg-white/5" />
+
+                 <div className="flex flex-col gap-4">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Squad Composition</span>
+                    <div className="flex flex-wrap gap-2">
+                       {registrationData?.members?.map((m, i) => (
+                         <div key={i} className="px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 text-[10px] font-bold text-slate-700 dark:text-slate-300 border border-black/5 dark:border-white/5 uppercase">
+                           {m.name}
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+            </div>
+
+            {/* Action Section */}
+            <div className="p-8 md:p-12 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 flex flex-col gap-4">
+               {event.officialGroupLink ? (
+                 <a 
+                   href={event.officialGroupLink}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="w-full py-5 md:py-6 rounded-2xl md:rounded-3xl bg-[#25D366] text-white text-[10px] md:text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4"
+                 >
+                   Join Official {event.title} Group <ExternalLink className="w-5 h-5" />
+                 </a>
+               ) : (
+                 <p className="text-[9px] font-bold text-slate-500 text-center uppercase tracking-widest">Admin will share the group link soon</p>
+               )}
+               
+               <button 
+                 onClick={() => navigate('/profile')}
+                 className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-emerald-500 transition-colors"
+               >
+                 Go to Dashboard
+               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
