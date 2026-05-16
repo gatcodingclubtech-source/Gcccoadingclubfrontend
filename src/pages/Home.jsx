@@ -116,7 +116,7 @@ const SplitText = ({ text, className }) => {
 const MobileHero = ({ banners }) => {
   return (
     <section className="md:hidden relative h-[100dvh] flex flex-col items-center justify-center px-6 overflow-hidden bg-white dark:bg-slate-950">
-      <CodeNebula />
+      {/* CodeNebula removed for mobile performance */}
       
       <div className="relative z-10 flex flex-col items-center text-center gap-12">
         <div className="flex flex-col gap-4">
