@@ -34,6 +34,14 @@ export default function EventRegistration() {
   const fileInputRef = useRef();
 
   useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => document.body.removeChild(script);
+  }, []);
+
+  useEffect(() => {
     const init = async () => {
       await fetchEvent();
       await fetchMyRegistration();
@@ -147,6 +155,58 @@ export default function EventRegistration() {
     }
   };
 
+  const handleRazorpayPayment = async (registrationId) => {
+    try {
+      setSubmitting(true);
+      const { data: orderData } = await axios.post(`${API_BASE_URL}/payments/create-order`, {
+        registrationId,
+        amount: event.price
+      });
+
+      if (!orderData.success) throw new Error(orderData.message);
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_V0MFqdC1', // Fallback or placeholder
+        amount: orderData.order.amount,
+        currency: 'INR',
+        name: 'GAT Coding Club',
+        description: `Registration for ${event.title}`,
+        order_id: orderData.order.id,
+        handler: async (response) => {
+          const { data: verifyData } = await axios.post(`${API_BASE_URL}/payments/verify`, {
+            ...response,
+            registrationId
+          });
+
+          if (verifyData.success) {
+            toast.success('Payment Automated & Verified!');
+            navigate('/profile');
+          }
+        },
+        prefill: {
+          name: members[leaderIndex].name,
+          email: members[leaderIndex].email,
+          contact: members[leaderIndex].phone
+        },
+        theme: { color: '#10b981' },
+        modal: {
+          onhighlight: function() { console.log('Razorpay modal closed'); setSubmitting(false); }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response){
+        toast.error('Payment Failed: ' + response.error.description);
+        setSubmitting(false);
+      });
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      toast.error('Automated payment gateway unreachable. Please use manual mode.');
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setSubmitting(true);
@@ -165,8 +225,13 @@ export default function EventRegistration() {
         : await axios.post(`${API_BASE_URL}/events/${id}/register`, payload);
 
       if (res.data.success) {
-        toast.success(isEditing ? 'Registration updated!' : 'Successfully registered!');
-        navigate('/profile'); 
+        if (event.price > 0 && !transactionId && !isEditing) {
+          // New registration for paid event, trigger Razorpay
+          await handleRazorpayPayment(res.data.registration._id);
+        } else {
+          toast.success(isEditing ? 'Registration updated!' : 'Successfully registered!');
+          navigate('/profile'); 
+        }
       }
     } catch (err) {
       const message = err.response?.data?.message || 'Action failed';
@@ -343,34 +408,41 @@ export default function EventRegistration() {
           </form>
         ) : (
           <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-right duration-500">
-            {/* Payment Card */}
-            <div className="glass-panel p-8 md:p-12 flex flex-col items-center gap-10 text-center">
+            <button 
+              onClick={handleSubmit}
+              disabled={submitting || isUploading}
+              className="w-full py-6 rounded-[2rem] bg-emerald-500 text-white text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-4"
+            >
+              {submitting ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>Automated Pay & Verify <CheckCircle className="w-6 h-6" /></>
+              )}
+            </button>
+
+            <div className="flex items-center gap-4 py-4">
+              <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">OR MANUAL MODE</span>
+              <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
+            </div>
+
+            {/* Manual Payment Section (Hidden by default or shown as secondary) */}
+            <div className="glass-panel p-8 flex flex-col items-center gap-10 text-center opacity-60 hover:opacity-100 transition-opacity">
                <div className="flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-[2rem] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                     <QrCode className="w-8 h-8" />
+                  <div className="w-12 h-12 rounded-2xl bg-slate-500/10 flex items-center justify-center text-slate-500">
+                     <QrCode className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Scan to Pay</h3>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Please pay exactly ₹{event.price}</p>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Manual UPI Scan</h3>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Pay ₹{event.price} and upload proof</p>
                   </div>
-               </div>
-
-               {/* QR Code Display */}
-               <div className="relative p-6 bg-white rounded-3xl shadow-2xl border border-slate-100">
-                  <img 
-                    src={event.qrCode || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${event.upiId || 'gcc@upi'}&pn=GATCodingClub&am=${event.price}&cu=INR`} 
-                    alt="Payment QR" 
-                    className="w-48 h-48 md:w-64 md:h-64 object-contain"
-                  />
-                  <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-3xl pointer-events-none" />
                </div>
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full text-left">
                   <div className="flex flex-col gap-3">
                     <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Transaction ID / UTR</label>
                     <input 
-                      required
-                      placeholder="Enter 12-digit UTR number..."
+                      placeholder="Enter 12-digit UTR..."
                       value={transactionId}
                       onChange={(e) => setTransactionId(e.target.value)}
                       className="w-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
@@ -389,33 +461,21 @@ export default function EventRegistration() {
                     >
                       <div className="flex items-center gap-3">
                         <Upload className="w-4 h-4" />
-                        {paymentScreenshot ? 'Screenshot Uploaded' : 'Upload Screenshot'}
+                        {paymentScreenshot ? 'Uploaded' : 'Upload Proof'}
                       </div>
-                      {paymentScreenshot && <CheckCircle className="w-4 h-4" />}
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
                   </div>
                </div>
-
-               <div className="w-full p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-start gap-4 text-left">
-                  <Info className="w-5 h-5 text-emerald-500 shrink-0" />
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase leading-relaxed tracking-widest">
-                    Your registration will be verified by our team within 24 hours. Ensure the Transaction ID matches the screenshot to avoid rejection.
-                  </p>
-               </div>
+               
+               <button 
+                onClick={handleSubmit}
+                disabled={submitting || !transactionId || !paymentScreenshot || isUploading}
+                className="w-full py-4 rounded-2xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
+               >
+                 Submit Manual Verification <CheckCircle className="w-4 h-4" />
+               </button>
             </div>
-
-            <button 
-              onClick={handleSubmit}
-              disabled={submitting || !transactionId || !paymentScreenshot || isUploading}
-              className="w-full py-6 rounded-[2rem] bg-emerald-500 text-white text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-4"
-            >
-              {submitting ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>Submit & Verify <CheckCircle className="w-6 h-6" /></>
-              )}
-            </button>
           </div>
         )}
       </div>
