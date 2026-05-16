@@ -23,7 +23,10 @@ class AIService {
   }
 
   get client() {
-    if (!this.groq) this._initialize();
+    // Check if key in process.env changed
+    if (process.env.GROQ_API_KEY !== this.apiKey) {
+      this._initialize();
+    }
     return this.groq;
   }
 
