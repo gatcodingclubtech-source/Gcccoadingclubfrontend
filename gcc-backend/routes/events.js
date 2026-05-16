@@ -182,6 +182,12 @@ router.post('/:id/register', protect, async (req, res) => {
       type: 'EVENT'
     });
 
+    // Trigger Notification for Free Events
+    if (event.price === 0) {
+      const { sendRegistrationNotification } = require('../utils/notificationService');
+      await sendRegistrationNotification(registration, event);
+    }
+
     res.status(201).json({ success: true, message: 'Registered successfully', registration });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -276,6 +282,14 @@ router.put('/registrations/:id/status', protect, adminOnly, async (req, res) => 
     
     if (!registration) {
       return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+
+    // Trigger notification if verified
+    if (paymentStatus === 'Verified') {
+      const { sendRegistrationNotification } = require('../utils/notificationService');
+      const Event = require('../models/Event');
+      const event = await Event.findById(registration.eventId);
+      await sendRegistrationNotification(registration, event);
     }
 
     res.json({ success: true, message: `Status updated to ${paymentStatus}`, registration });

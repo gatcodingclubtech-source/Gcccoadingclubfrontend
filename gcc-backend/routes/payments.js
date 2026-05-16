@@ -83,15 +83,11 @@ router.post('/verify', protect, async (req, res) => {
         paymentScreenshot: 'RAZORPAY_AUTOMATED'
       }).populate('event');
 
-      // Notify User
-      await triggerAutomation({
-        userId: req.user._id,
-        title: 'Payment Verified! ✅',
-        message: `Your payment for ${registration.event.title} has been automatically verified. Your registration is now confirmed.`,
-        type: 'EVENT'
-      });
+      // Trigger Detailed Notification (Email/SMS)
+      const { sendRegistrationNotification } = require('../utils/notificationService');
+      await sendRegistrationNotification(registration, registration.event);
 
-      res.json({ success: true, message: 'Payment verified successfully' });
+      res.json({ success: true, message: 'Payment verified successfully', registration });
     } else {
       res.status(400).json({ success: false, message: 'Invalid signature' });
     }

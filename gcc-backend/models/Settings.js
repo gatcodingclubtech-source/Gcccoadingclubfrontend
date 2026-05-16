@@ -25,6 +25,22 @@ const settingsSchema = new mongoose.Schema(
     contactPhone: {
       type: String,
       default: '',
+    },
+    smtpEmail: {
+      type: String,
+      default: '',
+    },
+    smtpPassword: {
+      type: String,
+      default: '',
+    },
+    smtpHost: {
+      type: String,
+      default: 'smtp.gmail.com',
+    },
+    smtpPort: {
+      type: Number,
+      default: 587,
     }
   },
   {
