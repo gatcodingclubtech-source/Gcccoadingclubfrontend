@@ -4,9 +4,11 @@ import "driver.js/dist/driver.css";
 export const useOnboarding = () => {
   const startHomeTour = (onStart, onEnd) => {
     // Show once per user/browser version
-    const tourVersion = 'gcc_home_tour_v2';
+    const tourVersion = 'gcc_home_tour_v4';
     if (localStorage.getItem(tourVersion)) return;
     
+    const isMobile = window.innerWidth < 768;
+
     const driverObj = driver({
       showProgress: true,
       animate: true,
@@ -14,29 +16,39 @@ export const useOnboarding = () => {
       popoverClass: 'gcc-tour-theme', 
       steps: [
         {
-          element: '#hero-title',
+          element: isMobile ? '#mobile-hero-title' : '#hero-title',
           popover: {
             title: 'Welcome to GCC',
             description: 'This is the GAT Coding Club platform. Let us show you around our new and improved ecosystem!'
           }
         },
         {
-          element: '#navbar-user-section, #navbar-auth-button, #mobile-menu-toggle',
+          element: isMobile ? '#mobile-profile-link' : '#navbar-user-section, #navbar-auth-button',
           popover: {
             title: 'Account & Membership',
             description: "This is where you can manage your profile, view your stats, or join the club if you haven't already!",
             onNextClick: () => {
-              // If mobile drawer was opened, close it
-              const closeBtn = document.getElementById('mobile-menu-close');
-              if (closeBtn) closeBtn.click();
+              if (isMobile) {
+                const toggle = document.getElementById('mobile-menu-toggle');
+                // Only click if it's currently OPEN (close it)
+                if (toggle && toggle.getAttribute('data-open') === 'true') {
+                  toggle.click();
+                }
+              }
               driverObj.moveNext();
             }
           },
           onHighlightStarted: (element) => {
-            // For mobile: If the profile is in the drawer, we need to open the drawer first
-            if (window.innerWidth < 768) {
+            if (isMobile) {
               const toggle = document.getElementById('mobile-menu-toggle');
-              if (toggle) toggle.click();
+              // Only click if it's currently CLOSED
+              if (toggle && toggle.getAttribute('data-open') === 'false') {
+                toggle.click();
+                // Give it a tiny moment to animate so the highlight lands correctly
+                setTimeout(() => {
+                  driverObj.refresh();
+                }, 300);
+              }
             }
           }
         },
@@ -70,9 +82,13 @@ export const useOnboarding = () => {
         }
       ],
       onDeselected: () => {
-        // Global cleanup
-        const closeBtn = document.getElementById('mobile-menu-close');
-        if (closeBtn) closeBtn.click();
+        // Global cleanup: Close drawer if open
+        if (isMobile) {
+          const toggle = document.getElementById('mobile-menu-toggle');
+          if (toggle && toggle.getAttribute('data-open') === 'true') {
+            toggle.click();
+          }
+        }
       },
       onDestroyStarted: () => {
         localStorage.setItem(tourVersion, 'true');
