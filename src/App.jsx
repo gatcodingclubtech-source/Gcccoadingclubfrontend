@@ -29,6 +29,7 @@ import LiveRoomsManager from './pages/admin/LiveRoomsManager';
 import RegistrationsManager from './pages/admin/RegistrationsManager';
 import ManageDiscussions from './pages/admin/ManageDiscussions';
 import BannersManager from './pages/admin/BannersManager';
+import ClubSettings from './pages/admin/ClubSettings';
 import LiveRooms from './pages/LiveRooms';
 import LiveRoomDetail from './pages/LiveRoomDetail';
 import CodingHub from './pages/CodingHub';
@@ -183,6 +184,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               <Route path="live-rooms" element={<LiveRoomsManager />} />
               <Route path="banners" element={<BannersManager />} />
               <Route path="test-sessions" element={<TestSessionManager />} />
+              <Route path="settings" element={<ClubSettings />} />
               <Route path="events/:id/registrations" element={<RegistrationsManager />} />
               <Route path="domain-apps" element={<Navigate to="/admin/domains" replace />} />
               <Route path="domains/registrations" element={<Navigate to="/admin/domains" replace />} />

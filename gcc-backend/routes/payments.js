@@ -1,11 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const razorpay = require('../utils/razorpay');
+const Razorpay = require('razorpay');
 const Registration = require('../models/Registration');
-const Event = require('../models/Event');
+const Settings = require('../models/Settings');
 const { protect } = require('../middleware/authMiddleware');
 const { triggerAutomation } = require('../utils/automation');
+
+const getRazorpayInstance = async () => {
+  const settings = await Settings.findOne();
+  const key_id = settings?.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
+  const key_secret = settings?.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+  
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay keys not configured');
+  }
+
+  return new Razorpay({ key_id, key_secret });
+};
 
 // @desc    Create Razorpay Order
 // @route   POST /api/payments/create-order
@@ -13,6 +25,7 @@ const { triggerAutomation } = require('../utils/automation');
 router.post('/create-order', protect, async (req, res) => {
   try {
     const { registrationId, amount } = req.body;
+    const razorpay = await getRazorpayInstance();
 
     const options = {
       amount: amount * 100, // Razorpay works in paise
@@ -50,10 +63,13 @@ router.post('/verify', protect, async (req, res) => {
       registrationId 
     } = req.body;
 
+    const settings = await Settings.findOne();
+    const key_secret = settings?.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret')
+      .createHmac('sha256', key_secret || 'placeholder_secret')
       .update(body.toString())
       .digest('hex');
 

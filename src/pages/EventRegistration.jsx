@@ -151,8 +151,18 @@ export default function EventRegistration() {
       setStep(1);
       window.scrollTo(0, 0);
     } else {
-      handleSubmit(e);
+      handleSubmit(e, false);
     }
+  };
+
+  const handleAutomatedPay = (e) => {
+    e.preventDefault();
+    handleSubmit(e, true);
+  };
+
+  const handleManualSubmit = (e) => {
+    e.preventDefault();
+    handleSubmit(e, false);
   };
 
   const handleRazorpayPayment = async (registrationId) => {
@@ -207,7 +217,7 @@ export default function EventRegistration() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, isAutomated = false) => {
     if (e) e.preventDefault();
     setSubmitting(true);
     try {
@@ -216,8 +226,8 @@ export default function EventRegistration() {
         members,
         teamLeader: members[leaderIndex],
         additionalInfo: '',
-        transactionId,
-        paymentScreenshot
+        transactionId: isAutomated ? '' : transactionId,
+        paymentScreenshot: isAutomated ? '' : paymentScreenshot
       };
 
       const res = isEditing 
@@ -225,8 +235,7 @@ export default function EventRegistration() {
         : await axios.post(`${API_BASE_URL}/events/${id}/register`, payload);
 
       if (res.data.success) {
-        if (event.price > 0 && !transactionId && !isEditing) {
-          // New registration for paid event, trigger Razorpay
+        if (isAutomated) {
           await handleRazorpayPayment(res.data.registration._id);
         } else {
           toast.success(isEditing ? 'Registration updated!' : 'Successfully registered!');
@@ -409,7 +418,7 @@ export default function EventRegistration() {
         ) : (
           <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-right duration-500">
             <button 
-              onClick={handleSubmit}
+              onClick={handleAutomatedPay}
               disabled={submitting || isUploading}
               className="w-full py-6 rounded-[2rem] bg-emerald-500 text-white text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-4"
             >
@@ -469,7 +478,7 @@ export default function EventRegistration() {
                </div>
                
                <button 
-                onClick={handleSubmit}
+                onClick={handleManualSubmit}
                 disabled={submitting || !transactionId || !paymentScreenshot || isUploading}
                 className="w-full py-4 rounded-2xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all flex items-center justify-center gap-2"
                >
