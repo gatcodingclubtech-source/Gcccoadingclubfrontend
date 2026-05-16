@@ -78,23 +78,11 @@ export default function BannerSpotlight({ banners }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence mode="popLayout">
+
         {!isVisible ? null : (
-          <motion.div 
+          <div 
             key={currentIndex}
-            initial={{ x: "100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "-100%", opacity: 0 }}
-            transition={{ 
-              type: "tween",
-              duration: 0.3,
-              ease: "easeOut"
-            }}
-            drag="x"
-            dragElastic={0.2}
-            dragConstraints={{ left: 0, right: 0 }}
-            onDragEnd={handleDragEnd}
-            className="fixed md:relative inset-x-0 bottom-10 md:bottom-auto top-20 md:top-auto z-[999] md:z-50 px-4 md:px-6 cursor-grab active:cursor-grabbing flex items-center justify-center"
+            className="fixed md:relative inset-x-0 bottom-10 md:bottom-auto top-20 md:top-auto z-[999] md:z-50 px-4 md:px-6 flex items-center justify-center"
           >
         <div className="w-full max-w-7xl mx-auto">
           <div className="relative group h-[70vh] md:h-[380px] rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
@@ -104,7 +92,7 @@ export default function BannerSpotlight({ banners }) {
               <img 
                 src={banner.image} 
                 alt={banner.title} 
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black via-black/80 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
@@ -188,9 +176,8 @@ export default function BannerSpotlight({ banners }) {
 
           </div>
         </div>
-      </motion.div>
-    )}
-    </AnimatePresence>
+          </div>
+        )}
     </>
   );
 }
