@@ -102,7 +102,6 @@ const StaticCodeNebula = () => {
     { text: 'return', color: 'text-rose-400/20', top: '10%', left: '60%', scale: 1.2 },
     { text: '<html>', color: 'text-blue-400/20', top: '85%', left: '40%', scale: 1.6 },
   ];
-
   return (
     <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-50">
       {codeSnippets.map((snippet, idx) => (

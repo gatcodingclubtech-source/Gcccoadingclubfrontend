@@ -87,123 +87,155 @@ export default function BannerSpotlight({ banners }) {
 
   return (
     <>
-      {/* Mobile Floating Overlay Background */}
-      <AnimatePresence>
-        {!isVisible ? null : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-[998] md:hidden"
-            onClick={() => setIsVisible(false)}
-          />
-        )}
-      </AnimatePresence>
-      <AnimatePresence mode="wait" custom={direction}>
-        {!isVisible ? null : (
-          <motion.div 
-            key={currentIndex}
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ 
-              x: { type: "tween", duration: 0.3, ease: "easeOut" },
-              opacity: { duration: 0.2 }
-            }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.5}
-            onDragEnd={handleDragEnd}
-            className="fixed md:relative inset-x-0 bottom-10 md:bottom-auto top-20 md:top-auto z-[999] md:z-50 px-4 md:px-6 flex items-center justify-center cursor-grab active:cursor-grabbing"
-          >
-        <div className="w-full max-w-7xl mx-auto">
-          <div className="relative group h-[70vh] md:h-[380px] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
-            
-            {/* Background Image - Simplified */}
-            <div className="absolute inset-0">
-              <img 
-                src={banner.image} 
-                alt={banner.title} 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/40" />
-            </div>
+      {/* Mobile Floating Overlay Background (Hidden on Desktop) */}
+      {isVisible && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-[998] md:hidden backdrop-blur-sm"
+          onClick={() => setIsVisible(false)}
+        />
+      )}
+      
+      {isVisible && (
+        <motion.div 
+          key={currentIndex}
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.4}
+          onDragEnd={handleDragEnd}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsVisible(false);
+          }}
+          className="fixed md:relative inset-0 md:inset-auto md:top-auto md:bottom-auto z-[999] md:z-50 px-4 md:px-6 flex items-center justify-center cursor-grab active:cursor-grabbing"
+        >
+          <div className="w-full h-auto max-w-7xl mx-auto flex items-center justify-center">
+            {/* Main Card Container - Enhanced height */}
+            <div className="relative w-full h-[80vh] md:h-[450px] rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-slate-950 border border-white/10 shadow-2xl">
+              
+              {/* Background Image Layer */}
+              <div className="absolute inset-0 z-0">
+                <img 
+                  src={banner.image} 
+                  alt={banner.title} 
+                  className="w-full h-full object-cover opacity-70 md:opacity-60"
+                />
+                {/* Mobile-specific Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent md:hidden" />
+                {/* Desktop-specific Gradient Overlay */}
+                <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-black via-black/20 to-transparent" />
+              </div>
 
-            {/* Content Container */}
-            <div className="relative h-full flex flex-col justify-center p-6 md:p-16">
-              <div className="flex flex-col gap-3 md:gap-5 max-w-2xl text-center md:text-left items-center md:items-start">
-                <div className="flex items-center gap-3">
-                  <div className={`px-5 py-2 rounded-full bg-${banner.color}-500 text-white text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2`}>
-                    <Sparkles className="w-3.5 h-3.5" /> {banner.type}
+              {/* Content Layer - Compact Padding for Mobile */}
+              <div className="relative z-10 h-full flex flex-col justify-end md:justify-center p-6 md:p-16 pb-12 md:pb-16">
+                <div className="flex flex-col gap-4 md:gap-6 max-w-2xl text-left">
+                  
+                  {/* Badge & Meta */}
+                  <div className="flex items-center gap-2">
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`px-3 py-1 rounded-full bg-${banner.color}-500 text-white text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2`}
+                    >
+                      <Sparkles className="w-3 h-3 md:w-3.5 md:h-3.5" /> {banner.type}
+                    </motion.div>
+                    {banner.targetDate && (
+                      <div className="px-2 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-white text-[7px] md:text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+                         <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" /> Live
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Title & Description - Reduced Sizes */}
+                  <div className="space-y-2 md:space-y-4">
+                    <motion.h1 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-2xl md:text-7xl font-black text-white uppercase tracking-tighter leading-[0.95]"
+                    >
+                      {banner.title}
+                    </motion.h1>
+                    <motion.p 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-[10px] md:text-xl text-white/60 font-bold max-w-lg leading-relaxed"
+                    >
+                      {banner.subtitle}
+                    </motion.p>
+                  </div>
+
+                  {/* Action Area - More compact */}
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 mt-2 md:mt-4">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); navigate(banner.link); }}
+                      className="group relative px-6 md:px-10 py-3 md:py-5 rounded-xl md:rounded-2xl bg-white text-black text-[9px] md:text-xs font-black tracking-[0.2em] transition-all flex items-center justify-center gap-3 overflow-hidden"
+                    >
+                      <span className="relative z-10 uppercase">Connect Node</span>
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 relative z-10" />
+                      <div className="absolute inset-0 bg-emerald-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                    </button>
+
+                    {/* Countdown Timer - Significantly Smaller for Mobile */}
+                    {banner.targetDate && (
+                      <div className="flex items-center justify-center gap-4 md:gap-10 px-4 md:px-8 py-2 md:py-4 bg-black/40 backdrop-blur-xl rounded-xl md:rounded-[2rem] border border-white/10">
+                        <div className="flex flex-col items-center">
+                          <span className="text-xs md:text-3xl font-black text-white">{timeLeft.d}</span>
+                          <span className="text-[5px] md:text-[8px] text-white/40 uppercase">Days</span>
+                        </div>
+                        <div className="w-px h-5 bg-white/10" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-xs md:text-3xl font-black text-white">{timeLeft.h}</span>
+                          <span className="text-[5px] md:text-[8px] text-white/40 uppercase">Hrs</span>
+                        </div>
+                        <div className="w-px h-5 bg-white/10" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-xs md:text-3xl font-black text-white">{timeLeft.m}</span>
+                          <span className="text-[5px] md:text-[8px] text-white/40 uppercase">Min</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                <h1 className="text-2xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
-                  {banner.title}
-                </h1>
-                
-                <p className="text-[10px] md:text-lg text-white/80 font-bold max-w-lg leading-relaxed mb-4 md:mb-8">
-                  {banner.subtitle}
-                </p>
-
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-8 w-full md:w-auto">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); navigate(banner.link); }}
-                    className={`px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl bg-white text-black text-[10px] md:text-xs font-black tracking-[0.2em] transition-all flex items-center justify-center gap-3 group/btn`}
-                  >
-                    JOIN NOW <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-
-                  {/* Countdown Timer */}
-                  {banner.targetDate && (
-                    <div className="flex items-center justify-center gap-4 md:gap-8 px-6 md:px-8 py-3 md:py-4 bg-white/10 backdrop-blur-md rounded-2xl md:rounded-3xl border border-white/20">
-                      <CountdownUnit value={timeLeft.d} label="Days" />
-                      <div className="w-px h-10 bg-white/20" />
-                      <CountdownUnit value={timeLeft.h} label="Hrs" />
-                      <div className="w-px h-10 bg-white/20" />
-                      <CountdownUnit value={timeLeft.m} label="Min" />
-                      <div className="w-px h-10 bg-white/20" />
-                      <CountdownUnit value={timeLeft.s} label="Sec" />
+              {/* Progress Bar - Thinner */}
+              {banners.length > 1 && (
+                <div className="absolute bottom-4 left-6 right-6 flex gap-1 z-20">
+                  {banners.map((_, i) => (
+                    <div 
+                      key={i}
+                      className="h-0.5 flex-1 rounded-full bg-white/10 overflow-hidden"
+                    >
+                      <motion.div 
+                        initial={false}
+                        animate={{ width: i === currentIndex ? '100%' : '0%' }}
+                        className="h-full bg-white"
+                        transition={{ duration: 0.5 }}
+                      />
                     </div>
-                  )}
+                  ))}
                 </div>
+              )}
+
+              {/* Close Button - Smaller and better positioned */}
+              <button 
+                onClick={(e) => { e.stopPropagation(); setIsVisible(false); }}
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center text-white border border-white/20 z-[1000]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Branding Decorative Accent - Smaller */}
+              <div className="absolute top-4 left-6 flex items-center gap-2 opacity-40">
+                 <div className={`w-4 h-[1px] bg-${banner.color}-500`} />
+                 <span className="text-[7px] font-black text-white uppercase tracking-[0.3em]">N_{currentIndex.toString().padStart(2, '0')}</span>
               </div>
             </div>
-
-            {/* Navigation Dots for Mobile */}
-            {banners.length > 1 && (
-              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 md:hidden">
-                {banners.map((_, i) => (
-                  <button 
-                    key={i} 
-                    onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'bg-white w-8' : 'bg-white/20'}`} 
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Close Button */}
-            <button 
-              onClick={(e) => { e.stopPropagation(); setIsVisible(false); }}
-              className="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white hover:bg-white/40 transition-all border border-white/20 z-[1000] shadow-2xl"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Branding Accent */}
-            <div className="absolute bottom-8 right-8 hidden md:flex items-center gap-3 opacity-30">
-               <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">GCC ELITE NODE</span>
-               <div className={`w-8 h-[2px] bg-${banner.color}-500`} />
-            </div>
-
           </div>
-        </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      )}
     </>
   );
 }
