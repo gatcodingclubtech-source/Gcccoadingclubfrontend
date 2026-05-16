@@ -101,6 +101,36 @@ const CodeNebula = () => {
   );
 };
 
+const StaticCodeNebula = () => {
+  const codeSnippets = [
+    { text: 'async await', color: 'text-emerald-500/20', top: '15%', left: '10%', scale: 1.2 },
+    { text: '=>', color: 'text-cyan-400/20', top: '25%', left: '80%', scale: 1.5 },
+    { text: '{...}', color: 'text-amber-400/20', top: '65%', left: '15%', scale: 1.3 },
+    { text: 'GCC.init()', color: 'text-emerald-400/20', top: '75%', left: '75%', scale: 1.1 },
+    { text: 'const', color: 'text-purple-400/20', top: '45%', left: '5%', scale: 1.4 },
+    { text: 'return', color: 'text-rose-400/20', top: '10%', left: '60%', scale: 1.2 },
+    { text: '<html>', color: 'text-blue-400/20', top: '85%', left: '40%', scale: 1.6 },
+  ];
+
+  return (
+    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-50">
+      {codeSnippets.map((snippet, idx) => (
+        <div
+          key={idx}
+          className={`absolute font-black font-mono select-none tracking-tighter ${snippet.color}`}
+          style={{ 
+            top: snippet.top, 
+            left: snippet.left,
+            fontSize: `${20 * snippet.scale}px`,
+          }}
+        >
+          {snippet.text}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const SplitText = ({ text, className }) => {
   return (
     <span className={`inline-flex flex-wrap ${className}`}>
@@ -116,7 +146,7 @@ const SplitText = ({ text, className }) => {
 const MobileHero = ({ banners }) => {
   return (
     <section className="md:hidden relative h-[100dvh] flex flex-col items-center justify-center px-6 overflow-hidden bg-white dark:bg-slate-950">
-      {/* CodeNebula removed for mobile performance */}
+      <StaticCodeNebula />
       
       <div className="relative z-10 flex flex-col items-center text-center gap-12">
         <div className="flex flex-col gap-4">
