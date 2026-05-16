@@ -176,7 +176,7 @@ export default function EventRegistration() {
       if (!orderData.success) throw new Error(orderData.message);
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_V0MFqdC1', // Fallback or placeholder
+        key: orderData.keyId,
         amount: orderData.order.amount,
         currency: 'INR',
         name: 'GAT Coding Club',
@@ -212,7 +212,8 @@ export default function EventRegistration() {
       rzp.open();
     } catch (err) {
       console.error(err);
-      toast.error('Automated payment gateway unreachable. Please use manual mode.');
+      const msg = err.response?.data?.message || err.message || 'Gateway unreachable';
+      toast.error(`Automated Payment Error: ${msg}. Switching to manual mode.`);
       setSubmitting(false);
     }
   };

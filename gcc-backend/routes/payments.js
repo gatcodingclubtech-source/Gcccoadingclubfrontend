@@ -25,6 +25,8 @@ const getRazorpayInstance = async () => {
 router.post('/create-order', protect, async (req, res) => {
   try {
     const { registrationId, amount } = req.body;
+    const settings = await Settings.findOne();
+    const key_id = settings?.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
     const razorpay = await getRazorpayInstance();
 
     const options = {
@@ -44,10 +46,10 @@ router.post('/create-order', protect, async (req, res) => {
       paymentStatus: 'Pending'
     });
 
-    res.json({ success: true, order });
+    res.json({ success: true, order, keyId: key_id });
   } catch (error) {
     console.error('Razorpay Order Error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message || 'Razorpay keys not configured' });
   }
 });
 
