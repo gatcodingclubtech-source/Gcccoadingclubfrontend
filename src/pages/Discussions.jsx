@@ -30,7 +30,7 @@ export default function Discussions() {
       setLoading(true);
       const res = await axios.get(`/api/discussions?category=${activeCategory}`);
       if (res.data.success) {
-        setDiscussions(res.data.discussions);
+        setDiscussions(res.data.discussions || []);
       }
     } catch (err) {
       console.error('Failed to fetch discussions');

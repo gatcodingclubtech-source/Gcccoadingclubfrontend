@@ -48,15 +48,17 @@ class AIService {
             content: context ? `Context: ${context}\n\nMember Query: ${prompt}` : prompt
           }
         ],
-        model: "mixtral-8x7b-32768",
+        model: "llama3-8b-8192",
         temperature: 0.7,
         max_tokens: 1024,
       });
 
       return completion.choices[0]?.message?.content || "My neural link is temporarily offline.";
     } catch (error) {
-      console.error("AI Mentor Error:", error);
-      return "My neural link is currently experiencing a synchronization delay. Please try again in a moment.";
+      console.error("AI Mentor Error Detail:", error.message);
+      if (error.status === 401) return "Unauthorized: Your GROQ_API_KEY appears to be invalid.";
+      if (error.status === 429) return "Rate Limit: Too many requests to the AI Core. Please wait.";
+      return `Neural Link Error: ${error.message.substring(0, 50)}...`;
     }
   }
 
