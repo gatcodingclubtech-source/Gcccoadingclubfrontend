@@ -2,107 +2,89 @@ const express = require('express');
 const router = express.Router();
 const Discussion = require('../models/Discussion');
 const User = require('../models/User');
-const { triggerAutomation } = require('../utils/automation');
-const { detectToxicity } = require('../utils/ai');
+const { protect } = require('../middleware/authMiddleware');
 
-// Get all discussions
+/**
+ * @desc    Get all discussions with filtering
+ * @route   GET /api/discussions
+ */
 router.get('/', async (req, res) => {
-    try {
-        const discussions = await Discussion.find()
-            .populate('author', 'name username profileImage rank')
-            .sort({ isPinned: -1, createdAt: -1 });
-        res.json(discussions);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Create a discussion
-router.post('/', async (req, res) => {
-    const { title, content, author, category, tags } = req.body;
+  try {
+    const { category, search } = req.query;
+    let query = {};
     
-    if (detectToxicity(title) || detectToxicity(content)) {
-        return res.status(400).json({ message: 'Content flagged by AI for toxicity or spam.' });
+    if (category && category !== 'All') {
+      query.category = category;
+    }
+    
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ];
     }
 
-    try {
-        const discussion = new Discussion({ title, content, author, category, tags });
-        const newDiscussion = await discussion.save();
-        
-        // Automation: Give XP for starting a discussion
-        await triggerAutomation('DISCUSSION_CREATED', { userId: author, discussionId: newDiscussion._id });
-        
-        res.status(201).json(newDiscussion);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+    const discussions = await Discussion.find(query)
+      .populate('author', 'name avatar xp rank')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, discussions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
-// Downvote a discussion
-router.post('/:id/downvote', async (req, res) => {
-    const { userId } = req.body;
-    try {
-        const discussion = await Discussion.findById(req.params.id);
-        if (discussion.downvotes.includes(userId)) {
-            discussion.downvotes = discussion.downvotes.filter(id => id.toString() !== userId);
-        } else {
-            discussion.downvotes.push(userId);
-            // Remove upvote if exists
-            discussion.upvotes = discussion.upvotes.filter(id => id.toString() !== userId);
-        }
-        await discussion.save();
-        res.json(discussion);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+/**
+ * @desc    Create a new discussion
+ * @route   POST /api/discussions
+ */
+router.post('/', protect, async (req, res) => {
+  try {
+    const { title, content, category, tags } = req.body;
+    
+    const discussion = await Discussion.create({
+      author: req.user._id,
+      title,
+      content,
+      category,
+      tags
+    });
+
+    // Reward XP for starting a discussion
+    await User.findByIdAndUpdate(req.user._id, { $inc: { xp: 10 } });
+
+    res.status(201).json({ success: true, discussion });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
-// Upvote a discussion (Improved to remove downvote)
-router.post('/:id/upvote', async (req, res) => {
-    const { userId } = req.body;
-    try {
-        const discussion = await Discussion.findById(req.params.id);
-        if (discussion.upvotes.includes(userId)) {
-            discussion.upvotes = discussion.upvotes.filter(id => id.toString() !== userId);
-        } else {
-            discussion.upvotes.push(userId);
-            // Remove downvote if exists
-            discussion.downvotes = discussion.downvotes.filter(id => id.toString() !== userId);
-            // Automation: Reward author for upvote
-            await triggerAutomation('DISCUSSION_UPVOTED', { authorId: discussion.author, voterId: userId });
-        }
-        await discussion.save();
-        res.json(discussion);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+/**
+ * @desc    Vote on a discussion
+ * @route   POST /api/discussions/:id/vote
+ */
+router.post('/:id/vote', protect, async (req, res) => {
+  try {
+    const { type } = req.body; // 'up' or 'down'
+    const discussion = await Discussion.findById(req.params.id);
 
-// Add a comment
-router.post('/:id/comments', async (req, res) => {
-    const { author, content } = req.body;
-    try {
-        const discussion = await Discussion.findById(req.params.id);
-        discussion.comments.push({ author, content });
-        await discussion.save();
-        
-        // Automation: Notify author of new comment
-        await triggerAutomation('COMMENT_ADDED', { discussionId: discussion._id, authorId: discussion.author, commenterId: author });
-        
-        res.status(201).json(discussion);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+    if (!discussion) return res.status(404).json({ success: false, message: 'Discussion not found' });
 
-// Delete a discussion (Admin only ideally, but keeping it open for now)
-router.delete('/:id', async (req, res) => {
-    try {
-        await Discussion.findByIdAndDelete(req.params.id);
-        res.json({ message: 'Discussion deleted successfully' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    // Clear previous votes from this user
+    discussion.upvotes = discussion.upvotes.filter(id => id.toString() !== req.user._id.toString());
+    discussion.downvotes = discussion.downvotes.filter(id => id.toString() !== req.user._id.toString());
+
+    if (type === 'up') {
+      discussion.upvotes.push(req.user._id);
+    } else if (type === 'down') {
+      discussion.downvotes.push(req.user._id);
     }
+
+    await discussion.save();
+    res.json({ success: true, upvotes: discussion.upvotes, downvotes: discussion.downvotes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 module.exports = router;

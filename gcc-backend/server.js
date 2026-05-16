@@ -77,6 +77,7 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/banners', require('./routes/banners'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Root route
 app.get('/', (req, res) => {
