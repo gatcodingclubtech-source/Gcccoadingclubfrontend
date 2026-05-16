@@ -67,6 +67,11 @@ export default function Navbar({ theme, toggleTheme }) {
       return;
     }
 
+    if (targetId === 'domains') {
+      navigate('/domains');
+      return;
+    }
+
     if (location.pathname !== '/') {
       navigate('/', { state: { scrollTo: targetId } });
     } else {
