@@ -283,7 +283,6 @@ export default function Home({ theme }) {
     { text: 'Starting GAT Club System...', type: 'system' },
     { text: 'Type "help" to see what you can do.', type: 'info' }
   ]);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [activeTab, setActiveTab] = useState('events');
   const [banners, setBanners] = useState([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
@@ -296,7 +295,6 @@ export default function Home({ theme }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const termRef = useRef(null);
-  const domainScrollRef = useRef(null);
   const [isTourRunning, setIsTourRunning] = useState(false);
   const { startHomeTour } = useOnboarding();
 
@@ -370,89 +368,44 @@ export default function Home({ theme }) {
     }
   };
 
-  const scrollDomains = (direction) => {
-    if (domainScrollRef.current) {
-      const scrollAmount = window.innerWidth * 1.2;
-      domainScrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
+  // Removed scrollDomains function
 
-  // Drag-to-scroll functionality for Domains (Desktop & Touch)
+  // Removed drag-to-scroll logic for Domains
   useEffect(() => {
-    const slider = domainScrollRef.current;
-    if (!slider) return;
+    // Removed Domain Horizontal Scroll GSAP
+    
+    // Digital Nexus Reveal Animation
+    const nexusReveals = document.querySelectorAll('.nexus-reveal');
+      
+    // Removed Mobile wiggle hint
 
-    let isDown = false;
-    let startX;
-    let scrollLeft;
+    const blade = document.querySelector('.nexus-blade');
+    if (nexusReveals.length > 0) {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: '#nexus',
+          start: 'top 60%',
+          end: 'bottom 40%',
+          toggleActions: 'play none none reverse'
+        }
+      });
 
-    const startDragging = (x) => {
-      isDown = true;
-      slider.style.cursor = 'grabbing';
-      slider.style.scrollSnapType = 'none'; // Disable snap while dragging for smoothness
-      startX = x - slider.offsetLeft;
-      scrollLeft = slider.scrollLeft;
-    };
+      tl.to(nexusReveals, {
+        y: 0,
+        opacity: 1,
+        duration: 1.2,
+        stagger: 0.2,
+        ease: 'power4.out'
+      });
 
-    const stopDragging = () => {
-      isDown = false;
-      slider.style.cursor = 'grab';
-      slider.style.scrollSnapType = 'x mandatory'; // Re-enable snap
-    };
-
-    const moveDragging = (e, x) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const walk = (x - slider.offsetLeft - startX) * 2.5; 
-      slider.scrollLeft = scrollLeft - walk;
-    };
-
-    const handleScroll = () => {
-      const maxScroll = slider.scrollWidth - slider.clientWidth;
-      if (maxScroll <= 0) return;
-      const progress = (slider.scrollLeft / maxScroll) * 100;
-      setScrollProgress(progress);
-    };
-
-    // Mouse Events
-    const onMouseDown = (e) => startDragging(e.pageX);
-    const onMouseLeave = () => stopDragging();
-    const onMouseUp = () => stopDragging();
-    const onMouseMove = (e) => moveDragging(e, e.pageX);
-
-    // Touch Events
-    const onTouchStart = (e) => startDragging(e.touches[0].pageX);
-    const onTouchEnd = () => stopDragging();
-    const onTouchMove = (e) => moveDragging(e, e.touches[0].pageX);
-
-    slider.addEventListener('mousedown', onMouseDown);
-    slider.addEventListener('mouseleave', onMouseLeave);
-    slider.addEventListener('mouseup', onMouseUp);
-    slider.addEventListener('mousemove', onMouseMove);
-
-    slider.addEventListener('touchstart', onTouchStart, { passive: false });
-    slider.addEventListener('touchend', onTouchEnd);
-    slider.addEventListener('touchmove', onTouchMove, { passive: false });
-
-    slider.addEventListener('scroll', handleScroll);
-
-    slider.style.cursor = 'grab';
-
-    return () => {
-      slider.removeEventListener('mousedown', onMouseDown);
-      slider.removeEventListener('mouseleave', onMouseLeave);
-      slider.removeEventListener('mouseup', onMouseUp);
-      slider.removeEventListener('mousemove', onMouseMove);
-
-      slider.removeEventListener('touchstart', onTouchStart);
-      slider.removeEventListener('touchend', onTouchEnd);
-      slider.removeEventListener('touchmove', onTouchMove);
-
-      slider.removeEventListener('scroll', handleScroll);
-    };
+      if (blade) {
+        tl.fromTo(blade, 
+          { top: '0%', opacity: 0 },
+          { top: '100%', opacity: 1, duration: 1.5, ease: 'power2.inOut' },
+          '-=1'
+        ).to(blade, { opacity: 0, duration: 0.5 });
+      }
+    }
   }, [domainsLoading]);
 
   useEffect(() => {
@@ -568,78 +521,6 @@ export default function Home({ theme }) {
           );
         }
       });
-
-      // Domain Horizontal Scroll (Desktop)
-      if (window.innerWidth >= 1024) {
-        const domainContainer = domainScrollRef.current;
-        if (domainContainer) {
-          gsap.to(domainContainer, {
-            x: () => -(domainContainer.scrollWidth - window.innerWidth + window.innerWidth * 0.2),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '#domains',
-              pin: true,
-              scrub: 0.5,
-              start: 'top top',
-              end: () => `+=${domainContainer.scrollWidth * 0.7}`,
-              invalidateOnRefresh: true,
-            }
-          });
-        }
-      }
-      
-      // Digital Nexus Reveal Animation
-      const nexusReveals = document.querySelectorAll('.nexus-reveal');
-      
-      // Mobile Wiggle Hint for Domains
-      if (window.innerWidth < 1024) {
-        const domainContainer = domainScrollRef.current;
-        if (domainContainer) {
-          gsap.fromTo(domainContainer, 
-            { x: 0 },
-            { 
-              x: -30, 
-              duration: 0.5, 
-              repeat: 1, 
-              yoyo: true, 
-              ease: 'power2.inOut',
-              scrollTrigger: {
-                trigger: '#domains',
-                start: 'top 80%',
-                once: true
-              }
-            }
-          );
-        }
-      }
-
-      const blade = document.querySelector('.nexus-blade');
-      if (nexusReveals.length > 0) {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '#nexus',
-            start: 'top 60%',
-            end: 'bottom 40%',
-            toggleActions: 'play none none reverse'
-          }
-        });
-
-        tl.to(nexusReveals, {
-          y: 0,
-          opacity: 1,
-          duration: 1.2,
-          stagger: 0.2,
-          ease: 'power4.out'
-        });
-
-        if (blade) {
-          tl.fromTo(blade, 
-            { top: '0%', opacity: 0 },
-            { top: '100%', opacity: 1, duration: 1.5, ease: 'power2.inOut' },
-            '-=1'
-          ).to(blade, { opacity: 0, duration: 0.5 });
-        }
-      }
     });
 
     const timer = setTimeout(() => {
@@ -858,9 +739,10 @@ export default function Home({ theme }) {
 
       {/* Domains Section */}
       <section id="domains" className="relative py-24 md:py-0 overflow-hidden bg-slate-50 dark:bg-[#050811] z-20">
-         <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.03] dark:opacity-[0.05]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.03] dark:opacity-[0.05]" />
+        
         {/* Header Section */}
-        <div className="max-w-7xl mx-auto mb-12 md:mb-3 flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="max-w-7xl mx-auto mb-12 md:mb-3 flex flex-col md:flex-row md:items-end justify-between gap-8 px-6 md:px-0">
           <div className="flex flex-col gap-4 max-w-2xl animate-on-scroll">
             <div className="flex items-center gap-3">
               <div className="w-8 h-[2px] bg-emerald-500"></div>
@@ -873,100 +755,83 @@ export default function Home({ theme }) {
               Explore our elite vertical divisions. Dedicated ecosystems of tools, mentorship, and high-impact projects.
             </p>
           </div>
-          
-          {/* Custom Navigation */}
-          <div className="flex gap-3 animate-on-scroll">
-            <button 
-              onClick={() => scrollDomains('left')}
-              className="group w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-black/5 dark:border-white/10 flex items-center justify-center text-slate-400 hover:text-emerald-500 transition-all active:scale-95"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            </button>
-            <button 
-              onClick={() => scrollDomains('right')}
-              className="group w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all active:scale-95"
-            >
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          </div>
         </div>
 
-        {/* Horizontal Domain Scroll Container */}
-        <div 
-          ref={domainScrollRef}
-          className="domain-scroll-container relative flex items-start gap-5 md:gap-6 px-6 md:px-[6vw] overflow-x-auto snap-x snap-mandatory no-scrollbar pb-12"
-        >
-          {domainsLoading ? (
-            Array(3).fill(0).map((_, i) => (
-              <div key={i} className="glass-panel h-[350px] min-w-[280px] md:min-w-[350px] animate-pulse bg-slate-100 dark:bg-slate-900/50 rounded-[2rem]" />
-            ))
-          ) : domains.length === 0 ? (
-            <div className="w-full py-20 text-center">
-               <Zap className="w-10 h-10 text-slate-200 dark:text-slate-800 mx-auto mb-4" />
-               <h3 className="text-lg font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">No Active Sectors Found</h3>
-            </div>
-          ) : (
-            domains.map((domain, idx) => (
-              <div 
-                key={domain._id} 
-                className="group relative flex flex-col h-[380px] md:h-[420px] min-w-[75vw] md:min-w-[350px] rounded-[2rem] overflow-hidden bg-slate-50 dark:bg-slate-900/40 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all duration-700 hover:shadow-xl hover:shadow-emerald-500/10 snap-center"
-              >
-                {/* Visual Accent */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-[100%] transition-all duration-700" />
-                
-                {/* Content Container */}
-                <div className="relative z-10 flex flex-col h-full p-6 md:p-10 justify-between">
-                  <div className="flex flex-col gap-6">
-                    <div className={`w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-md group-hover:scale-110 transition-all duration-700`}>
-                      {IconMap[domain.icon] || <Layers className="w-7 h-7" />}
-                    </div>
-                    
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2">
-                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                         <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Sector Active</span>
+        {/* Domains Grid Container */}
+        <div className="max-w-7xl mx-auto px-6 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {domainsLoading ? (
+              Array(4).fill(0).map((_, i) => (
+                <div key={i} className="glass-panel h-[380px] animate-pulse bg-slate-100 dark:bg-slate-900/50 rounded-[2rem]" />
+              ))
+            ) : domains.length === 0 ? (
+              <div className="col-span-full py-20 text-center">
+                 <Zap className="w-10 h-10 text-slate-200 dark:text-slate-800 mx-auto mb-4" />
+                 <h3 className="text-lg font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">No Active Sectors Found</h3>
+              </div>
+            ) : (
+              domains.slice(0, 4).map((domain, idx) => (
+                <div 
+                  key={domain._id} 
+                  className="group relative flex flex-col h-[380px] rounded-[2rem] overflow-hidden bg-white dark:bg-slate-900/40 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all duration-700 hover:shadow-xl hover:shadow-emerald-500/10 animate-on-scroll"
+                  style={{ transitionDelay: `${idx * 100}ms` }}
+                >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-[100%] transition-all duration-700" />
+                  
+                  <div className="relative z-10 flex flex-col h-full p-6 md:p-8 justify-between">
+                    <div className="flex flex-col gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-md group-hover:scale-110 transition-all duration-700">
+                        {IconMap[domain.icon] || <Layers className="w-7 h-7" />}
                       </div>
-                      <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight tracking-tight uppercase group-hover:text-emerald-500 transition-colors">
-                        {domain.title}
-                      </h3>
-                      <p className="text-[11px] md:text-xs font-bold text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">
-                        {domain.desc}
-                      </p>
+                      
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2">
+                           <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Sector Active</span>
+                        </div>
+                        <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight tracking-tight uppercase group-hover:text-emerald-500 transition-colors">
+                          {domain.title}
+                        </h3>
+                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">
+                          {domain.desc}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-col gap-4 pt-6 border-t border-black/5 dark:border-white/5">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Link 
-                        to={`/register/domain/${domain._id}`} 
-                        className="py-3 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[9px] font-black tracking-widest uppercase hover:scale-[1.02] active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2"
-                      >
-                        JOIN <Zap className="w-2.5 h-2.5 text-emerald-500" />
-                      </Link>
-                      <Link 
-                        to={`/domain/${domain.slug}`} 
-                        className="py-3 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 text-slate-900 dark:text-white text-[9px] font-black tracking-widest uppercase hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-center flex items-center justify-center"
-                      >
-                        DETAILS
-                      </Link>
+                    <div className="flex flex-col gap-4 pt-6 border-t border-black/5 dark:border-white/5">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Link 
+                          to={`/register/domain/${domain._id}`} 
+                          className="py-3 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-[9px] font-black tracking-widest uppercase hover:scale-[1.02] active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2"
+                        >
+                          JOIN <Zap className="w-2.5 h-2.5 text-emerald-500" />
+                        </Link>
+                        <Link 
+                          to={`/domain/${domain.slug}`} 
+                          className="py-3 rounded-xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 text-slate-900 dark:text-white text-[9px] font-black tracking-widest uppercase hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-center flex items-center justify-center"
+                        >
+                          DETAILS
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Scroll Hint */}
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-32 h-[1px] bg-slate-100 dark:bg-slate-900 relative overflow-hidden">
-             <motion.div 
-               className="absolute top-0 left-0 h-full bg-emerald-500" 
-               animate={{ width: `${Math.max(10, scrollProgress)}%` }}
-               transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-             />
+              ))
+            )}
           </div>
-          <span className="text-[8px] font-black uppercase tracking-[0.5em] text-slate-400 animate-pulse">Swipe Horizontal</span>
+
+          {/* View More Button */}
+          {!domainsLoading && domains.length > 4 && (
+            <div className="flex justify-center pb-24 animate-on-scroll">
+              <Link 
+                to="/domains"
+                className="group flex items-center gap-4 px-12 py-5 rounded-2xl bg-white dark:bg-slate-900 border border-black/5 dark:border-white/10 text-slate-900 dark:text-white font-black text-[11px] tracking-widest uppercase shadow-2xl hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all"
+              >
+                <span>Discover All Domains</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

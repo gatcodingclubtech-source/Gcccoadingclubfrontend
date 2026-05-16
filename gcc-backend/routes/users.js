@@ -294,4 +294,22 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
   }
 });
 
+// @desc    Update user system remark
+// @route   PATCH /api/users/:id/remark
+// @access  Private/Admin
+router.patch('/:id/remark', protect, adminOnly, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      user.systemRemark = req.body.remark !== undefined ? req.body.remark : user.systemRemark;
+      const updatedUser = await user.save();
+      res.json({ success: true, user: updatedUser });
+    } else {
+      res.status(404).json({ success: false, message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;

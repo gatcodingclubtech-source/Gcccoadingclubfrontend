@@ -17,6 +17,7 @@ import Discussions from './pages/Discussions';
 import DiscussionDetail from './pages/DiscussionDetail';
 import PublicProfile from './pages/PublicProfile';
 import Leaderboard from './pages/Leaderboard';
+import Domains from './pages/Domains';
 
 // Admin Pages
 import AdminLayout from './pages/admin/AdminLayout';
@@ -37,6 +38,7 @@ import LiveRoomDetail from './pages/LiveRoomDetail';
 import CodingHub from './pages/CodingHub';
 import InteractiveDots from './components/InteractiveDots';
 import AIMentor from './components/AIMentor';
+import SystemAlert from './components/SystemAlert';
 
 import socket from './utils/socket';
 import { toast, Toaster } from 'react-hot-toast';
@@ -150,6 +152,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/domains" element={<Domains />} />
             <Route path="/profile/:id" element={<PublicProfile />} />
             <Route path="/discussions" element={<Discussions />} />
             <Route path="/discussions/:id" element={<DiscussionDetail />} />
@@ -200,6 +203,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
         {!isAdmin && !isImmersive && <Footer />}
       </div>
       {!isAdmin && !isImmersive && <AIMentor />}
+      <SystemAlert />
     </div>
   );
 }

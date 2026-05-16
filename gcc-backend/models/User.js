@@ -133,6 +133,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    systemRemark: {
+      type: String,
+      default: '',
+    },
     joinedDomains: [
       {
         type: mongoose.Schema.Types.ObjectId,

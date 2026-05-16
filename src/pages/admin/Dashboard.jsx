@@ -183,9 +183,14 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td className="py-6 px-8 text-right">
-                      <span className="text-[11px] font-bold text-slate-400 tabular-nums">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </span>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-[11px] font-black text-slate-900 dark:text-white tabular-nums">
+                          {new Date(user.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tabular-nums">
+                          {new Date(user.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                        </span>
+                      </div>
                     </td>
                   </tr>
                 ))}
