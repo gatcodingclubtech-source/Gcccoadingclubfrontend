@@ -306,6 +306,7 @@ export default function Home({ theme }) {
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const termRef = useRef(null);
   const domainScrollRef = useRef(null);
+  const [isTourRunning, setIsTourRunning] = useState(false);
   const { startHomeTour } = useOnboarding();
 
   useEffect(() => {
@@ -318,7 +319,10 @@ export default function Home({ theme }) {
   useEffect(() => {
     // Only start tour if not loading basic data to ensure elements exist
     if (!domainsLoading && !eventsLoading) {
-      startHomeTour();
+      startHomeTour(
+        () => setIsTourRunning(true),
+        () => setIsTourRunning(false)
+      );
     }
   }, [domainsLoading, eventsLoading]);
 
@@ -682,7 +686,7 @@ export default function Home({ theme }) {
         )}
       </AnimatePresence>
 
-      <div className="absolute top-[8rem] left-0 right-0 z-[1001] pointer-events-none">
+      <div className={`absolute top-[8rem] left-0 right-0 z-[1001] pointer-events-none transition-opacity duration-500 ${isTourRunning ? 'opacity-0' : 'opacity-100'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pointer-events-auto">
           <BannerSpotlight banners={banners} />
         </div>
