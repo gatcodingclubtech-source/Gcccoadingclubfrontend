@@ -262,4 +262,26 @@ router.get('/:id/attendees', protect, adminOnly, async (req, res) => {
   }
 });
 
+// @desc    Update registration status
+// @route   PUT /api/events/registrations/:id/status
+// @access  Private/Admin
+router.put('/registrations/:id/status', protect, adminOnly, async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+    const registration = await Registration.findByIdAndUpdate(
+      req.params.id,
+      { paymentStatus },
+      { new: true }
+    );
+    
+    if (!registration) {
+      return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+
+    res.json({ success: true, message: `Status updated to ${paymentStatus}`, registration });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;
