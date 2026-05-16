@@ -418,6 +418,16 @@ export default function EventsManager() {
                     </div>
                   </div>
                   <div className="md:col-span-2">
+                    <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Official Group Link (WhatsApp/Discord)</label>
+                    <input 
+                      name="officialGroupLink"
+                      placeholder="https://chat.whatsapp.com/..."
+                      value={formData.officialGroupLink}
+                      onChange={handleChange}
+                      className="w-full bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl px-6 py-4 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500/50 transition-all font-bold"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
                     <ImageUpload 
                       value={formData.qrCode} 
                       onChange={(url) => setFormData({...formData, qrCode: url})}
