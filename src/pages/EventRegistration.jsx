@@ -10,7 +10,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function EventRegistration() {
   const { id } = useParams();
@@ -52,7 +52,7 @@ export default function EventRegistration() {
   const fetchMyRegistration = async () => {
     if (!user) return;
     try {
-      const res = await axios.get(`${API_BASE_URL}/events/${id}/my-registration`);
+      const res = await axios.get(`/api/events/${id}/my-registration`);
       if (res.data.success && res.data.registration) {
         const reg = res.data.registration;
         setTeamName(reg.teamName || '');
@@ -90,7 +90,7 @@ export default function EventRegistration() {
 
   const fetchEvent = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/events/${id}`);
+      const res = await axios.get(`/api/events/${id}`);
       if (res.data.success) {
         setEvent(res.data.event);
       }
@@ -112,7 +112,7 @@ export default function EventRegistration() {
     const uploadToast = toast.loading('Uploading payment proof...');
 
     try {
-      const { data } = await axios.post(`${API_BASE_URL}/upload`, formData, {
+      const { data } = await axios.post(`/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (data.success) {
@@ -168,7 +168,7 @@ export default function EventRegistration() {
   const handleRazorpayPayment = async (registrationId) => {
     try {
       setSubmitting(true);
-      const { data: orderData } = await axios.post(`${API_BASE_URL}/payments/create-order`, {
+      const { data: orderData } = await axios.post(`/api/payments/create-order`, {
         registrationId,
         amount: event.price
       });
@@ -183,7 +183,7 @@ export default function EventRegistration() {
         description: `Registration for ${event.title}`,
         order_id: orderData.order.id,
         handler: async (response) => {
-          const { data: verifyData } = await axios.post(`${API_BASE_URL}/payments/verify`, {
+          const { data: verifyData } = await axios.post(`/api/payments/verify`, {
             ...response,
             registrationId
           });
@@ -232,8 +232,8 @@ export default function EventRegistration() {
       };
 
       const res = isEditing 
-        ? await axios.put(`${API_BASE_URL}/events/${id}/register`, payload)
-        : await axios.post(`${API_BASE_URL}/events/${id}/register`, payload);
+        ? await axios.put(`/api/events/${id}/register`, payload)
+        : await axios.post(`/api/events/${id}/register`, payload);
 
       if (res.data.success) {
         if (isAutomated) {
