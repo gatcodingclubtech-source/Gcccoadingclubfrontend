@@ -72,7 +72,7 @@ export default function BannerSpotlight({ banners }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[998] md:hidden"
+            className="fixed inset-0 bg-black/80 z-[998] md:hidden"
             onClick={() => setIsVisible(false)}
           />
         )}
@@ -82,17 +82,14 @@ export default function BannerSpotlight({ banners }) {
         {!isVisible ? null : (
           <motion.div 
             key={currentIndex}
-            initial={{ x: "100%", rotateY: 45, opacity: 0, scale: 0.9 }}
-            animate={{ x: 0, rotateY: 0, opacity: 1, scale: 1 }}
-            exit={{ x: "-100%", rotateY: -45, opacity: 0, scale: 0.9 }}
+            initial={{ x: "100%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "-100%", opacity: 0 }}
             transition={{ 
-              type: "spring",
-              stiffness: 250, // Higher stiffness for instant snap
-              damping: 30,    // Controlled bounce
-              mass: 0.8,      // Lighter weight for speed
-              opacity: { duration: 0.2 }
+              type: "tween",
+              duration: 0.3,
+              ease: "easeOut"
             }}
-            style={{ perspective: 1200 }}
             drag="x"
             dragElastic={0.2}
             dragConstraints={{ left: 0, right: 0 }}
@@ -114,7 +111,7 @@ export default function BannerSpotlight({ banners }) {
             </div>
 
             {/* Animated Glow Elements */}
-            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] md:w-[500px] h-[400px] md:h-[500px] bg-${banner.color}-500/30 rounded-full blur-[100px] md:blur-[120px] pointer-events-none animate-pulse`} />
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] md:w-[500px] h-[400px] md:h-[500px] bg-${banner.color}-500/20 rounded-full blur-[80px] md:blur-[120px] pointer-events-none hidden md:block`} />
 
             {/* Content Container */}
             <div className="relative h-full flex flex-col justify-center p-6 md:p-16">
