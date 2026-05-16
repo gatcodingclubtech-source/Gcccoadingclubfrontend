@@ -57,8 +57,8 @@ export default function Navbar({ theme, toggleTheme }) {
       return;
     }
 
-    if (targetId === 'discussions') {
-      navigate('/discussions');
+    if (targetId === 'resources') {
+      navigate('/resources');
       return;
     }
 
@@ -91,7 +91,7 @@ export default function Navbar({ theme, toggleTheme }) {
   const navItems = [
     { label: 'Home', id: 'home' },
     { label: 'Events', id: 'events' },
-    { label: 'Discussions', id: 'discussions' },
+    { label: 'Resources', id: 'resources' },
     { label: 'Leaderboard', id: 'leaderboard' },
     { label: 'Arena', id: 'live-rooms' },
     { label: 'Quiz', id: 'quiz' },
