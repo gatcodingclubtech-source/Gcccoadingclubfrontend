@@ -14,19 +14,10 @@ export default function SystemAlert() {
     }
   }, [user]);
 
-  const handleDismiss = async () => {
-    try {
-      // Clear the remark from backend when dismissed
-      const res = await axios.patch(`/api/users/${user._id}/remark`, { remark: '' });
-      if (res.data.success) {
-        setUser({ ...user, systemRemark: '' });
-        setShow(false);
-      }
-    } catch (err) {
-      console.error('Failed to dismiss remark', err);
-      // Fallback: just hide it
-      setShow(false);
-    }
+  const handleDismiss = () => {
+    // Only hide locally for the current session
+    // It will reappear on refresh until admin clears it
+    setShow(false);
   };
 
   return (
