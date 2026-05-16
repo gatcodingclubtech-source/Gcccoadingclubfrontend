@@ -159,6 +159,7 @@ export default function Navbar({ theme, toggleTheme }) {
           {/* Mobile Menu Toggle */}
           <button 
             id="mobile-menu-toggle"
+            data-open={mobileMenuOpen}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-1.5 text-slate-900 dark:text-white"
           >
@@ -177,7 +178,12 @@ export default function Navbar({ theme, toggleTheme }) {
           <div className="flex flex-col gap-3">
             {user ? (
               <div className="flex flex-col gap-2">
-                <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between py-3 px-5 rounded-xl bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/20">
+                <Link 
+                  id="mobile-profile-link"
+                  to="/profile" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="flex items-center justify-between py-3 px-5 rounded-xl bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/20"
+                >
                   MY PROFILE <Users className="w-4 h-4" />
                 </Link>
               </div>

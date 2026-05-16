@@ -159,6 +159,7 @@ const MobileHero = ({ banners }) => {
           </motion.div>
           
           <motion.h1 
+            id="mobile-hero-title"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -240,7 +241,7 @@ function QuizSection() {
         </div>
 
         <div className="flex-1 w-full max-w-lg">
-          <div id="hero-title" className="flex flex-col items-center mt-20 md:mt-24 lg:mt-32">
+          <div className="flex flex-col items-center mt-20 md:mt-24 lg:mt-32">
              <div className="relative mb-6">
                 <div className="absolute inset-0 blur-2xl opacity-20 bg-emerald-500 rounded-full animate-pulse" />
              </div>
