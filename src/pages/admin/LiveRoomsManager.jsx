@@ -6,6 +6,7 @@ import {
   Megaphone, X, Lock, Unlock, UserMinus, Activity
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import socket from '../../utils/socket';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
@@ -23,8 +24,18 @@ export default function LiveRoomsManager() {
 
   useEffect(() => {
     fetchRooms();
-    const interval = setInterval(fetchRooms, 10000); // Auto-refresh every 10s
-    return () => clearInterval(interval);
+    
+    // Join the admin monitor room for real-time updates
+    socket.emit('join-room', 'admin-monitor');
+    
+    socket.on('admin-room-update', ({ roomId }) => {
+      console.log(`Real-time update for room ${roomId}`);
+      fetchRooms();
+    });
+
+    return () => {
+      socket.off('admin-room-update');
+    };
   }, []);
 
   const fetchRooms = async () => {
@@ -61,6 +72,9 @@ export default function LiveRoomsManager() {
       toast.error('Update failed');
     }
   };
+
+  // Keep the selected room data fresh by finding it in the latest rooms array
+  const activeSelectedRoom = selectedRoom ? rooms.find(r => r._id === selectedRoom._id) || selectedRoom : null;
 
   const handleKick = async (roomId, socketId) => {
     if (!window.confirm('Kick this participant?')) return;
@@ -240,13 +254,13 @@ export default function LiveRoomsManager() {
       </div>
 
       {/* MONITOR MODAL */}
-      {isMonitorModalOpen && selectedRoom && (
+      {isMonitorModalOpen && activeSelectedRoom && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setIsMonitorModalOpen(false)} />
           <div className="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5 animate-scale-in">
             <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Signal Monitoring: <span className="text-brand">{selectedRoom.title}</span></h3>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Signal Monitoring: <span className="text-brand">{activeSelectedRoom.title}</span></h3>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Real-time Participant Matrix</p>
               </div>
               <button onClick={() => setIsMonitorModalOpen(false)} className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-brand transition-all">
@@ -277,12 +291,12 @@ export default function LiveRoomsManager() {
 
               {/* Participant List */}
               <div className="space-y-4">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Signals ({selectedRoom.activeParticipants?.length || 0})</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Signals ({activeSelectedRoom.activeParticipants?.length || 0})</label>
                 <div className="grid gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                  {selectedRoom.activeParticipants?.length === 0 ? (
+                  {activeSelectedRoom.activeParticipants?.length === 0 ? (
                      <div className="p-8 text-center text-slate-400 font-bold uppercase tracking-widest bg-slate-50 dark:bg-white/5 rounded-3xl">No active users in session.</div>
                   ) : (
-                    selectedRoom.activeParticipants.map((user) => (
+                    activeSelectedRoom.activeParticipants.map((user) => (
                       <div key={user.socketId} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-brand/20 transition-all">
                         <div className="flex items-center gap-3">
                           <img src={user.profileImage || 'https://via.placeholder.com/40'} className="w-10 h-10 rounded-full ring-2 ring-brand/10" />
@@ -293,7 +307,7 @@ export default function LiveRoomsManager() {
                         </div>
                         <div className="flex items-center gap-2">
                            <button 
-                             onClick={() => handleKick(selectedRoom._id, user.socketId)}
+                             onClick={() => handleKick(activeSelectedRoom._id, user.socketId)}
                              className="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
                              title="Kick User"
                            >
