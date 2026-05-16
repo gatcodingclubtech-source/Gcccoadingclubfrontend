@@ -208,6 +208,10 @@ router.put('/profile', protect, async (req, res) => {
       user.instagramUrl = req.body.instagramUrl || user.instagramUrl;
       user.portfolioUrl = req.body.portfolioUrl || user.portfolioUrl;
 
+      // Clear administrative remark upon any profile update, 
+      // assuming the user is attempting to address the request.
+      user.systemRemark = '';
+
       const updatedUser = await user.save();
       res.json({
         success: true,

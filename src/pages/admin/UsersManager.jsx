@@ -252,144 +252,182 @@ export default function UsersManager() {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-6">
           <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setShowModal(false)} />
           
-          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden border border-black/5 dark:border-white/10 animate-in fade-in zoom-in duration-300">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden border border-black/5 dark:border-white/10 animate-in fade-in zoom-in duration-300 max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="p-8 pb-0 flex justify-between items-start">
-              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-3xl bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center p-1 overflow-hidden shadow-xl">
+            <div className="p-6 md:p-8 pb-0 flex justify-between items-start shrink-0">
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl bg-slate-100 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center p-1 overflow-hidden shadow-xl">
                   {selectedUser.avatar ? (
-                    <img src={selectedUser.avatar} className="w-full h-full object-cover rounded-2xl" />
+                    <img src={selectedUser.avatar} className="w-full h-full object-cover rounded-xl md:rounded-2xl" />
                   ) : (
-                    <User className="w-10 h-10 text-slate-400" />
+                    <User className="w-8 h-8 md:w-10 md:h-10 text-slate-400" />
                   )}
                 </div>
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">{selectedUser.name}</h2>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${
+                <div className="flex flex-col gap-1 md:gap-2">
+                  <h2 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-tight">{selectedUser.name}</h2>
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    <span className={`px-3 md:px-4 py-0.5 md:py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] border ${
                       selectedUser.role === 'admin' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-slate-100 dark:bg-white/10 text-slate-500 border-transparent'
                     }`}>
                       {selectedUser.role}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedUser.usn || 'NO USN'}</span>
+                    <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedUser.usn || 'NO USN'}</span>
                   </div>
                 </div>
               </div>
               <button 
                 onClick={() => setShowModal(false)}
-                className="p-3 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
+                className="p-2 md:p-3 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-8 grid md:grid-cols-2 gap-8">
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-4">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Contact Information</span>
+            {/* Modal Content - Scrollable */}
+            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="flex flex-col gap-6">
                   <div className="flex flex-col gap-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Contact Information</span>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4 group">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-emerald-500 group-hover:bg-emerald-500/10 transition-all">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-[9px] font-black text-slate-400 uppercase">Email Address</span>
+                          <span className="text-[11px] font-bold text-slate-900 dark:text-white truncate">{selectedUser.email}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 group">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-emerald-500 group-hover:bg-emerald-500/10 transition-all">
+                          <Phone className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-black text-slate-400 uppercase">Phone Number</span>
+                          <span className="text-[11px] font-bold text-slate-900 dark:text-white">{selectedUser.phone || 'Not Provided'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Academic Details</span>
                     <div className="flex items-center gap-4 group">
                       <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-emerald-500 group-hover:bg-emerald-500/10 transition-all">
-                        <Mail className="w-4 h-4" />
+                        <MapPin className="w-4 h-4" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[9px] font-black text-slate-400 uppercase">Email Address</span>
-                        <span className="text-[11px] font-bold text-slate-900 dark:text-white">{selectedUser.email}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 group">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-emerald-500 group-hover:bg-emerald-500/10 transition-all">
-                        <Phone className="w-4 h-4" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] font-black text-slate-400 uppercase">Phone Number</span>
-                        <span className="text-[11px] font-bold text-slate-900 dark:text-white">{selectedUser.phone || 'Not Provided'}</span>
+                        <span className="text-[9px] font-black text-slate-400 uppercase">Department</span>
+                        <span className="text-[11px] font-bold text-slate-900 dark:text-white">{selectedUser.department || 'Not Assigned'}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-4">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Academic Details</span>
-                  <div className="flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-emerald-500 group-hover:bg-emerald-500/10 transition-all">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 uppercase">Department</span>
-                      <span className="text-[11px] font-bold text-slate-900 dark:text-white">{selectedUser.department || 'Not Assigned'}</span>
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Membership Activity</span>
+                    <div className="p-5 md:p-6 rounded-2xl md:rounded-3xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 flex flex-col gap-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                          <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                          <span className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase">Joined</span>
+                        </div>
+                        <span className="text-[9px] md:text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter text-right">
+                          {new Date(selectedUser.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                          <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                          <span className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase">ID</span>
+                        </div>
+                        <span className="text-[8px] md:text-[9px] font-mono font-bold text-slate-400 truncate max-w-[120px] md:max-w-none">{selectedUser._id}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-4">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Membership Activity</span>
-                  <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-4 h-4 text-emerald-500" />
-                        <span className="text-[10px] font-black text-slate-500 uppercase">Joined Date</span>
-                      </div>
-                      <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter">
-                        {new Date(selectedUser.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}
-                      </span>
+                  <div className="flex flex-col gap-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Raise Question / Remark</span>
+                    
+                    <div className="flex flex-wrap gap-1.5 md:gap-2 mb-1">
+                      {[
+                        'Update USN',
+                        'Fix Department',
+                        'Invalid Avatar',
+                        'Add Social Links',
+                        'Incomplete Profile',
+                        'Verify Phone',
+                        'Mismatch Error'
+                      ].map((preset) => (
+                        <button 
+                          key={preset}
+                          onClick={() => {
+                            const textarea = document.getElementById(`remark-${selectedUser._id}`);
+                            textarea.value = preset;
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 text-[8px] font-black text-slate-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all uppercase tracking-wider"
+                        >
+                          {preset}
+                        </button>
+                      ))}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Shield className="w-4 h-4 text-emerald-500" />
-                        <span className="text-[10px] font-black text-slate-500 uppercase">User ID</span>
+
+                    <div className="flex flex-col gap-3">
+                      <textarea 
+                        placeholder="Type a question or remark..."
+                        defaultValue={selectedUser.systemRemark || ''}
+                        id={`remark-${selectedUser._id}`}
+                        className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 text-[11px] font-bold text-slate-900 dark:text-white focus:border-emerald-500/50 outline-none transition-all resize-none h-24"
+                      />
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <button 
+                          onClick={() => {
+                            const val = document.getElementById(`remark-${selectedUser._id}`).value;
+                            handleRemarkUpdate(selectedUser._id, val);
+                          }}
+                          className="flex-1 py-3 rounded-xl bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 order-1 sm:order-none"
+                        >
+                          Send / Update Remark
+                        </button>
+                        <button 
+                          onClick={() => {
+                            const textarea = document.getElementById(`remark-${selectedUser._id}`);
+                            textarea.value = '';
+                            handleRemarkUpdate(selectedUser._id, '');
+                          }}
+                          className="px-6 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 text-[9px] font-black uppercase tracking-widest hover:text-red-500 transition-all"
+                        >
+                          Clear
+                        </button>
                       </div>
-                      <span className="text-[9px] font-mono font-bold text-slate-400">{selectedUser._id}</span>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex flex-col gap-4">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Raise Question / Remark</span>
-                  <div className="flex flex-col gap-3">
-                    <textarea 
-                      placeholder="Type a question or remark for this user..."
-                      defaultValue={selectedUser.systemRemark || ''}
-                      id={`remark-${selectedUser._id}`}
-                      className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-black/5 dark:border-white/5 text-[11px] font-bold text-slate-900 dark:text-white focus:border-emerald-500/50 outline-none transition-all resize-none h-24"
-                    />
+                  <div className="mt-4 flex flex-col sm:flex-row gap-3">
                     <button 
-                      onClick={() => {
-                        const val = document.getElementById(`remark-${selectedUser._id}`).value;
-                        handleRemarkUpdate(selectedUser._id, val);
-                      }}
-                      className="w-full py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
+                      onClick={() => handleRoleToggle(selectedUser._id, selectedUser.role)}
+                      className="flex-1 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
                     >
-                      Send Question
+                      Make {selectedUser.role === 'admin' ? 'User' : 'Admin'}
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(selectedUser._id)}
+                      className="px-6 py-4 rounded-2xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      Delete
                     </button>
                   </div>
-                </div>
-
-                <div className="mt-auto flex gap-3">
-                  <button 
-                    onClick={() => handleRoleToggle(selectedUser._id, selectedUser.role)}
-                    className="flex-1 py-4 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
-                  >
-                    Change to {selectedUser.role === 'admin' ? 'User' : 'Admin'}
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(selectedUser._id)}
-                    className="px-6 py-4 rounded-2xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             </div>
             
-            <div className="px-8 py-6 bg-slate-50 dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 flex items-center justify-between">
-               <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Member Control Panel</span>
+            <div className="px-6 md:px-8 py-4 md:py-6 bg-slate-50 dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 flex items-center justify-between shrink-0">
+               <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Member Control Panel</span>
                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[9px] font-black text-emerald-500 uppercase">System Verified</span>
+                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[8px] md:text-[9px] font-black text-emerald-500 uppercase">System Verified</span>
                </div>
             </div>
           </div>
