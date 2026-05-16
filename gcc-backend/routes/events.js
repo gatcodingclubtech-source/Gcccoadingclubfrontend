@@ -26,7 +26,15 @@ router.get('/:id', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (event) {
-      res.json({ success: true, event });
+      const Settings = require('../models/Settings');
+      const settings = await Settings.findOne();
+      
+      const eventData = {
+        ...event._doc,
+        upiId: event.upiId || settings?.upiId || 'gcc@upi'
+      };
+      
+      res.json({ success: true, event: eventData });
     } else {
       res.status(404).json({ success: false, message: 'Event not found' });
     }
