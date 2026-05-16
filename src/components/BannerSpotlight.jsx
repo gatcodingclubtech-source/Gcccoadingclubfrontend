@@ -14,6 +14,7 @@ const CountdownUnit = ({ value, label }) => (
 export default function BannerSpotlight({ banners }) {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0); // -1 for left, 1 for right
   const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
   const [isVisible, setIsVisible] = useState(true);
 
@@ -22,6 +23,7 @@ export default function BannerSpotlight({ banners }) {
   useEffect(() => {
     if (banners?.length <= 1) return;
     const slideTimer = setInterval(() => {
+      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }, 8000); // Slower rotation for better readability
     return () => clearInterval(slideTimer);
@@ -55,10 +57,29 @@ export default function BannerSpotlight({ banners }) {
     if (banners.length <= 1) return;
     const swipeThreshold = 30; // More sensitive swipe
     if (info.offset.x > swipeThreshold) {
+      setDirection(-1);
       setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
     } else if (info.offset.x < -swipeThreshold) {
+      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % banners.length);
     }
+  };
+
+  const variants = {
+    enter: (direction) => ({
+      x: direction > 0 ? "100%" : "-100%",
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? "100%" : "-100%",
+      opacity: 0
+    })
   };
 
   if (!banner || !isVisible) return null;
@@ -77,17 +98,22 @@ export default function BannerSpotlight({ banners }) {
           />
         )}
       </AnimatePresence>
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="popLayout" custom={direction}>
         {!isVisible ? null : (
           <motion.div 
             key={currentIndex}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ 
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 }
+            }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
+            dragElastic={1}
             onDragEnd={handleDragEnd}
             className="fixed md:relative inset-x-0 bottom-10 md:bottom-auto top-20 md:top-auto z-[999] md:z-50 px-4 md:px-6 flex items-center justify-center cursor-grab active:cursor-grabbing"
           >
