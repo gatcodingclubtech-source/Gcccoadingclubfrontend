@@ -109,48 +109,38 @@ export default function BannerSpotlight({ banners }) {
             animate="center"
             exit="exit"
             transition={{ 
-              type: "tween",
-              duration: 0.3,
-              ease: "easeOut"
+              x: { type: "tween", duration: 0.3, ease: "easeOut" },
+              opacity: { duration: 0.2 }
             }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={1}
+            dragElastic={0.5}
             onDragEnd={handleDragEnd}
             className="fixed md:relative inset-x-0 bottom-10 md:bottom-auto top-20 md:top-auto z-[999] md:z-50 px-4 md:px-6 flex items-center justify-center cursor-grab active:cursor-grabbing"
           >
         <div className="w-full max-w-7xl mx-auto">
-          <div className="relative group h-[70vh] md:h-[380px] rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10">
+          <div className="relative group h-[70vh] md:h-[380px] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
             
-            {/* Background Image with Parallax & Overlay */}
+            {/* Background Image - Simplified */}
             <div className="absolute inset-0">
               <img 
                 src={banner.image} 
                 alt={banner.title} 
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-black/40" />
             </div>
-
-            {/* Animated Glow Elements */}
-            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] md:w-[500px] h-[400px] md:h-[500px] bg-${banner.color}-500/20 rounded-full blur-[80px] md:blur-[120px] pointer-events-none hidden md:block`} />
 
             {/* Content Container */}
             <div className="relative h-full flex flex-col justify-center p-6 md:p-16">
               <div className="flex flex-col gap-3 md:gap-5 max-w-2xl text-center md:text-left items-center md:items-start">
                 <div className="flex items-center gap-3">
-                  <div className={`px-5 py-2 rounded-full bg-${banner.color}-500 text-white text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-${banner.color}-500/40 flex items-center gap-2`}>
+                  <div className={`px-5 py-2 rounded-full bg-${banner.color}-500 text-white text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2`}>
                     <Sparkles className="w-3.5 h-3.5" /> {banner.type}
                   </div>
-                  {banner.targetDate && (
-                    <div className="flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest">
-                      <Calendar className="w-4 h-4 text-emerald-400" /> Upcoming
-                    </div>
-                  )}
                 </div>
 
-                <h1 className="text-2xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+                <h1 className="text-2xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none">
                   {banner.title}
                 </h1>
                 
@@ -161,14 +151,14 @@ export default function BannerSpotlight({ banners }) {
                 <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-8 w-full md:w-auto">
                   <button 
                     onClick={(e) => { e.stopPropagation(); navigate(banner.link); }}
-                    className={`px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl bg-white text-black text-[10px] md:text-xs font-black tracking-[0.2em] hover:scale-105 transition-all shadow-2xl flex items-center justify-center gap-3 group/btn`}
+                    className={`px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl bg-white text-black text-[10px] md:text-xs font-black tracking-[0.2em] transition-all flex items-center justify-center gap-3 group/btn`}
                   >
                     JOIN NOW <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
                   </button>
 
                   {/* Countdown Timer */}
                   {banner.targetDate && (
-                    <div className="flex items-center justify-center gap-4 md:gap-8 px-6 md:px-8 py-3 md:py-4 bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 shadow-2xl">
+                    <div className="flex items-center justify-center gap-4 md:gap-8 px-6 md:px-8 py-3 md:py-4 bg-white/10 backdrop-blur-md rounded-2xl md:rounded-3xl border border-white/20">
                       <CountdownUnit value={timeLeft.d} label="Days" />
                       <div className="w-px h-10 bg-white/20" />
                       <CountdownUnit value={timeLeft.h} label="Hrs" />
