@@ -196,6 +196,37 @@ export default function LiveRoomDetail() {
       }), 2000);
     });
 
+    // ADMIN MODERATION LISTENERS
+    socket.on('force-kick', ({ roomId: kickedRoomId, socketId: kickedSocketId }) => {
+      if (kickedRoomId === id && kickedSocketId === socket.id) {
+        toast.error('You have been kicked by an administrator', { duration: 5000 });
+        navigate('/live-rooms');
+      }
+    });
+
+    socket.on('admin-broadcast', ({ roomId: alertRoomId, message }) => {
+      if (alertRoomId === id) {
+        toast(message, {
+          icon: '📢',
+          duration: 10000,
+          style: {
+            borderRadius: '16px',
+            background: '#0f172a',
+            color: '#fff',
+            border: '2px solid #10b981',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            fontSize: '12px'
+          },
+        });
+      }
+    });
+
+    socket.on(`room-update-${id}`, (updatedRoom) => {
+      setRoom(updatedRoom);
+      toast.success('Room settings updated by admin');
+    });
+
     return () => {
       socket.off('entry-request');
       socket.off('entry-approved');
@@ -207,6 +238,9 @@ export default function LiveRoomDetail() {
       socket.off('chat-history');
       socket.off('new-message');
       socket.off('new-reaction');
+      socket.off('force-kick');
+      socket.off('admin-broadcast');
+      socket.off(`room-update-${id}`);
       socket.emit('leave-live-room', id);
       Object.values(peersRef.current).forEach(peer => peer.close());
     };

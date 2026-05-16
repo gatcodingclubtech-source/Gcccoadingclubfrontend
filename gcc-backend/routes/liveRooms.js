@@ -80,8 +80,14 @@ router.post('/:id/verify-password', async (req, res) => {
 router.get('/admin/monitor', async (req, res) => {
     try {
         const dbRooms = await LiveRoom.find({ status: 'Live' }).populate('host', 'username profileImage');
+        console.log(`[Monitor] Found ${dbRooms.length} rooms in DB. Checking real-time Maps...`);
+        console.log(`[Monitor] Active Map keys:`, Array.from(liveRooms.keys()));
+        
         const monitorData = dbRooms.map(room => {
             const activeData = liveRooms.get(room._id.toString());
+            if (activeData) {
+                console.log(`[Monitor] Found active data for room ${room._id}: ${activeData.users.size} users`);
+            }
             return {
                 ...room._doc,
                 activeParticipants: activeData ? Array.from(activeData.users.values()) : [],
@@ -90,6 +96,7 @@ router.get('/admin/monitor', async (req, res) => {
         });
         res.json(monitorData);
     } catch (err) {
+        console.error('[Monitor Error]', err);
         res.status(500).json({ message: err.message });
     }
 });

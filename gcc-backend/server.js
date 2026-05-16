@@ -103,6 +103,9 @@ io.on('connection', (socket) => {
   // Common Room joining
   socket.on('join-room', (roomId) => {
     socket.join(roomId);
+    if (roomId === 'admin-monitor') {
+      console.log('Admin joined monitor room');
+    }
   });
 
   // Collaborative Coding Hub Logic
@@ -165,6 +168,9 @@ io.on('connection', (socket) => {
       socketId: socket.id, 
       user: room.users.get(socket.id) 
     });
+
+    // Notify admins for real-time dashboard updates
+    io.to('admin-monitor').emit('admin-room-update', { roomId });
   });
 
   socket.on('request-room-entry', ({ roomId, user }) => {
@@ -234,6 +240,9 @@ io.on('connection', (socket) => {
       room.users.delete(socket.id);
       io.to(roomId).emit('room-participants', Array.from(room.users.values()));
       io.to(roomId).emit('user-left', socket.id);
+      
+      // Notify admins
+      io.to('admin-monitor').emit('admin-room-update', { roomId });
     }
   });
 
@@ -258,6 +267,7 @@ io.on('connection', (socket) => {
         room.users.delete(socket.id);
         io.to(roomId).emit('room-participants', Array.from(room.users.values()));
         io.to(roomId).emit('user-left', socket.id);
+        io.to('admin-monitor').emit('admin-room-update', { roomId });
       }
     });
   });

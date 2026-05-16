@@ -125,12 +125,46 @@ export default function CodingHub() {
     socket.on('receive-coding-message', (msg) => {
        setMessages(prev => [...prev, msg]);
     });
+    
+    // ADMIN MODERATION LISTENERS
+    socket.on('force-kick', ({ roomId: kickedRoomId, socketId: kickedSocketId }) => {
+      if (kickedRoomId === roomId && kickedSocketId === socket.id) {
+        toast.error('You have been kicked by an administrator', { duration: 5000 });
+        navigate('/live-rooms');
+      }
+    });
+
+    socket.on('admin-broadcast', ({ roomId: alertRoomId, message }) => {
+      if (alertRoomId === roomId) {
+        toast(message, {
+          icon: '📢',
+          duration: 10000,
+          style: {
+            borderRadius: '16px',
+            background: '#0f172a',
+            color: '#fff',
+            border: '2px solid #10b981',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            fontSize: '12px'
+          },
+        });
+      }
+    });
+
+    socket.on(`room-update-${roomId}`, (updatedRoom) => {
+      toast.success('Room settings updated by admin');
+      // Potential metadata update logic here if needed
+    });
 
     return () => {
       socket.emit('leave-coding-room', roomId);
       socket.off('workspace-update');
       socket.off('room-users');
       socket.off('receive-coding-message');
+      socket.off('force-kick');
+      socket.off('admin-broadcast');
+      socket.off(`room-update-${roomId}`);
     };
   }, [roomId, user]);
 
