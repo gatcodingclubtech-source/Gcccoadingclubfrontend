@@ -6,6 +6,11 @@ class AIService {
   }
 
   _initialize() {
+    // If we're in development, we can try to re-read the .env file if the key is missing
+    if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'ENTER_YOUR_GROQ_KEY_HERE') {
+      require('dotenv').config();
+    }
+    
     this.apiKey = process.env.GROQ_API_KEY;
     if (!this.apiKey || this.apiKey === 'ENTER_YOUR_GROQ_KEY_HERE') {
       this.groq = null;
@@ -13,6 +18,7 @@ class AIService {
       this.groq = new Groq({
         apiKey: this.apiKey
       });
+      console.log('🚀 GCC OS: AI Neural Link Established (Groq Online)');
     }
   }
 

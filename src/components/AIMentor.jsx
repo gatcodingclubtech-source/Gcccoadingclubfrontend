@@ -40,14 +40,14 @@ export default function AIMentor() {
   };
 
   return (
-    <div className="fixed bottom-10 right-10 z-[10000]">
+    <div className="fixed bottom-4 right-4 md:bottom-10 md:right-10 z-[10000]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="absolute bottom-20 right-0 w-[350px] md:w-[400px] h-[550px] bg-white dark:bg-slate-950 rounded-[2.5rem] border border-black/5 dark:border-white/10 shadow-2xl flex flex-col overflow-hidden backdrop-blur-3xl"
+            className="absolute bottom-20 right-0 w-[calc(100vw-2rem)] sm:w-[350px] md:w-[400px] h-[500px] md:h-[550px] bg-white dark:bg-slate-950 rounded-[2.5rem] border border-black/5 dark:border-white/10 shadow-2xl flex flex-col overflow-hidden backdrop-blur-3xl"
           >
             {/* Header */}
             <div className="p-6 bg-emerald-500 flex items-center justify-between">
@@ -120,13 +120,13 @@ export default function AIMentor() {
       <Magnetic strength={0.2}>
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-16 h-16 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all duration-500 ${
+          className={`w-14 h-14 md:w-16 md:h-16 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all duration-500 ${
             isOpen ? 'bg-slate-900 rotate-90' : 'bg-emerald-500'
           }`}
         >
-          {isOpen ? <X className="text-white w-7 h-7" /> : <Bot className="text-white w-7 h-7" />}
+          {isOpen ? <X className="text-white w-6 h-6 md:w-7 md:h-7" /> : <Bot className="text-white w-6 h-6 md:w-7 md:h-7" />}
           {!isOpen && (
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-slate-950 animate-pulse" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 md:w-4 md:h-4 bg-red-500 rounded-full border-2 border-white dark:border-slate-950 animate-pulse" />
           )}
         </button>
       </Magnetic>
