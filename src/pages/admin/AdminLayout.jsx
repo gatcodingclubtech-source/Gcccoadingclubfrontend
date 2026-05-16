@@ -25,6 +25,7 @@ export default function AdminLayout() {
     { name: 'Domains', path: '/admin/domains', icon: <Layers className="w-5 h-5" /> },
     { name: 'Banners', path: '/admin/banners', icon: <Sparkles className="w-5 h-5" /> },
     { name: 'Live Tests', path: '/admin/test-sessions', icon: <ExternalLink className="w-5 h-5" /> },
+    { name: 'Club Central', path: '/admin/settings', icon: <Settings className="w-5 h-5" /> },
   ];
 
   const handleLogout = async () => {
