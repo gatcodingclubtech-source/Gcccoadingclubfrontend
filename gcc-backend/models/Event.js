@@ -82,6 +82,18 @@ const eventSchema = new mongoose.Schema(
         ref: 'User',
       }
     ],
+    price: {
+      type: Number,
+      default: 0,
+    },
+    qrCode: {
+      type: String,
+      default: '',
+    },
+    upiId: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

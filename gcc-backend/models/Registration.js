@@ -34,10 +34,17 @@ const registrationSchema = new mongoose.Schema(
         }
       }
     ],
-    status: {
+    paymentStatus: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Cancelled'],
-      default: 'Confirmed',
+      enum: ['Pending', 'Verified', 'Rejected', 'N/A'],
+      default: 'N/A',
+    },
+    transactionId: {
+      type: String,
+      trim: true,
+    },
+    paymentScreenshot: {
+      type: String,
     },
     additionalInfo: String,
   },
