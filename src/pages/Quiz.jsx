@@ -34,10 +34,25 @@ export default function Quiz() {
   const [joinError, setJoinError] = useState('');
   const [joining, setJoining] = useState(false);
   const timerRef = useRef(null);
+  const [startTime, setStartTime] = useState(null);
+  const [streak, setStreak] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [globalLeaderboard, setGlobalLeaderboard] = useState([]);
 
   useEffect(() => {
     fetchQuestions();
+    fetchLeaderboard();
   }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await axios.get('/api/users/leaderboard');
+      if (res.data.success) setGlobalLeaderboard(res.data.users || []);
+    } catch (err) {
+      console.error('Failed to fetch leaderboard', err);
+    }
+  };
 
   const fetchQuestions = async () => {
     setLoading(true);
@@ -87,9 +102,12 @@ export default function Quiz() {
     clearInterval(timerRef.current);
     setCurrent(0); setSelected(null); setRevealed(false);
     setScore(0); setAnswers([]); setFinished(false);
-    setStarted(false); setTimeLeft(TIMER_SECONDS);
+    setStarted(false); setTimeLeft(testSession?.timerSeconds || TIMER_SECONDS);
     setIsTestMode(false);
     setTestSession(null);
+    setStartTime(null);
+    setStreak(0);
+    setMaxStreak(0);
   };
 
   const handleJoinTest = async (e) => {
@@ -115,6 +133,8 @@ export default function Quiz() {
         setQuestions(mappedQuestions);
         setIsTestMode(true);
         setStarted(true);
+        setStartTime(Date.now());
+        setTimeLeft(session.timerSeconds || TIMER_SECONDS);
       }
     } catch (err) {
       setJoinError(err.response?.data?.message || 'Invalid Credentials');
@@ -125,6 +145,8 @@ export default function Quiz() {
 
   const handleStart = () => {
     setStarted(true);
+    setStartTime(Date.now());
+    setTimeLeft(testSession?.timerSeconds || TIMER_SECONDS);
   };
 
   const handleSelect = (idx) => { if (!revealed) setSelected(idx); };
@@ -134,16 +156,27 @@ export default function Quiz() {
     clearInterval(timerRef.current);
     setRevealed(true);
     const q = questions[current];
-    if (selected === q?.answer) setScore(s => s + 1);
+    if (selected === q?.answer) {
+      setScore(s => s + 1);
+      setStreak(prev => {
+        const next = prev + 1;
+        if (next > maxStreak) setMaxStreak(next);
+        return next;
+      });
+    } else {
+      setStreak(0);
+    }
     setAnswers(prev => [...prev, { selected, correct: q?.answer, timeout }]);
   };
 
   const submitResults = async () => {
     try {
+      const timeTaken = startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
       await axios.post('/api/quiz-sessions/submit', {
         sessionId: testSession._id,
         score: score,
-        totalQuestions: questions.length
+        totalQuestions: questions.length,
+        timeTaken: timeTaken
       });
     } catch (err) {
       console.error('Failed to submit results', err);
@@ -158,12 +191,17 @@ export default function Quiz() {
         submitResults();
       }
     }
-    else { setCurrent(c => c + 1); setSelected(null); setRevealed(false); setTimeLeft(TIMER_SECONDS); }
+    else { 
+      setCurrent(c => c + 1); 
+      setSelected(null); 
+      setRevealed(false); 
+      setTimeLeft(testSession?.timerSeconds || TIMER_SECONDS); 
+    }
   };
 
   const q = questions[current];
   const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
-  const timerPct = (timeLeft / TIMER_SECONDS) * 100;
+  const timerPct = (timeLeft / (testSession?.timerSeconds || TIMER_SECONDS)) * 100;
 
   // ── Start Screen ─────────────────────────────────────────────────────────────
   if (!started) return (
@@ -336,58 +374,80 @@ export default function Quiz() {
             <ArrowLeft className="w-4 h-4" /> Back to Setup
           </button>
           <div className="flex items-center gap-2 flex-wrap justify-end">
+            <button 
+              onClick={() => setShowLeaderboard(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
+            >
+              <Trophy className="w-3.5 h-3.5" /> Leaderboard
+            </button>
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{current + 1} / {questions.length}</span>
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-black/5 dark:border-white/5">
               <Clock className={`w-3 h-3 ${timeLeft <= 10 ? 'text-red-500' : 'text-slate-500'}`} />
               <span className={`text-xs font-black tabular-nums ${timeLeft <= 10 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}`}>{timeLeft}s</span>
             </div>
             <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-brand/10 border border-brand/20">
-              <Trophy className="w-3 h-3 text-brand" />
+              <CheckCircle className="w-3 h-3 text-brand" />
               <span className="text-xs font-black text-brand">{score}</span>
             </div>
+            {streak > 1 && (
+              <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 animate-bounce">
+                <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{streak} STREAK 🔥</span>
+              </div>
+            )}
           </div>
         </div>
+
         <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full transition-all duration-500" style={{ width: `${(current / questions.length) * 100}%` }} />
         </div>
         <div className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
           <div className={`h-full rounded-full transition-all duration-1000 ${timeLeft <= 10 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${timerPct}%` }} />
         </div>
+
         <div className="glass-panel p-4 md:p-6 flex flex-col gap-4 w-full">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`px-2.5 py-1 rounded-full text-[11px] font-black border ${diffColors[q.diffColor]}`}>{q.difficulty}</span>
-            <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-black border border-black/5 dark:border-white/5 uppercase tracking-widest">{q.category}</span>
-          </div>
-          <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-snug">{q.question}</p>
-          {q.code && (
-            <div className="bg-slate-950 rounded-xl overflow-hidden border border-white/10 w-full">
-              <div className="px-3 py-2 bg-slate-900 border-b border-white/5 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="ml-2 text-xs text-slate-500 font-mono">{q.category.toLowerCase()}</span>
+          {q ? (
+            <>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`px-2.5 py-1 rounded-full text-[11px] font-black border ${diffColors[q.diffColor]}`}>{q.difficulty}</span>
+                <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-black border border-black/5 dark:border-white/5 uppercase tracking-widest">{q.category}</span>
               </div>
-              <pre className="px-4 py-4 text-xs md:text-sm font-mono text-cyan-300 whitespace-pre-wrap break-all overflow-x-auto">{q.code}</pre>
-            </div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
-            {q.options.map((opt, idx) => {
-              let style = 'border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 cursor-pointer';
-              if (selected === idx && !revealed) style = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
-              if (revealed && idx === q.answer) style = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
-              if (revealed && selected === idx && idx !== q.answer) style = 'border-red-400 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300';
-              return (
-                <button key={idx} onClick={() => handleSelect(idx)} className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-xs md:text-sm font-bold text-left transition-all duration-200 w-full ${style}`}>
-                  <span className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[10px] font-black shrink-0">{String.fromCharCode(65 + idx)}</span>
-                  <span className="break-words min-w-0">{opt}</span>
-                </button>
-              );
-            })}
-          </div>
-          {revealed && (
-            <div className="flex items-start gap-2 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-black/5 dark:border-white/5">
-              <span className="text-lg">💡</span>
-              <p className="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{q.explanation}</p>
+              <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-snug">{q.question}</p>
+              {q.code && (
+                <div className="bg-slate-950 rounded-xl overflow-hidden border border-white/10 w-full">
+                  <div className="px-3 py-2 bg-slate-900 border-b border-white/5 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                    <span className="w-2 h-2 rounded-full bg-green-500" />
+                    <span className="ml-2 text-xs text-slate-500 font-mono">{q.category.toLowerCase()}</span>
+                  </div>
+                  <pre className="px-4 py-4 text-xs md:text-sm font-mono text-cyan-300 whitespace-pre-wrap break-all overflow-x-auto">{q.code}</pre>
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                {q.options.map((opt, idx) => {
+                  let style = 'border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 cursor-pointer';
+                  if (selected === idx && !revealed) style = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
+                  if (revealed && idx === q.answer) style = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
+                  if (revealed && selected === idx && idx !== q.answer) style = 'border-red-400 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300';
+                  return (
+                    <button key={idx} onClick={() => handleSelect(idx)} className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-xs md:text-sm font-bold text-left transition-all duration-200 w-full ${style}`}>
+                      <span className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center text-[10px] font-black shrink-0">{String.fromCharCode(65 + idx)}</span>
+                      <span className="break-words min-w-0">{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {revealed && (
+                <div className="flex items-start gap-2 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-black/5 dark:border-white/5">
+                  <span className="text-lg">💡</span>
+                  <p className="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{q.explanation}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="py-12 flex flex-col items-center gap-4">
+              <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs font-black uppercase tracking-widest text-slate-400">Loading Question...</span>
             </div>
           )}
         </div>
@@ -406,6 +466,43 @@ export default function Quiz() {
           </button>
         </div>
       </div>
+
+      {/* Leaderboard Drawer */}
+      {showLeaderboard && (
+        <div className="fixed inset-0 z-[100] flex justify-end">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowLeaderboard(false)} />
+          <div className="w-full max-w-md bg-white dark:bg-slate-950 h-full relative z-10 animate-in slide-in-from-right duration-500 border-l border-black/5 dark:border-white/5 flex flex-col">
+            <div className="p-8 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Leaderboard</h3>
+                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Top Performers</p>
+              </div>
+              <button onClick={() => setShowLeaderboard(false)} className="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">
+                <ArrowLeft className="w-5 h-5 rotate-180" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+              {globalLeaderboard.map((user, idx) => (
+                <div key={user._id} className="flex items-center justify-between p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
+                  <div className="flex items-center gap-4">
+                    <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${idx < 3 ? 'bg-brand text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-500'}`}>
+                      {idx + 1}
+                    </span>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{user.name}</span>
+                      <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{user.college || 'GAT'}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-xs font-black text-brand">{user.xp || 0} XP</span>
+                    <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{user.testsTaken || 0} Tests</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

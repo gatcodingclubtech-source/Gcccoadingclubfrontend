@@ -20,7 +20,7 @@ router.get('/generate', protect, adminOnly, (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, adminOnly, async (req, res) => {
   try {
-    const { testId, password, title, domain, questions } = req.body;
+    const { testId, password, title, domain, questions, timerSeconds } = req.body;
     
     const session = await QuizSession.create({
       testId,
@@ -28,6 +28,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
       title,
       domain,
       questions,
+      timerSeconds: timerSeconds || 30,
       createdBy: req.user._id
     });
 
@@ -76,7 +77,7 @@ router.post('/join', protect, async (req, res) => {
 // @access  Private
 router.post('/submit', protect, async (req, res) => {
   try {
-    const { sessionId, score, totalQuestions } = req.body;
+    const { sessionId, score, totalQuestions, timeTaken } = req.body;
     
     const session = await QuizSession.findById(sessionId);
     if (!session) {
@@ -87,12 +88,13 @@ router.post('/submit', protect, async (req, res) => {
     session.results.push({
       user: req.user._id,
       score,
-      totalQuestions
+      totalQuestions,
+      timeTaken
     });
 
     await session.save();
 
-    // Trigger Automation: Notify user and potentially update rank/points
+    // Trigger Automation
     await triggerAutomation({
       userId: req.user._id,
       title: 'Quiz Completed!',
@@ -101,6 +103,87 @@ router.post('/submit', protect, async (req, res) => {
     });
 
     res.json({ success: true, message: 'Result submitted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// @desc    Get results for a specific session
+// @route   GET /api/quiz-sessions/:id/results
+// @access  Private/Admin
+router.get('/:id/results', protect, adminOnly, async (req, res) => {
+  try {
+    const session = await QuizSession.findById(req.params.id)
+      .populate('results.user', 'name usn avatar department xp rank');
+
+    if (!session) {
+      return res.status(404).json({ success: false, message: 'Session not found' });
+    }
+
+    res.json({ success: true, session });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// @desc    Sync session results to global leaderboard
+// @route   POST /api/quiz-sessions/:id/sync
+// @access  Private/Admin
+router.post('/:id/sync', protect, adminOnly, async (req, res) => {
+  try {
+    const session = await QuizSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
+
+    const User = require('../models/User');
+    
+    // For each result, add XP to the user
+    for (const result of session.results) {
+      const points = result.score * 10; // 10 XP per correct answer
+      await User.findByIdAndUpdate(result.user, { $inc: { xp: points } });
+    }
+
+    res.json({ success: true, message: 'Leaderboard synced successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// @desc    Update a quiz session
+// @route   PUT /api/quiz-sessions/:id
+// @access  Private/Admin
+router.put('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const { title, testId, password, domain, questions, timerSeconds } = req.body;
+    const session = await QuizSession.findById(req.params.id);
+    
+    if (!session) {
+      return res.status(404).json({ success: false, message: 'Session not found' });
+    }
+
+    session.title = title || session.title;
+    session.testId = testId || session.testId;
+    session.password = password || session.password;
+    session.domain = domain || session.domain;
+    session.timerSeconds = timerSeconds || session.timerSeconds;
+    if (questions) session.questions = questions;
+
+    await session.save();
+    res.json({ success: true, session });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// @desc    Delete a quiz session
+// @route   DELETE /api/quiz-sessions/:id
+// @access  Private/Admin
+router.delete('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const session = await QuizSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
+
+    await session.deleteOne();
+    res.json({ success: true, message: 'Session removed' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

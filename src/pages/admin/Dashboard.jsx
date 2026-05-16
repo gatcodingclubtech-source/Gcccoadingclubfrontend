@@ -5,8 +5,10 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import gsap from 'gsap';
+import { useOnboarding } from '../../hooks/useOnboarding';
 
 export default function Dashboard() {
+  const { startAdminTour } = useOnboarding();
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeEvents: 0,
@@ -63,6 +65,20 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    if (!loading) {
+      const tourShown = localStorage.getItem('gcc_admin_tour_v4');
+      if (!tourShown) {
+        // Slight delay to ensure animations are finished
+        setTimeout(() => {
+          startAdminTour(() => {}, () => {
+            localStorage.setItem('gcc_admin_tour_v4', 'true');
+          });
+        }, 1500);
+      }
+    }
+  }, [loading]);
+
+  useEffect(() => {
     if (!loading && !animatedRef.current) {
       const cards = document.querySelectorAll('.stat-card');
       if (cards.length > 0) {
@@ -102,18 +118,33 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col gap-12">
       {/* Welcome Section */}
-      <div className="flex flex-col gap-3">
-        <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Dashboard</h1>
-        <div className="flex items-center gap-3">
-          <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
-            <Activity className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-widest">Live Updates</span>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="flex flex-col gap-3">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-emerald-500" />
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-widest">Live Updates</span>
+            </div>
           </div>
         </div>
+
+        <button 
+          onClick={() => startAdminTour()}
+          className="group px-6 py-3 rounded-2xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center gap-3 hover:border-emerald-500/50 transition-all shadow-xl shadow-black/5"
+        >
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+            <HelpCircle className="w-4 h-4" />
+          </div>
+          <div className="flex flex-col items-start">
+            <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest leading-none">System Guide</span>
+            <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">Start Interactive Tour</span>
+          </div>
+        </button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="admin-stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((card, idx) => (
           <div key={idx} className="stat-card glass-panel p-8 group hover:border-emerald-500/30 transition-all cursor-default">
             <div className="flex justify-between items-start mb-8">

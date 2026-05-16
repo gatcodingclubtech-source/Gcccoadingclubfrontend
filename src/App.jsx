@@ -28,6 +28,7 @@ import EventsManager from './pages/admin/EventsManager';
 import QuizManager from './pages/admin/QuizManager';
 import DomainCentral from './pages/admin/DomainCentral';
 import TestSessionManager from './pages/admin/TestSessionManager';
+import TestResults from './pages/admin/TestResults';
 import LiveRoomsManager from './pages/admin/LiveRoomsManager';
 import RegistrationsManager from './pages/admin/RegistrationsManager';
 import ManageDiscussions from './pages/admin/ManageDiscussions';
@@ -191,6 +192,7 @@ function AppLayout({ theme, toggleTheme, navVisible, mobileMenuOpen, setMobileMe
               <Route path="live-rooms" element={<LiveRoomsManager />} />
               <Route path="banners" element={<BannersManager />} />
               <Route path="test-sessions" element={<TestSessionManager />} />
+              <Route path="test-sessions/:id/results" element={<TestResults />} />
               <Route path="settings" element={<ClubSettings />} />
               <Route path="events/:id/registrations" element={<RegistrationsManager />} />
               <Route path="domain-apps" element={<Navigate to="/admin/domains" replace />} />

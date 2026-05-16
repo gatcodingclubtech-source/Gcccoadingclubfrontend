@@ -65,6 +65,7 @@ export default function AdminLayout() {
               <Link
                 key={item.path}
                 to={item.path}
+                id={`sidebar-${item.name.toLowerCase().replace(' ', '-')}`}
                 className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
                   location.pathname === item.path 
                     ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/30' 

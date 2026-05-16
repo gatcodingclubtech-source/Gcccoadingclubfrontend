@@ -23,11 +23,14 @@ export default function ManageDiscussions() {
   const fetchDiscussions = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/discussions`);
-      setDiscussions(res.data);
+      // Handle both raw array and structured response
+      const data = Array.isArray(res.data) ? res.data : (res.data?.discussions || []);
+      setDiscussions(data);
       setLoading(false);
     } catch (err) {
       toast.error('Failed to load discussions');
       setLoading(false);
+      setDiscussions([]); // Safe fallback
     }
   };
 
@@ -43,12 +46,12 @@ export default function ManageDiscussions() {
     }
   };
 
-  const filteredDiscussions = discussions.filter(disc => {
-    const matchesSearch = disc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         disc.content.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredDiscussions = Array.isArray(discussions) ? discussions.filter(disc => {
+    const matchesSearch = disc.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         disc.content?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === 'All' || disc.category === activeCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   return (
     <div className="space-y-8 animate-fade-in">
