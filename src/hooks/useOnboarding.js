@@ -2,15 +2,16 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 export const useOnboarding = () => {
-  const startHomeTour = () => {
-    // Show once per user/browser
-    if (localStorage.getItem('gcc_home_tour_v1')) return;
+  const startHomeTour = (onStart, onEnd) => {
+    // Show once per user/browser version
+    const tourVersion = 'gcc_home_tour_v2';
+    if (localStorage.getItem(tourVersion)) return;
     
     const driverObj = driver({
       showProgress: true,
       animate: true,
       overlayColor: 'rgba(0, 0, 0, 0.8)',
-      popoverClass: 'gcc-tour-theme', // We will add custom styles for dark mode
+      popoverClass: 'gcc-tour-theme', 
       steps: [
         {
           element: '#hero-title',
@@ -23,7 +24,20 @@ export const useOnboarding = () => {
           element: '#navbar-user-section, #navbar-auth-button, #mobile-menu-toggle',
           popover: {
             title: 'Account & Membership',
-            description: "This is where you can manage your profile, view your stats, or join the club if you haven't already!"
+            description: "This is where you can manage your profile, view your stats, or join the club if you haven't already!",
+            onNextClick: () => {
+              // If mobile drawer was opened, close it
+              const closeBtn = document.getElementById('mobile-menu-close');
+              if (closeBtn) closeBtn.click();
+              driverObj.moveNext();
+            }
+          },
+          onHighlightStarted: (element) => {
+            // For mobile: If the profile is in the drawer, we need to open the drawer first
+            if (window.innerWidth < 768) {
+              const toggle = document.getElementById('mobile-menu-toggle');
+              if (toggle) toggle.click();
+            }
           }
         },
         {
@@ -55,14 +69,21 @@ export const useOnboarding = () => {
           }
         }
       ],
+      onDeselected: () => {
+        // Global cleanup
+        const closeBtn = document.getElementById('mobile-menu-close');
+        if (closeBtn) closeBtn.click();
+      },
       onDestroyStarted: () => {
-        localStorage.setItem('gcc_home_tour_v1', 'true');
+        localStorage.setItem(tourVersion, 'true');
+        if (onEnd) onEnd();
         driverObj.destroy();
       }
     });
 
     // Slight delay to ensure DOM and animations are ready
     setTimeout(() => {
+      if (onStart) onStart();
       driverObj.drive();
     }, 2500);
   };
